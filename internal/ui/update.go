@@ -8,7 +8,12 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
+	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
+)
+
+const (
+	noSpaceAvailableMsg = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
 )
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -110,8 +115,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmd = m.updateTaskSequence()
 			cmds = append(cmds, cmd)
 
-		case "O":
+		case "I":
 			if m.activeView == taskEntryView {
+				break
+			}
+
+			if !m.isSpaceAvailable() {
+				m.message = noSpaceAvailableMsg
 				break
 			}
 
@@ -122,8 +132,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.activeView = taskEntryView
 			return m, tea.Batch(cmds...)
 
-		case "o":
+		case "O":
 			if m.activeView == taskEntryView {
+				break
+			}
+
+			if !m.isSpaceAvailable() {
+				m.message = noSpaceAvailableMsg
 				break
 			}
 
@@ -134,8 +149,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.activeView = taskEntryView
 			return m, tea.Batch(cmds...)
 
-		case "a":
+		case "a", "o":
 			if m.activeView == taskEntryView {
+				break
+			}
+
+			if !m.isSpaceAvailable() {
+				m.message = noSpaceAvailableMsg
 				break
 			}
 
@@ -152,6 +172,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "A":
 			if m.activeView == taskEntryView {
+				break
+			}
+
+			if !m.isSpaceAvailable() {
+				m.message = noSpaceAvailableMsg
 				break
 			}
 
@@ -442,4 +467,8 @@ func (m model) updateTaskSequence() tea.Cmd {
 	}
 
 	return updateTaskSequence(m.db, sequence)
+}
+
+func (m model) isSpaceAvailable() bool {
+	return len(m.taskList.Items()) < pers.TaskNumLimit
 }

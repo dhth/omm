@@ -24,7 +24,7 @@ func (m model) View() string {
 		if len(m.taskList.Items()) > 0 {
 			content = m.taskList.View()
 		} else {
-			content = taskInputFormStyle.Render("  No items. Press a to add one.")
+			content = taskInputFormStyle.Render("  No items. Press o to add one.")
 		}
 	case archivedTaskListView:
 		header = m.atlTitleStyle.Render("archived")

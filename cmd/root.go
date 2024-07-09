@@ -12,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 
+	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/ui"
 	"github.com/dhth/omm/internal/utils"
 	"github.com/spf13/cobra"
@@ -22,8 +23,6 @@ const (
 	repoIssuesUrl       = "https://github.com/dhth/omm/issues"
 	defaultDataDir      = ".local/share"
 	dbFileName          = "omm/omm.db"
-	maxTaskImportCount  = 1000
-	printTasksLimit     = 50
 	printTasksDefault   = 20
 	taskListTitleMaxLen = 8
 )
@@ -155,8 +154,8 @@ var importCmd = &cobra.Command{
 
 		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
-			if taskCounter > maxTaskImportCount {
-				die("Max number of tasks that can be imported at a time: %d", maxTaskImportCount)
+			if taskCounter > pers.TaskNumLimit {
+				die("Max number of tasks that can be imported at a time: %d", pers.TaskNumLimit)
 			}
 
 			line := scanner.Text()
@@ -231,7 +230,7 @@ func init() {
 	rootCmd.Flags().StringVar(&archivedTaskListColor, "atl-color", ui.ArchivedTLColor, "hex color used for the archived tasks list")
 	rootCmd.Flags().StringVar(&taskListTitle, "title", ui.TaskListDefaultTitle, fmt.Sprintf("title of the task list, will trim till %d chars", taskListTitleMaxLen))
 
-	tasksCmd.Flags().Uint8VarP(&printTasksNum, "num", "n", printTasksDefault, fmt.Sprintf("number of tasks to print; maximum allowed: %d", printTasksLimit))
+	tasksCmd.Flags().Uint8VarP(&printTasksNum, "num", "n", printTasksDefault, "number of tasks to print")
 
 	rootCmd.AddCommand(importCmd)
 	rootCmd.AddCommand(tasksCmd)

@@ -25,11 +25,20 @@ interface that can be managed entirely via the keyboard.
 💾 Installation
 ---
 
+**homebrew**:
+
+```sh
+brew install dhth/tap/omm
+```
+
 **go**:
 
 ```sh
 go install github.com/dhth/omm@latest
 ```
+
+Or get the binaries directly from a
+[release](https://github.com/dhth/omm/releases).
 
 ⚡️ Usage
 ---
@@ -46,6 +55,10 @@ go install github.com/dhth/omm@latest
 - archive/unarchive a task
 - view archived tasks
 - delete a task
+
+![Screen 1](https://tools.dhruvs.space/images/omm/omm-1.png)
+
+![Screen 2](https://tools.dhruvs.space/images/omm/omm-2.png)
 
 #### Tweaking the TUI
 
@@ -70,6 +83,9 @@ Assemble ACME jet-propelled pogo stick
 EOF
 ```
 
+Tip: Vim users can import tasks into omm by making a visual selection and
+running `:'<,'>!omm import<CR>`.
+
 ### Adding a single task
 
 When an argument is passed to `omm`, it saves it as a task, instead of opening
@@ -88,25 +104,26 @@ Tasks can be outputted to `stdout` using the `tasks` subcommand.
 omm tasks
 ```
 
-Screenshots
----
-
-![Screen 1](https://tools.dhruvs.space/images/omm/omm-1.png)
-
-![Screen 2](https://tools.dhruvs.space/images/omm/omm-2.png)
-
 ⌨️ Keymaps
 ---
 
 ```text
-j/↓: move cursor down                           k/↑: move cursor up
-o: add task above cursor                        a: add task below cursor
-O: add task at the beginning of list            A: add task at the end of list
-J: move task one position down                  K: move task one position up
-[2-9]: move task at index "x" to top of list    ⏎: move task on cursor to top of list
-ctrl+d: archive/unarchive task                  ctrl+x: delete task
-g: go to top of list                            G: go to end of list
-tab: move between views                         q/esc: go back/quit
+j/↓:    move cursor down
+k/↑:    move cursor up
+o/a:    add task below cursor
+O:      add task above cursor
+I:      add task at the top
+A:      add task at the end
+J:      move task one position down
+K:      move task one position up
+[2-9]:  move task at index "x" to top
+⏎:      move task to the top
+ctrl+d: archive/unarchive task
+ctrl+x: delete task
+g:      go to the top
+G:      go to the end
+tab:    move between views
+q/esc:  go back/quit
 ```
 
 Acknowledgements

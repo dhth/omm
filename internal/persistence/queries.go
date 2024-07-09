@@ -8,6 +8,26 @@ import (
 	"github.com/dhth/omm/internal/types"
 )
 
+const (
+	TaskNumLimit = 300
+)
+
+func FetchNumActiveTasksFromDB(db *sql.DB) (int, error) {
+
+	row := db.QueryRow(`
+SELECT json_array_length(sequence) AS num_tasks
+FROM task_sequence where id=1;
+`)
+
+	var numTasks int
+	err := row.Scan(&numTasks)
+	if err != nil {
+		return -1, err
+	}
+
+	return numTasks, nil
+}
+
 func UpdateTaskSequenceInDB(db *sql.DB, sequence []uint64) error {
 
 	sequenceJson, err := json.Marshal(sequence)
@@ -261,7 +281,7 @@ JOIN json_each(s.sequence) j ON CAST(j.value AS INTEGER) = t.id
 JOIN task t ON t.id = j.value
 ORDER BY j.key
 LIMIT ?;
-    `, limit)
+`, limit)
 	if err != nil {
 		return nil, err
 	}

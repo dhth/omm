@@ -11,8 +11,8 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
-	"github.com/dhth/omm/internal/utils"
 )
 
 type itemDelegate struct {
@@ -31,7 +31,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	start, _ := m.Paginator.GetSliceBounds(index)
 	si := (index - start) % m.Paginator.PerPage
 
-	str := fmt.Sprintf("[%d]\t%s", si+1, utils.RightPadTrim(i.Summary, 80, true))
+	str := fmt.Sprintf("[%d]\t%s", si+1, i.Summary)
 
 	fn := itemStyle.Render
 	if index == m.Index() {
@@ -45,8 +45,8 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 
 func (m model) Init() tea.Cmd {
 	return tea.Batch(
-		fetchTasks(m.db, true, 50),
-		fetchTasks(m.db, false, 50),
+		fetchTasks(m.db, true, pers.TaskNumLimit),
+		fetchTasks(m.db, false, pers.TaskNumLimit),
 		hideHelp(time.Minute*1),
 	)
 }
