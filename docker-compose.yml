@@ -1,0 +1,10 @@
+version: '3.8'
+
+# to test workings on linux
+services:
+  omm-dev:
+    image: golang:1.22.5-alpine
+    volumes:
+      - .:/go/src/app
+    working_dir: /go/src/app
+    command: sleep infinity

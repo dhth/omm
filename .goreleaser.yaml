@@ -1,0 +1,45 @@
+version: 2
+
+release:
+  draft: true
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+
+signs:
+  - cmd: cosign
+    stdin: "{{ .Env.COSIGN_PASSWORD }}"
+    args:
+      - "sign-blob"
+      - "--key=cosign.key"
+      - "--output-signature=${signature}"
+      - "${artifact}"
+      - "--yes" # needed on cosign 2.0.0+
+    artifacts: all
+
+brews:
+  - name: omm
+    repository:
+      owner: dhth
+      name: homebrew-tap
+    directory: Formula
+    license: MIT
+    homepage: "https://github.com/dhth/omm"
+    description: "omm is a keyboard-driven task manager for the command line"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^ci:"
