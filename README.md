@@ -40,14 +40,30 @@ go install github.com/dhth/omm@latest
 Or get the binaries directly from a
 [release](https://github.com/dhth/omm/releases).
 
+💡 Guide
+---
+
+omm offers guided walkthrough of its features, intended for new users of it. Run
+it as follows.
+
+```bash
+omm guide
+```
+
+![Guide](https://tools.dhruvs.space/images/omm/omm-guide-1.png)
+
 ⚡️ Usage
 ---
 
 ### TUI
 
-`omm`'s TUI allows you to do the following (all with one or two key presses):
+`omm`'s TUI is comprised of several panes: 2 lists (for active and archived
+tasks), a context pane, and a task entry/update pane.
+
+You can do the following via the TUI:
 
 - create/update tasks at a specific position in the priority list
+- add/update context for a task
 - add a task at the start/end of the list
 - move a task to the top of the list (indicating that it takes the highest
     priority at the moment)
@@ -55,10 +71,6 @@ Or get the binaries directly from a
 - archive/unarchive a task
 - view archived tasks
 - delete a task
-
-![Screen 1](https://tools.dhruvs.space/images/omm/omm-1.png)
-
-![Screen 2](https://tools.dhruvs.space/images/omm/omm-2.png)
 
 #### Tweaking the TUI
 
@@ -70,6 +82,22 @@ omm \
     --atl-color="#fb4934" \
     --title="work"
 ```
+
+omm offers two modes for the visual density of its lists: "compact" and
+"spacious", the former being the default. omm can be started with one of
+the two modes, which can later be switched by pressing "v".
+
+```bash
+omm --list-density=spacious
+```
+
+Compact mode:
+
+![compact mode](https://tools.dhruvs.space/images/omm/omm-1.png)
+
+Spacious mode:
+
+![spacious mode](https://tools.dhruvs.space/images/omm/omm-2.png)
 
 ### Importing tasks
 
@@ -108,22 +136,27 @@ omm tasks
 ---
 
 ```text
-j/↓:    move cursor down
-k/↑:    move cursor up
-o/a:    add task below cursor
-O:      add task above cursor
-I:      add task at the top
-A:      add task at the end
-J:      move task one position down
-K:      move task one position up
-[2-9]:  move task at index "x" to top
-⏎:      move task to the top
-ctrl+d: archive/unarchive task
-ctrl+x: delete task
-g:      go to the top
-G:      go to the end
-tab:    move between views
-q/esc:  go back/quit
+j/↓            move cursor down
+k/↑            move cursor up
+o/a            add task below cursor
+O              add task above cursor
+I              add task at the top
+A              add task at the end
+u              update task summary
+⏎              move task to the top
+[2-9]          move task at index [x] to top (only in compact view)
+J              move task one position down
+K              move task one position up
+ctrl+d         archive/unarchive task
+ctrl+x         delete task
+g              go to the top
+G              go to the end
+tab            move between views
+c              update context for a task
+d              show task details in a full screen pane
+v              toggle between compact and spacious view
+`              toggle showing context
+q/esc/ctrl+c   go back/quit
 ```
 
 Acknowledgements

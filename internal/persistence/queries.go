@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	TaskNumLimit = 300
+	TaskNumLimit    = 300
+	ContentMaxBytes = 3000
 )
 
 func FetchNumActiveTasksFromDB(db *sql.DB) (int, error) {
@@ -55,7 +56,7 @@ UPDATE task_sequence SET sequence = ? where id = 1;
 func InsertTaskInDB(db *sql.DB, summary string, createdAt, updatedAt time.Time) (uint64, error) {
 
 	stmt, err := db.Prepare(`
-INSERT into task (summary, active, created_at, updated_at)
+INSERT INTO task (summary, active, created_at, updated_at)
 VALUES (?, true, ?, ?);
 `)
 	if err != nil {
@@ -144,7 +145,7 @@ UPDATE task_sequence SET sequence = ? where id = 1;
 	return nil
 }
 
-func ImportTasksIntoDB(db *sql.DB, tasks []string, active bool, createdAt, updatedAt time.Time) error {
+func ImportTaskSummariesIntoDB(db *sql.DB, tasks []string, active bool, createdAt, updatedAt time.Time) error {
 
 	tx, err := db.Begin()
 	if err != nil {
@@ -229,6 +230,69 @@ UPDATE task_sequence SET sequence = ? where id = 1;
 	return nil
 }
 
+func InsertTasksIntoDB(db *sql.DB, tasks []types.Task) error {
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		_ = tx.Rollback()
+	}()
+
+	query := `INSERT INTO task (summary, context, active, created_at, updated_at)
+VALUES `
+
+	values := make([]interface{}, 0, len(tasks)*4)
+
+	var seqItems []int
+	seqCounter := 1
+	for i, t := range tasks {
+		if i > 0 {
+			query += ","
+		}
+		query += "(?, ?, ?, ?, ?)"
+		values = append(values, t.Summary, t.Context, t.Active, t.CreatedAt.UTC(), t.UpdatedAt.UTC())
+
+		if t.Active {
+			seqItems = append(seqItems, seqCounter)
+		}
+		seqCounter++
+	}
+
+	query += ";"
+
+	_, err = tx.Exec(query, values...)
+	if err != nil {
+		return err
+	}
+
+	sequenceJson, err := json.Marshal(seqItems)
+	if err != nil {
+		return err
+	}
+
+	seqUpdateStmt, err := tx.Prepare(`
+UPDATE task_sequence SET sequence = ? where id = 1;
+`)
+	if err != nil {
+		return err
+	}
+	defer seqUpdateStmt.Close()
+
+	_, err = seqUpdateStmt.Exec(sequenceJson)
+
+	if err != nil {
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func UpdateTaskSummaryInDB(db *sql.DB, id uint64, summary string) error {
 
 	stmt, err := db.Prepare(`
@@ -242,6 +306,46 @@ WHERE id = ?
 	defer stmt.Close()
 
 	_, err = stmt.Exec(summary, id)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UpdateTaskContextInDB(db *sql.DB, id uint64, context string) error {
+
+	stmt, err := db.Prepare(`
+UPDATE task
+SET context = ?
+WHERE id = ?
+`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(context, id)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func UnsetTaskContextInDB(db *sql.DB, id uint64) error {
+
+	stmt, err := db.Prepare(`
+UPDATE task
+SET context = NULL
+WHERE id = ?
+`)
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	_, err = stmt.Exec(id)
 
 	if err != nil {
 		return err
@@ -275,7 +379,7 @@ func FetchActiveTasksFromDB(db *sql.DB, limit int) ([]types.Task, error) {
 	var tasks []types.Task
 
 	rows, err := db.Query(`
-SELECT t.id, t.summary, t.created_at, t.updated_at
+SELECT t.id, t.summary, t.context, t.created_at, t.updated_at
 FROM task_sequence s
 JOIN json_each(s.sequence) j ON CAST(j.value AS INTEGER) = t.id
 JOIN task t ON t.id = j.value
@@ -291,6 +395,7 @@ LIMIT ?;
 		var entry types.Task
 		err = rows.Scan(&entry.ID,
 			&entry.Summary,
+			&entry.Context,
 			&entry.CreatedAt,
 			&entry.UpdatedAt,
 		)
@@ -311,7 +416,7 @@ func FetchInActiveTasksFromDB(db *sql.DB, limit int) ([]types.Task, error) {
 	var tasks []types.Task
 
 	rows, err := db.Query(`
-SELECT id, summary, created_at, updated_at
+SELECT id, summary, context, created_at, updated_at
 FROM task where active is false
 ORDER BY updated_at DESC
 LIMIT ?;
@@ -325,6 +430,7 @@ LIMIT ?;
 		var entry types.Task
 		err = rows.Scan(&entry.ID,
 			&entry.Summary,
+			&entry.Context,
 			&entry.CreatedAt,
 			&entry.UpdatedAt,
 		)

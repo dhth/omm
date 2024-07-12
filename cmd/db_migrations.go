@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	latestDBVersion = 1 // only upgrade this after adding a migration in getMigrations
+	latestDBVersion = 2 // only upgrade this after adding a migration in getMigrations
 )
 
 type dbVersionInfo struct {
@@ -20,10 +20,10 @@ func getMigrations() map[int]string {
 	// these migrations should not be modified once released.
 	// that is, migrations is an append-only map.
 
-	// migrations[2] = `
-	// ALTER TABLE task
-	//     ADD COLUMN a_col INTEGER NOT NULL DEFAULT 1;
-	// `
+	migrations[2] = `
+ALTER TABLE task
+ADD COLUMN context TEXT;
+`
 
 	return migrations
 }

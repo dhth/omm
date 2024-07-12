@@ -34,6 +34,14 @@ type taskSummaryUpdatedMsg struct {
 	err         error
 }
 
+type taskContextUpdatedMsg struct {
+	listIndex int
+	list      taskListType
+	id        uint64
+	context   string
+	err       error
+}
+
 type taskStatusChangedMsg struct {
 	listIndex int
 	id        uint64
@@ -46,4 +54,12 @@ type tasksFetched struct {
 	tasks  []types.Task
 	active bool
 	err    error
+}
+
+type textEditorClosed struct {
+	fPath      string
+	taskIndex  int
+	taskId     uint64
+	oldContext *string
+	err        error
 }

@@ -34,6 +34,6 @@ func importTasks(db *sql.DB, taskSummaries []string) error {
 		return importWillExceedTaskLimitErr
 	}
 
-	now := time.Now().AddDate(-1, 0, 0)
-	return pers.ImportTasksIntoDB(db, taskSummaries, true, now, now)
+	now := time.Now()
+	return pers.ImportTaskSummariesIntoDB(db, taskSummaries, true, now, now)
 }

@@ -19,7 +19,8 @@ func RenderUI(db *sql.DB, config Config) {
 		}
 		defer f.Close()
 	}
-	p := tea.NewProgram(InitialModel(db, config))
+
+	p := tea.NewProgram(InitialModel(db, config), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		log.Fatalf("Something went wrong %s", err)
 	}

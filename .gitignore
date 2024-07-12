@@ -6,3 +6,4 @@ justfile
 .notes
 debug.log
 tasks.txt
+.cmds

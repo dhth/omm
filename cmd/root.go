@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"time"
 
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/ui"
@@ -34,6 +35,10 @@ var (
 	archivedTaskListColor string
 	printTasksNum         uint8
 	taskListTitle         string
+	listDensityVal        string
+	viewType              ui.ListDensityType
+	textEditorCmd         string
+	contextPane           bool
 )
 
 func die(msg string, args ...any) {
@@ -74,7 +79,7 @@ Error: %s`,
 
 		if err != nil {
 			die(`Couldn't create omm's local database. This is a fatal error;
-let %s know about this via %s.
+Let %s know about this via %s.
 
 Error: %s`,
 				author,
@@ -85,7 +90,7 @@ Error: %s`,
 		err = initDB(db)
 		if err != nil {
 			die(`Couldn't create omm's local database. This is a fatal error;
-let %s know about this via %s.
+Let %s know about this via %s.
 
 Error: %s`,
 				author,
@@ -97,7 +102,7 @@ Error: %s`,
 		db, err = getDB(dbPathFull)
 		if err != nil {
 			die(`Couldn't open omm's local database. This is a fatal error;
-let %s know about this via %s.
+Let %s know about this via %s.
 
 Error: %s`,
 				author,
@@ -121,6 +126,23 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 `,
 	Args: cobra.MaximumNArgs(1),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		switch listDensityVal {
+		case ui.CompactDensityVal:
+			viewType = ui.Compact
+		case ui.SpaciousDensityVal:
+			viewType = ui.Spacious
+		default:
+			die("view type is incorrect")
+		}
+
+		if cmd.CalledAs() == "guide" {
+			tempDir := os.TempDir()
+			timestamp := time.Now().UnixNano()
+			tempFileName := fmt.Sprintf("omm-%d.db", timestamp)
+			tempFilePath := filepath.Join(tempDir, tempFileName)
+			dbPath = tempFilePath
+		}
+
 		setupDB()
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -128,11 +150,25 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			if len(taskListTitle) > taskListTitleMaxLen {
 				taskListTitle = taskListTitle[:taskListTitleMaxLen]
 			}
+
+			var editorCmd string
+
+			if textEditorCmd != "" {
+				editorCmd = textEditorCmd
+			} else {
+				editorCmd = getUserConfiguredEditor()
+			}
+
 			config := ui.Config{
+				DBPath:                dbPath,
+				ListDensity:           viewType,
 				TaskListColor:         taskListColor,
 				ArchivedTaskListColor: archivedTaskListColor,
 				TaskListTitle:         taskListTitle,
+				TextEditorCmd:         strings.Fields(editorCmd),
+				ContextPane:           contextPane,
 			}
+
 			ui.RenderUI(db, config)
 		} else {
 			summary := utils.Trim(args[0], ui.TaskSummaryMaxLen)
@@ -193,13 +229,51 @@ var tasksCmd = &cobra.Command{
 	},
 }
 
+var guideCmd = &cobra.Command{
+	Use:   "guide",
+	Short: "Starts a guided walkthrough of omm's features",
+	PreRun: func(cmd *cobra.Command, args []string) {
+
+		guideErr := insertGuideTasks(db)
+		if guideErr != nil {
+			die(`Failed to set up a guided walkthrough.
+Let %s know about this via %s.
+
+Error: %s`, author, repoIssuesUrl, guideErr)
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+
+		var editorCmd string
+
+		if textEditorCmd != "" {
+			editorCmd = textEditorCmd
+		} else {
+			editorCmd = getUserConfiguredEditor()
+		}
+
+		config := ui.Config{
+			DBPath:                dbPath,
+			ListDensity:           viewType,
+			TaskListColor:         taskListColor,
+			ArchivedTaskListColor: archivedTaskListColor,
+			TaskListTitle:         taskListTitle,
+			TextEditorCmd:         strings.Fields(editorCmd),
+			ContextPane:           contextPane,
+			Guide:                 true,
+		}
+
+		ui.RenderUI(db, config)
+	},
+}
+
 func getUserHomeDir() string {
 	currentUser, err := user.Current()
 
 	if err != nil {
 		die(`Couldn't get your home directory. This is a fatal error;
 use --dbpath to specify database path manually
-let %s know about this via %s.
+Let %s know about this via %s.
 
 Error: %s`, author, repoIssuesUrl, err)
 	}
@@ -229,11 +303,15 @@ func init() {
 	rootCmd.Flags().StringVar(&taskListColor, "tl-color", ui.TaskListColor, "hex color used for the task list")
 	rootCmd.Flags().StringVar(&archivedTaskListColor, "atl-color", ui.ArchivedTLColor, "hex color used for the archived tasks list")
 	rootCmd.Flags().StringVar(&taskListTitle, "title", ui.TaskListDefaultTitle, fmt.Sprintf("title of the task list, will trim till %d chars", taskListTitleMaxLen))
+	rootCmd.Flags().StringVar(&listDensityVal, "list-density", ui.CompactDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]", ui.CompactDensityVal, ui.SpaciousDensityVal))
+	rootCmd.Flags().StringVar(&textEditorCmd, "editor", "", "editor command to run when adding/editing context to a task; if absent, omm falls back to $EDITOR, or $VISUAL, in that order")
+	rootCmd.Flags().BoolVar(&contextPane, "context-pane", true, "whether to start omm with a visible task context pane or not; this can be toggled on/off in the TUI by pressing the backtick(`) key")
 
 	tasksCmd.Flags().Uint8VarP(&printTasksNum, "num", "n", printTasksDefault, "number of tasks to print")
 
 	rootCmd.AddCommand(importCmd)
 	rootCmd.AddCommand(tasksCmd)
+	rootCmd.AddCommand(guideCmd)
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 }

@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"os/exec"
 	"time"
 
 	"database/sql"
@@ -45,6 +46,18 @@ func updateTaskSummary(db *sql.DB, listIndex int, id uint64, summary string) tea
 	}
 }
 
+func updateTaskContext(db *sql.DB, listIndex int, id uint64, context string, list taskListType) tea.Cmd {
+	return func() tea.Msg {
+		var err error
+		if context == "" {
+			err = pers.UnsetTaskContextInDB(db, id)
+		} else {
+			err = pers.UpdateTaskContextInDB(db, id, context)
+		}
+		return taskContextUpdatedMsg{listIndex, list, id, context, err}
+	}
+}
+
 func changeTaskStatus(db *sql.DB, listIndex int, id uint64, active bool, updatedAt time.Time) tea.Cmd {
 	return func() tea.Msg {
 		err := pers.ChangeTaskStatusInDB(db, id, active, updatedAt)
@@ -64,4 +77,13 @@ func fetchTasks(db *sql.DB, active bool, limit int) tea.Cmd {
 		}
 		return tasksFetched{tasks, active, err}
 	}
+}
+
+func openTextEditor(fPath string, editorCmd []string, taskIndex int, taskId uint64, oldContext *string) tea.Cmd {
+
+	c := exec.Command(editorCmd[0], append(editorCmd[1:], fPath)...)
+
+	return tea.ExecProcess(c, func(err error) tea.Msg {
+		return tea.Msg(textEditorClosed{fPath, taskIndex, taskId, oldContext, err})
+	})
 }
