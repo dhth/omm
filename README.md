@@ -60,17 +60,49 @@ omm guide
 `omm`'s TUI is comprised of several panes: 2 lists (for active and archived
 tasks), a context pane, and a task entry/update pane.
 
-You can do the following via the TUI:
+#### Active Tasks List
 
-- create/update tasks at a specific position in the priority list
-- add/update context for a task
-- add a task at the start/end of the list
-- move a task to the top of the list (indicating that it takes the highest
-    priority at the moment)
-- move task up/down based on changing priorities
-- archive/unarchive a task
-- view archived tasks
-- delete a task
+As the name suggests, the active tasks list is for the tasks you're actively
+working on right now. It allows you to do the following:
+
+- Create/update tasks at a specific position in the priority list
+- Add a task at the start/end of the list
+- Move a task to the top of the list (indicating that it takes the highest
+    Priority at the moment)
+- Move task up/down based on changing priorities
+- Permanently delete a task
+
+![active-tasks](https://tools.dhruvs.space/images/omm/omm-active-tasks-1.png)
+
+#### Archived Tasks List
+
+Once you're done with a task, you can archive it, which puts it in the archived
+tasks list. It's more for historical reference, but you can also unarchive a
+task and put it in the active list, if you need to. You can also permanently
+delete tasks from here.
+
+![active-tasks](https://tools.dhruvs.space/images/omm/omm-archived-tasks-1.png)
+
+#### Context Pane
+
+For tasks that need more details that you can fit in a one line summary, there
+is the context pane. You add/update context for a task via a text editor which
+is chosen based on the following look ups:
+
+- the `--editor` flag
+- the environment variable `EDITOR`
+- the environment variable `VISUAL`
+- `vi` (fallback)
+
+![active-tasks](https://tools.dhruvs.space/images/omm/omm-context-1.png)
+
+#### Task Entry Pane
+
+This is where you enter/update a task summary. If you enter a summary in the
+format `prefix: task summary goes here`, `omm` will highlight the prefix for you
+in the task lists.
+
+![active-tasks](https://tools.dhruvs.space/images/omm/omm-task-entry-1.png)
 
 #### Tweaking the TUI
 
@@ -93,11 +125,11 @@ omm --list-density=spacious
 
 Compact mode:
 
-![compact mode](https://tools.dhruvs.space/images/omm/omm-1.png)
+![compact](https://tools.dhruvs.space/images/omm/omm-compact-1.png)
 
 Spacious mode:
 
-![spacious mode](https://tools.dhruvs.space/images/omm/omm-2.png)
+![spacious](https://tools.dhruvs.space/images/omm/omm-spacious-1.png)
 
 ### Importing tasks
 
@@ -136,27 +168,27 @@ omm tasks
 ---
 
 ```text
-j/↓            move cursor down
-k/↑            move cursor up
-o/a            add task below cursor
-O              add task above cursor
-I              add task at the top
-A              add task at the end
-u              update task summary
-⏎              move task to the top
-[2-9]          move task at index [x] to top (only in compact view)
-J              move task one position down
-K              move task one position up
-ctrl+d         archive/unarchive task
-ctrl+x         delete task
-g              go to the top
-G              go to the end
-tab            move between views
-c              update context for a task
-d              show task details in a full screen pane
-v              toggle between compact and spacious view
-`              toggle showing context
-q/esc/ctrl+c   go back/quit
+j/↓                move cursor down
+k/↑                move cursor up
+o/a                add task below cursor
+O                  add task above cursor
+I                  add task at the top
+A                  add task at the end
+u                  update task summary
+⏎                  move task to the top
+[2-9]              move task at index [x] to top (only in compact view)
+J                  move task one position down
+K                  move task one position up
+ctrl+d             archive/unarchive task
+ctrl+x             delete task
+g                  go to the top
+G                  go to the end
+tab                move between views
+c                  update context for a task
+d                  show task details in a full screen pane
+v                  toggle between compact and spacious view
+`                  toggle showing context
+q/esc/ctrl+c       go back/quit
 ```
 
 Acknowledgements

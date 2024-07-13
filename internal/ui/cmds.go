@@ -41,20 +41,22 @@ func deleteTask(db *sql.DB, id uint64, index int, active bool) tea.Cmd {
 
 func updateTaskSummary(db *sql.DB, listIndex int, id uint64, summary string) tea.Cmd {
 	return func() tea.Msg {
-		err := pers.UpdateTaskSummaryInDB(db, id, summary)
-		return taskSummaryUpdatedMsg{listIndex, id, summary, err}
+		now := time.Now()
+		err := pers.UpdateTaskSummaryInDB(db, id, summary, now)
+		return taskSummaryUpdatedMsg{listIndex, id, summary, now, err}
 	}
 }
 
 func updateTaskContext(db *sql.DB, listIndex int, id uint64, context string, list taskListType) tea.Cmd {
 	return func() tea.Msg {
 		var err error
+		now := time.Now()
 		if context == "" {
-			err = pers.UnsetTaskContextInDB(db, id)
+			err = pers.UnsetTaskContextInDB(db, id, now)
 		} else {
-			err = pers.UpdateTaskContextInDB(db, id, context)
+			err = pers.UpdateTaskContextInDB(db, id, context, now)
 		}
-		return taskContextUpdatedMsg{listIndex, list, id, context, err}
+		return taskContextUpdatedMsg{listIndex, list, id, context, now, err}
 	}
 }
 

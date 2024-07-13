@@ -21,5 +21,5 @@ type Config struct {
 	TextEditorCmd         []string
 	Guide                 bool
 	DBPath                string
-	ContextPane           bool
+	ShowContext           bool
 }

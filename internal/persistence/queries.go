@@ -37,7 +37,9 @@ func UpdateTaskSequenceInDB(db *sql.DB, sequence []uint64) error {
 	}
 
 	stmt, err := db.Prepare(`
-UPDATE task_sequence SET sequence = ? where id = 1;
+UPDATE task_sequence
+SET sequence = ?
+WHERE id = 1;
 `)
 	if err != nil {
 		return err
@@ -125,7 +127,9 @@ VALUES (?, ?, ?, ?);`
 	}
 
 	seqUpdateStmt, err := tx.Prepare(`
-UPDATE task_sequence SET sequence = ? where id = 1;
+UPDATE task_sequence
+SET sequence = ?
+WHERE id = 1;
 `)
 	if err != nil {
 		return err
@@ -210,7 +214,9 @@ VALUES `
 	}
 
 	seqUpdateStmt, err := tx.Prepare(`
-UPDATE task_sequence SET sequence = ? where id = 1;
+UPDATE task_sequence
+SET sequence = ?
+WHERE id = 1;
 `)
 	if err != nil {
 		return err
@@ -273,7 +279,9 @@ VALUES `
 	}
 
 	seqUpdateStmt, err := tx.Prepare(`
-UPDATE task_sequence SET sequence = ? where id = 1;
+UPDATE task_sequence
+SET sequence = ?
+WHERE id = 1;
 `)
 	if err != nil {
 		return err
@@ -293,11 +301,12 @@ UPDATE task_sequence SET sequence = ? where id = 1;
 	return nil
 }
 
-func UpdateTaskSummaryInDB(db *sql.DB, id uint64, summary string) error {
+func UpdateTaskSummaryInDB(db *sql.DB, id uint64, summary string, updatedAt time.Time) error {
 
 	stmt, err := db.Prepare(`
 UPDATE task
-SET summary = ?
+SET summary = ?,
+    updated_at = ?
 WHERE id = ?
 `)
 	if err != nil {
@@ -305,7 +314,7 @@ WHERE id = ?
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(summary, id)
+	_, err = stmt.Exec(summary, updatedAt.UTC(), id)
 
 	if err != nil {
 		return err
@@ -313,11 +322,12 @@ WHERE id = ?
 	return nil
 }
 
-func UpdateTaskContextInDB(db *sql.DB, id uint64, context string) error {
+func UpdateTaskContextInDB(db *sql.DB, id uint64, context string, updatedAt time.Time) error {
 
 	stmt, err := db.Prepare(`
 UPDATE task
-SET context = ?
+SET context = ?,
+    updated_at = ?
 WHERE id = ?
 `)
 	if err != nil {
@@ -325,7 +335,7 @@ WHERE id = ?
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(context, id)
+	_, err = stmt.Exec(context, updatedAt.UTC(), id)
 
 	if err != nil {
 		return err
@@ -333,11 +343,12 @@ WHERE id = ?
 	return nil
 }
 
-func UnsetTaskContextInDB(db *sql.DB, id uint64) error {
+func UnsetTaskContextInDB(db *sql.DB, id uint64, updatedAt time.Time) error {
 
 	stmt, err := db.Prepare(`
 UPDATE task
-SET context = NULL
+SET context = NULL,
+    updated_at = ?
 WHERE id = ?
 `)
 	if err != nil {
@@ -345,7 +356,7 @@ WHERE id = ?
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(id)
+	_, err = stmt.Exec(updatedAt.UTC(), id)
 
 	if err != nil {
 		return err

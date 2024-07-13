@@ -127,7 +127,7 @@ func (m model) View() string {
 	components = append(components, headerStyle.Render(header))
 	components = append(components, content)
 
-	if !listEmpty && m.cfg.ContextPane && (m.activeView == taskListView || m.activeView == archivedTaskListView) {
+	if !listEmpty && m.cfg.ShowContext && (m.activeView == taskListView || m.activeView == archivedTaskListView) {
 
 		if !m.contextVPReady {
 			context = contextTextStyle.Render("Initializing...")

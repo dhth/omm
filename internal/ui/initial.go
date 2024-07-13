@@ -75,6 +75,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		atlTitleStyle:     archivedTaskListTitleStyle,
 		tlSelStyle:        tlSelItemStyle,
 		atlSelStyle:       atlSelItemStyle,
+		contextVPTaskId:   0,
 	}
 
 	return m

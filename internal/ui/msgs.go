@@ -31,6 +31,7 @@ type taskSummaryUpdatedMsg struct {
 	listIndex   int
 	id          uint64
 	taskSummary string
+	updatedAt   time.Time
 	err         error
 }
 
@@ -39,6 +40,7 @@ type taskContextUpdatedMsg struct {
 	list      taskListType
 	id        uint64
 	context   string
+	updatedAt time.Time
 	err       error
 }
 

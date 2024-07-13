@@ -76,8 +76,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.archivedTaskList.SetWidth(msg.Width - 2)
 
 		var listHeight int
-		if m.cfg.ContextPane {
-			listHeight = (msg.Height*3)/5 - h
+		if m.cfg.ShowContext {
+			listHeight = msg.Height/2 - h
 		} else {
 			listHeight = msg.Height - h - 4
 		}
@@ -317,16 +317,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			listItem := m.taskList.SelectedItem()
 			index := m.taskList.Index()
-			task, ok := listItem.(types.Task)
+			t, ok := listItem.(types.Task)
 			if !ok {
 				m.errorMsg = "Something went wrong"
 				break
 			}
 
-			m.taskInput.SetValue(task.Summary)
+			m.taskInput.SetValue(t.Summary)
 			m.taskInput.Focus()
 			m.taskIndex = index
-			m.taskId = task.ID
+			m.taskId = t.ID
 			m.taskChange = taskUpdateSummary
 			m.activeView = taskEntryView
 			return m, tea.Batch(cmds...)
@@ -340,13 +340,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				listItem := m.taskList.SelectedItem()
 				index := m.taskList.Index()
-				task, ok := listItem.(types.Task)
+				t, ok := listItem.(types.Task)
 				if !ok {
 					m.errorMsg = "Something went wrong"
 					break
 				}
 
-				cmd = changeTaskStatus(m.db, index, task.ID, false, time.Now())
+				cmd = changeTaskStatus(m.db, index, t.ID, false, time.Now())
 				cmds = append(cmds, cmd)
 
 			case archivedTaskListView:
@@ -356,13 +356,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				listItem := m.archivedTaskList.SelectedItem()
 				index := m.archivedTaskList.Index()
-				task, ok := listItem.(types.Task)
+				t, ok := listItem.(types.Task)
 				if !ok {
 					m.errorMsg = "Something went wrong"
 					break
 				}
 
-				cmd = changeTaskStatus(m.db, index, task.ID, true, time.Now())
+				cmd = changeTaskStatus(m.db, index, t.ID, true, time.Now())
 				cmds = append(cmds, cmd)
 			}
 
@@ -374,12 +374,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				index := m.taskList.Index()
-				task, ok := m.taskList.SelectedItem().(types.Task)
+				t, ok := m.taskList.SelectedItem().(types.Task)
 				if !ok {
 					m.errorMsg = "Something went wrong"
 					break
 				}
-				cmd = deleteTask(m.db, task.ID, index, true)
+				cmd = deleteTask(m.db, t.ID, index, true)
 				cmds = append(cmds, cmd)
 
 			case archivedTaskListView:
@@ -482,8 +482,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			atlIndex := m.archivedTaskList.Index()
 
 			var listHeight int
-			if m.cfg.ContextPane {
-				listHeight = (m.terminalHeight*3)/5 - h
+			if m.cfg.ShowContext {
+				listHeight = m.terminalHeight/2 - h
 			} else {
 				listHeight = m.terminalHeight - h - 4
 			}
@@ -551,20 +551,31 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
+			m.cfg.ShowContext = !m.cfg.ShowContext
+
 			_, h := listStyle.GetFrameSize()
 			var listHeight int
 			if m.cfg.ListDensity == Spacious {
-				switch m.cfg.ContextPane {
+				switch m.cfg.ShowContext {
 				case true:
-					listHeight = m.terminalHeight - h - 4
+					listHeight = m.terminalHeight/2 - h
 				case false:
-					listHeight = (m.terminalHeight*3)/5 - h
+					listHeight = m.terminalHeight - h - 4
 				}
 				m.taskList.SetHeight(listHeight)
 				m.archivedTaskList.SetHeight(listHeight)
 			}
 
-			m.cfg.ContextPane = !m.cfg.ContextPane
+			_, h2 := headerStyle.GetFrameSize()
+			_, h3 := statusBarStyle.GetFrameSize()
+
+			var contextHeight int
+			if m.cfg.ListDensity == Compact {
+				contextHeight = m.terminalHeight - m.taskList.Height() - h2 - h3 - 6
+			} else {
+				contextHeight = m.terminalHeight - m.taskList.Height() - h2 - h3 - 5
+			}
+			m.contextVP.Height = contextHeight
 
 		case "d":
 			if m.activeView != taskListView && m.activeView != archivedTaskListView {
@@ -623,8 +634,8 @@ last updated at       %s
 			UpdatedAt: msg.updatedAt,
 		})
 		cmd = m.taskList.InsertItem(m.taskIndex, entry)
-		m.taskList.Select(m.taskIndex)
 		cmds = append(cmds, cmd)
+		m.taskList.Select(m.taskIndex)
 
 		cmd = m.updateTaskSequence()
 		cmds = append(cmds, cmd)
@@ -654,13 +665,14 @@ last updated at       %s
 			m.errorMsg = fmt.Sprintf("Error updating task: %s", msg.err)
 		} else {
 			listItem := m.taskList.Items()[msg.listIndex]
-			task, ok := listItem.(types.Task)
+			t, ok := listItem.(types.Task)
 			if !ok {
 				break
 			}
 
-			task.Summary = msg.taskSummary
-			cmd = m.taskList.SetItem(msg.listIndex, list.Item(task))
+			t.Summary = msg.taskSummary
+			t.UpdatedAt = msg.updatedAt
+			cmd = m.taskList.SetItem(msg.listIndex, list.Item(t))
 			cmds = append(cmds, cmd)
 		}
 
@@ -684,6 +696,7 @@ last updated at       %s
 				} else {
 					t.Context = &msg.context
 				}
+				t.UpdatedAt = msg.updatedAt
 				cmd = m.taskList.SetItem(msg.listIndex, list.Item(t))
 				cmds = append(cmds, cmd)
 			case archivedTasks:
@@ -698,6 +711,7 @@ last updated at       %s
 				} else {
 					t.Context = &msg.context
 				}
+				t.UpdatedAt = msg.updatedAt
 				cmd = m.archivedTaskList.SetItem(msg.listIndex, list.Item(t))
 				cmds = append(cmds, cmd)
 			}
@@ -716,6 +730,8 @@ last updated at       %s
 
 				m.contextFSVP.SetContent(details)
 			}
+			// to force refresh
+			m.contextVPTaskId = 0
 		}
 
 	case taskStatusChangedMsg:
@@ -726,12 +742,25 @@ last updated at       %s
 			case true:
 				item := m.archivedTaskList.Items()[msg.listIndex]
 				oldIndex := m.taskList.Index()
-				m.taskList.InsertItem(0, item)
+
+				t, ok := item.(types.Task)
+				if !ok {
+					break
+				}
+				t.UpdatedAt = msg.updatedAt
+				m.taskList.InsertItem(0, list.Item(t))
 				m.taskList.Select(oldIndex + 1)
 				m.archivedTaskList.RemoveItem(msg.listIndex)
 			case false:
 				item := m.taskList.Items()[msg.listIndex]
-				m.archivedTaskList.InsertItem(0, item)
+
+				t, ok := item.(types.Task)
+				if !ok {
+					break
+				}
+
+				t.UpdatedAt = msg.updatedAt
+				m.archivedTaskList.InsertItem(0, list.Item(t))
 				m.taskList.RemoveItem(msg.listIndex)
 			}
 			cmd = m.updateTaskSequence()
@@ -801,47 +830,65 @@ last updated at       %s
 		}
 	}
 
+	var viewUpdateCmd tea.Cmd
 	switch m.activeView {
 	case taskListView:
-		m.taskList, cmd = m.taskList.Update(msg)
+		m.taskList, viewUpdateCmd = m.taskList.Update(msg)
 
-		if m.cfg.ContextPane {
-			t, ok := m.taskList.SelectedItem().(types.Task)
-			if ok && t.Context != nil {
-				m.contextVP.SetContent(*t.Context)
-			} else {
-				m.contextVP.SetContent(noContextMsg)
-			}
+		if !m.cfg.ShowContext {
+			break
 		}
+
+		t, ok := m.taskList.SelectedItem().(types.Task)
+		if !ok {
+			break
+		}
+
+		if m.contextVPTaskId == t.ID {
+			break
+		}
+
+		if t.Context != nil {
+			m.contextVP.SetContent(*t.Context)
+		} else {
+			m.contextVP.SetContent(noContextMsg)
+		}
+		m.contextVPTaskId = t.ID
 
 	case archivedTaskListView:
-		m.archivedTaskList, cmd = m.archivedTaskList.Update(msg)
+		m.archivedTaskList, viewUpdateCmd = m.archivedTaskList.Update(msg)
 
-		if m.cfg.ContextPane {
-			t, ok := m.archivedTaskList.SelectedItem().(types.Task)
-			if ok && t.Context != nil {
-				m.contextVP.SetContent(*t.Context)
-			} else {
-				m.contextVP.SetContent(noContextMsg)
-			}
+		if !m.cfg.ShowContext {
+			break
 		}
 
+		t, ok := m.archivedTaskList.SelectedItem().(types.Task)
+		if !ok {
+			break
+		}
+
+		if m.contextVPTaskId == t.ID {
+			break
+		}
+
+		if t.Context != nil {
+			m.contextVP.SetContent(*t.Context)
+		} else {
+			m.contextVP.SetContent(noContextMsg)
+		}
+		m.contextVPTaskId = t.ID
+
 	case taskEntryView:
-		m.taskInput, cmd = m.taskInput.Update(msg)
+		m.taskInput, viewUpdateCmd = m.taskInput.Update(msg)
 
 	case taskDetailsView:
-		m.contextFSVP, cmd = m.contextFSVP.Update(msg)
+		m.contextFSVP, viewUpdateCmd = m.contextFSVP.Update(msg)
 
 	case helpView:
-		m.helpVP, cmd = m.helpVP.Update(msg)
+		m.helpVP, viewUpdateCmd = m.helpVP.Update(msg)
 	}
 
-	// t := m.taskList.SelectedItem()
-	// if t != nil {
-	// 	m.errorMsg = fmt.Sprintf("selected: %s", t.FilterValue())
-	// }
-
-	cmds = append(cmds, cmd)
+	cmds = append(cmds, viewUpdateCmd)
 
 	return m, tea.Batch(cmds...)
 }

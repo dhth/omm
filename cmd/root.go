@@ -38,7 +38,7 @@ var (
 	listDensityVal        string
 	viewType              ui.ListDensityType
 	textEditorCmd         string
-	contextPane           bool
+	showContext           bool
 )
 
 func die(msg string, args ...any) {
@@ -166,7 +166,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 				ArchivedTaskListColor: archivedTaskListColor,
 				TaskListTitle:         taskListTitle,
 				TextEditorCmd:         strings.Fields(editorCmd),
-				ContextPane:           contextPane,
+				ShowContext:           showContext,
 			}
 
 			ui.RenderUI(db, config)
@@ -259,7 +259,7 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 			ArchivedTaskListColor: archivedTaskListColor,
 			TaskListTitle:         taskListTitle,
 			TextEditorCmd:         strings.Fields(editorCmd),
-			ContextPane:           contextPane,
+			ShowContext:           showContext,
 			Guide:                 true,
 		}
 
@@ -305,7 +305,7 @@ func init() {
 	rootCmd.Flags().StringVar(&taskListTitle, "title", ui.TaskListDefaultTitle, fmt.Sprintf("title of the task list, will trim till %d chars", taskListTitleMaxLen))
 	rootCmd.Flags().StringVar(&listDensityVal, "list-density", ui.CompactDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]", ui.CompactDensityVal, ui.SpaciousDensityVal))
 	rootCmd.Flags().StringVar(&textEditorCmd, "editor", "", "editor command to run when adding/editing context to a task; if absent, omm falls back to $EDITOR, or $VISUAL, in that order")
-	rootCmd.Flags().BoolVar(&contextPane, "context-pane", true, "whether to start omm with a visible task context pane or not; this can be toggled on/off in the TUI by pressing the backtick(`) key")
+	rootCmd.Flags().BoolVar(&showContext, "show-context", true, "whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI by pressing the backtick(`) key")
 
 	tasksCmd.Flags().Uint8VarP(&printTasksNum, "num", "n", printTasksDefault, "number of tasks to print")
 

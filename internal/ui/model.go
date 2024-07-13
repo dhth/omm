@@ -122,4 +122,5 @@ type model struct {
 	atlSelStyle       lipgloss.Style
 	terminalWidth     int
 	terminalHeight    int
+	contextVPTaskId   uint64
 }
