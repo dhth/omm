@@ -2,6 +2,8 @@ package ui
 
 var helpStr = `omm ("on-my-mind") is a keyboard-driven task manager for the command line.
 
+Tip: Run "omm guide" for a guided walkthrough of omm's features.
+
 [Keymaps]
 j/↓                move cursor down
 k/↑                move cursor up
@@ -25,6 +27,4 @@ d                  show task details in a full screen pane
 v                  toggle between compact and spacious view
 h/l                move backwards/forwards when in the task details view
 q/esc/ctrl+c       go back/quit
-
-Run "omm guide" for a guided walkthrough of omm's features.
 `

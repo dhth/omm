@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"os/user"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -20,12 +19,13 @@ import (
 )
 
 const (
-	author              = "@dhth"
-	repoIssuesUrl       = "https://github.com/dhth/omm/issues"
-	defaultDataDir      = ".local/share"
-	dbFileName          = "omm/omm.db"
-	printTasksDefault   = 20
-	taskListTitleMaxLen = 8
+	author                = "@dhth"
+	repoIssuesUrl         = "https://github.com/dhth/omm/issues"
+	defaultDataDir        = ".local/share"
+	defaultDataDirWindows = "AppData/Local"
+	dbFileName            = "omm/omm.db"
+	printTasksDefault     = 20
+	taskListTitleMaxLen   = 8
 )
 
 var (
@@ -286,8 +286,11 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 	},
 }
 
-func getUserHomeDir() string {
-	currentUser, err := user.Current()
+func init() {
+	ros := runtime.GOOS
+	var defaultDBPath string
+	var dbPathAdditionalCxt string
+	hd, err := os.UserHomeDir()
 
 	if err != nil {
 		die(`Couldn't get your home directory. This is a fatal error;
@@ -297,25 +300,19 @@ Let %s know about this via %s.
 Error: %s`, author, repoIssuesUrl, err)
 	}
 
-	return currentUser.HomeDir
-}
-
-func init() {
-	ros := runtime.GOOS
-	var defaultDBPath string
-	var dbPathAdditionalCxt string
-
 	switch ros {
 	case "linux":
 		xdgDataHome := os.Getenv("XDG_DATA_HOME")
 		if xdgDataHome != "" {
 			defaultDBPath = filepath.Join(xdgDataHome, dbFileName)
 		} else {
-			defaultDBPath = filepath.Join(getUserHomeDir(), defaultDataDir, dbFileName)
+			defaultDBPath = filepath.Join(hd, defaultDataDir, dbFileName)
 		}
 		dbPathAdditionalCxt = "; will use $XDG_DATA_HOME by default, if set"
+	case "windows":
+		defaultDBPath = filepath.Join(hd, defaultDataDirWindows, dbFileName)
 	default:
-		defaultDBPath = filepath.Join(getUserHomeDir(), defaultDataDir, dbFileName)
+		defaultDBPath = filepath.Join(hd, defaultDataDir, dbFileName)
 	}
 
 	rootCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
