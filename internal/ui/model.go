@@ -9,10 +9,18 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
+	"github.com/dhth/omm/internal/utils"
+)
+
+const (
+	compactListHeight = 10
+	prefixPadding     = 20
+	timeFormat        = "2006/01/02 15:04"
 )
 
 type itemDelegate struct {
@@ -23,7 +31,7 @@ func (d itemDelegate) Height() int                             { return 1 }
 func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(types.Task)
+	t, ok := listItem.(types.Task)
 	if !ok {
 		return
 	}
@@ -31,7 +39,19 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	start, _ := m.Paginator.GetSliceBounds(index)
 	si := (index - start) % m.Paginator.PerPage
 
-	str := fmt.Sprintf("[%d]\t%s", si+1, i.Summary)
+	var summ string
+	summEls := strings.Split(t.Summary, ":")
+	if len(summEls) > 1 {
+		prefix := utils.RightPadTrim(summEls[0], prefixPadding, true)
+		summ = prefix + strings.Join(summEls[1:], ":")
+	} else {
+		summ = t.Summary
+	}
+	var hasContext string
+	if t.Context != nil {
+		hasContext = "(c)"
+	}
+	str := fmt.Sprintf("[%d]\t%s%s", si+1, utils.RightPadTrim(summ, TaskSummaryMaxLen, true), hasContext)
 
 	fn := itemStyle.Render
 	if index == m.Index() {
@@ -65,7 +85,15 @@ const (
 	taskListView activeView = iota
 	archivedTaskListView
 	taskEntryView
+	taskDetailsView
 	helpView
+)
+
+type taskListType uint
+
+const (
+	activeTasks taskListType = iota
+	archivedTasks
 )
 
 type model struct {
@@ -76,11 +104,23 @@ type model struct {
 	taskIndex         int
 	taskId            uint64
 	taskChange        taskChangeType
+	contextVP         viewport.Model
+	contextVPReady    bool
+	contextFSVP       viewport.Model
+	contextFSVPReady  bool
+	helpVP            viewport.Model
+	helpVPReady       bool
 	quitting          bool
 	showHelpIndicator bool
-	message           string
+	errorMsg          string
 	taskInput         textinput.Model
 	activeView        activeView
+	lastActiveList    taskListType
 	tlTitleStyle      lipgloss.Style
 	atlTitleStyle     lipgloss.Style
+	tlSelStyle        lipgloss.Style
+	atlSelStyle       lipgloss.Style
+	terminalWidth     int
+	terminalHeight    int
+	contextVPTaskId   uint64
 }

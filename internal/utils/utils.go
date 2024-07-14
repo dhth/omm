@@ -1,7 +1,10 @@
 package utils
 
 import (
+	"fmt"
+	"math"
 	"strings"
+	"time"
 )
 
 func RightPadTrim(s string, length int, dots bool) string {
@@ -22,4 +25,24 @@ func Trim(s string, length int) string {
 		return s[:length]
 	}
 	return s
+}
+
+func HumanizeDuration(durationInSecs int) string {
+	duration := time.Duration(durationInSecs) * time.Second
+
+	if duration.Seconds() < 60 {
+		return fmt.Sprintf("%ds", int(duration.Seconds()))
+	}
+
+	if duration.Minutes() < 60 {
+		return fmt.Sprintf("%dm", int(duration.Minutes()))
+	}
+
+	modMins := int(math.Mod(duration.Minutes(), 60))
+
+	if modMins == 0 {
+		return fmt.Sprintf("%dh", int(duration.Hours()))
+	}
+
+	return fmt.Sprintf("%dh %dm", int(duration.Hours()), modMins)
 }
