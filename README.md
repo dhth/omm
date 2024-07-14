@@ -13,6 +13,8 @@ keypresses.
 
 ![Usage](https://tools.dhruvs.space/images/omm/omm.gif)
 
+[source video](https://www.youtube.com/watch?v=_VnvgqVdU20)
+
 🤔 Motivation
 ---
 
@@ -96,6 +98,10 @@ is chosen based on the following look ups:
 - the environment variable `VISUAL`
 - `vi` (fallback)
 
+The context pane can be hidden on startup by either setting the environment
+variable `OMM_SHOW_CONTEXT=0`, or by providing the flag `--show-context=false`
+(the latter takes priority).
+
 ![active-tasks](https://tools.dhruvs.space/images/omm/omm-context-1.png)
 
 #### Task Entry Pane
@@ -124,6 +130,9 @@ the two modes, which can later be switched by pressing "v".
 ```bash
 omm --list-density=spacious
 ```
+
+This configuration property can also be provided via the environment variable
+`OMM_LIST_DENSITY`.
 
 Compact mode:
 
