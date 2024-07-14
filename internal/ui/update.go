@@ -546,7 +546,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.contextVP.Height = contextHeight
 
-		case "`":
+		case "C":
 			if m.activeView != taskListView && m.activeView != archivedTaskListView {
 				break
 			}
@@ -578,6 +578,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.contextVP.Height = contextHeight
 
 		case "d":
+			if m.activeView == taskDetailsView {
+				switch m.lastActiveList {
+				case activeTasks:
+					m.activeView = taskListView
+				default:
+					m.activeView = archivedTaskListView
+				}
+				break
+			}
+
 			if m.activeView != taskListView && m.activeView != archivedTaskListView {
 				break
 			}
@@ -596,18 +606,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			var ctx string
-			if t.Context != nil {
-				ctx = fmt.Sprintf("\n===\n\n%s", *t.Context)
-			}
+			m.setContextFSContent(t)
 
-			details := fmt.Sprintf(`summary               %s
-created at            %s
-last updated at       %s
-%s
-`, t.Summary, t.CreatedAt.Format(timeFormat), t.UpdatedAt.Format(timeFormat), ctx)
-
-			m.contextFSVP.SetContent(details)
 			switch m.activeView {
 			case taskListView:
 				m.lastActiveList = activeTasks
@@ -615,6 +615,50 @@ last updated at       %s
 				m.lastActiveList = archivedTasks
 			}
 			m.activeView = taskDetailsView
+
+		case "h":
+			if m.activeView != taskDetailsView {
+				break
+			}
+			var t types.Task
+			var ok bool
+
+			switch m.lastActiveList {
+			case activeTasks:
+				m.taskList.CursorUp()
+				t, ok = m.taskList.SelectedItem().(types.Task)
+			case archivedTasks:
+				m.archivedTaskList.CursorUp()
+				t, ok = m.archivedTaskList.SelectedItem().(types.Task)
+			}
+
+			if !ok {
+				break
+			}
+
+			m.setContextFSContent(t)
+
+		case "l":
+			if m.activeView != taskDetailsView {
+				break
+			}
+			var t types.Task
+			var ok bool
+
+			switch m.lastActiveList {
+			case activeTasks:
+				m.taskList.CursorDown()
+				t, ok = m.taskList.SelectedItem().(types.Task)
+			case archivedTasks:
+				m.archivedTaskList.CursorDown()
+				t, ok = m.archivedTaskList.SelectedItem().(types.Task)
+			}
+
+			if !ok {
+				break
+			}
+
+			m.setContextFSContent(t)
 		}
 
 	case HideHelpMsg:
@@ -717,18 +761,7 @@ last updated at       %s
 			}
 
 			if m.activeView == taskDetailsView {
-				var ctx string
-				if t.Context != nil {
-					ctx = fmt.Sprintf("\n===\n\n%s", *t.Context)
-				}
-
-				details := fmt.Sprintf(`summary               %s
-created at            %s
-last updated at       %s
-%s
-`, t.Summary, t.CreatedAt.Format(timeFormat), t.UpdatedAt.Format(timeFormat), ctx)
-
-				m.contextFSVP.SetContent(details)
+				m.setContextFSContent(t)
 			}
 			// to force refresh
 			m.contextVPTaskId = 0
@@ -907,4 +940,19 @@ func (m model) updateTaskSequence() tea.Cmd {
 
 func (m model) isSpaceAvailable() bool {
 	return len(m.taskList.Items()) < pers.TaskNumLimit
+}
+
+func (m *model) setContextFSContent(task types.Task) {
+	var ctx string
+	if task.Context != nil {
+		ctx = fmt.Sprintf("\n===\n\n%s", *task.Context)
+	}
+
+	details := fmt.Sprintf(`summary               %s
+created at            %s
+last updated at       %s
+%s
+`, task.Summary, task.CreatedAt.Format(timeFormat), task.UpdatedAt.Format(timeFormat), ctx)
+
+	m.contextFSVP.SetContent(details)
 }

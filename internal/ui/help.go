@@ -1,8 +1,6 @@
 package ui
 
-import "fmt"
-
-var helpStr = fmt.Sprintf(`omm ("on-my-mind") is a keyboard-driven task manager for the command line.
+var helpStr = `omm ("on-my-mind") is a keyboard-driven task manager for the command line.
 
 [Keymaps]
 j/↓                move cursor down
@@ -22,10 +20,11 @@ g                  go to the top
 G                  go to the end
 tab                move between views
 c                  update context for a task
+C                  toggle showing context
 d                  show task details in a full screen pane
 v                  toggle between compact and spacious view
-%s                  toggle showing context
+h/l                move backwards/forwards when in the task details view
 q/esc/ctrl+c       go back/quit
 
 Run "omm guide" for a guided walkthrough of omm's features.
-`, "`")
+`
