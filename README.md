@@ -36,7 +36,7 @@ brew install dhth/tap/omm
 **go**:
 
 ```sh
-go install github.com/dhth/omm@v0.2.1
+go install github.com/dhth/omm@latest
 ```
 
 Or get the binaries directly from a
