@@ -23,7 +23,7 @@ G                  go to the end
 tab                move between views
 c                  update context for a task
 C                  toggle showing context
-d                  show task details in a full screen pane
+d                  toggle Task Details pane
 v                  toggle between compact and spacious view
 h/l                move backwards/forwards when in the task details view
 q/esc/ctrl+c       go back/quit

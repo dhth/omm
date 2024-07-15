@@ -30,11 +30,13 @@ func InitialModel(db *sql.DB, config Config) model {
 	taskList.SetFilteringEnabled(false)
 	taskList.SetShowHelp(false)
 	taskList.DisableQuitKeybindings()
+	taskList.KeyMap.PrevPage.SetKeys("left", "h", "pgup")
+	taskList.KeyMap.NextPage.SetKeys("right", "l", "pgdown")
+
 	taskList.Styles.Title = taskList.Styles.Title.
 		Foreground(lipgloss.Color(defaultBackgroundColor)).
 		Background(lipgloss.Color(config.TaskListColor)).
 		Bold(true)
-
 	taskListTitleStyle := titleStyle.Background(lipgloss.Color(config.TaskListColor))
 
 	atlSelItemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(config.ArchivedTaskListColor))
@@ -53,6 +55,9 @@ func InitialModel(db *sql.DB, config Config) model {
 	archivedTaskList.SetFilteringEnabled(false)
 	archivedTaskList.SetShowHelp(false)
 	archivedTaskList.DisableQuitKeybindings()
+	archivedTaskList.KeyMap.PrevPage.SetKeys("left", "h", "pgup")
+	archivedTaskList.KeyMap.NextPage.SetKeys("right", "l", "pgdown")
+
 	archivedTaskList.Styles.Title = archivedTaskList.Styles.Title.
 		Foreground(lipgloss.Color(defaultBackgroundColor)).
 		Background(lipgloss.Color(config.ArchivedTaskListColor)).

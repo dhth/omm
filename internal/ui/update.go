@@ -528,6 +528,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			taskList.SetShowHelp(false)
 			taskList.DisableQuitKeybindings()
 			taskList.Styles.Title = m.taskList.Styles.Title
+			taskList.KeyMap.PrevPage.SetKeys("left", "h", "pgup")
+			taskList.KeyMap.NextPage.SetKeys("right", "l", "pgdown")
+
 			m.taskList = taskList
 			m.taskList.Select(tlIndex)
 
@@ -535,6 +538,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			archivedTaskList.SetFilteringEnabled(false)
 			archivedTaskList.SetShowHelp(false)
 			archivedTaskList.DisableQuitKeybindings()
+			archivedTaskList.KeyMap.PrevPage.SetKeys("left", "h", "pgup")
+			archivedTaskList.KeyMap.NextPage.SetKeys("right", "l", "pgdown")
+
 			m.archivedTaskList = archivedTaskList
 			m.archivedTaskList.Select(atlIndex)
 
