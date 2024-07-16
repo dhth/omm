@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 	"time"
 
@@ -129,4 +130,5 @@ type model struct {
 	terminalHeight    int
 	contextVPTaskId   uint64
 	rtos              string
+	urlRegex          *regexp.Regexp
 }

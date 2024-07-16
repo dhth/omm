@@ -1,8 +1,10 @@
 package utils
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"mvdan.cc/xurls/v2"
 )
 
 func TestExtractURLs(t *testing.T) {
@@ -51,11 +53,23 @@ and https://anotherurl.com/path?query=value at several points.`,
 				"https://anotherurl.com/path?query=value",
 			},
 		},
+		{
+			name: "urls ending with commas and braces",
+			input: `A paragraph full of details, containing urls
+(eg. https://someurl.com/path?query=value, https://anotherurl.com/path?query=value)
+at several points.`,
+			expected: []string{
+				"https://someurl.com/path?query=value",
+				"https://anotherurl.com/path?query=value",
+			},
+		},
 	}
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			got := ExtractURLs(tt.input)
+			rxStrict := xurls.Strict()
+
+			got := ExtractURLs(rxStrict, tt.input)
 
 			assert.Equal(t, tt.expected, got)
 		})

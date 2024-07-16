@@ -48,16 +48,6 @@ func HumanizeDuration(durationInSecs int) string {
 	return fmt.Sprintf("%dh %dm", int(duration.Hours()), modMins)
 }
 
-func ExtractURLs(text string) []string {
-	urlPattern := `https?://[^\s]+`
-
-	re, err := regexp.Compile(urlPattern)
-	if err != nil {
-		fmt.Println("Error compiling regex:", err)
-		return nil
-	}
-
-	urls := re.FindAllString(text, -1)
-
-	return urls
+func ExtractURLs(rg *regexp.Regexp, text string) []string {
+	return rg.FindAllString(text, -1)
 }

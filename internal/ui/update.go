@@ -1101,5 +1101,5 @@ func (m model) getContextUrls() ([]string, bool) {
 		return nil, true
 	}
 
-	return utils.ExtractURLs(*t.Context), true
+	return utils.ExtractURLs(m.urlRegex, *t.Context), true
 }

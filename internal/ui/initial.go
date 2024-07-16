@@ -7,6 +7,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
+	"mvdan.cc/xurls/v2"
 )
 
 const (
@@ -74,6 +75,7 @@ func InitialModel(db *sql.DB, config Config) model {
 
 	contextBMList.SetShowTitle(false)
 	contextBMList.SetShowHelp(false)
+	contextBMList.SetFilteringEnabled(false)
 	contextBMList.DisableQuitKeybindings()
 	contextBMList.KeyMap.PrevPage.SetKeys("left", "h", "pgup")
 	contextBMList.KeyMap.NextPage.SetKeys("right", "l", "pgdown")
@@ -92,6 +94,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		atlSelStyle:       atlSelItemStyle,
 		contextVPTaskId:   0,
 		rtos:              runtime.GOOS,
+		urlRegex:          xurls.Strict(),
 	}
 
 	return m
