@@ -21,6 +21,8 @@ const (
 	compactListHeight = 10
 	prefixPadding     = 20
 	timeFormat        = "2006/01/02 15:04"
+	goosWindows       = "windows"
+	goosDarwin        = "darwin"
 )
 
 type itemDelegate struct {
@@ -86,6 +88,7 @@ const (
 	archivedTaskListView
 	taskEntryView
 	taskDetailsView
+	contextBookmarksView
 	helpView
 )
 
@@ -101,6 +104,7 @@ type model struct {
 	cfg               Config
 	taskList          list.Model
 	archivedTaskList  list.Model
+	contextBMList     list.Model
 	taskIndex         int
 	taskId            uint64
 	taskChange        taskChangeType
@@ -115,6 +119,7 @@ type model struct {
 	errorMsg          string
 	taskInput         textinput.Model
 	activeView        activeView
+	lastActiveView    activeView
 	lastActiveList    taskListType
 	tlTitleStyle      lipgloss.Style
 	atlTitleStyle     lipgloss.Style
@@ -123,4 +128,5 @@ type model struct {
 	terminalWidth     int
 	terminalHeight    int
 	contextVPTaskId   uint64
+	rtos              string
 }

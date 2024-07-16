@@ -53,6 +53,8 @@ type Task struct {
 	UpdatedAt time.Time
 }
 
+type ContextBookmark string
+
 func (t Task) Title() string {
 	summEls := strings.Split(t.Summary, prefixDelimiter)
 	if len(summEls) == 1 {
@@ -99,4 +101,16 @@ func getDynamicStyle(str string) lipgloss.Style {
 	color := taskColors[int(hash)%len(taskColors)]
 	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color(color))
+}
+
+func (c ContextBookmark) Title() string {
+	return string(c)
+}
+
+func (c ContextBookmark) Description() string {
+	return ""
+}
+
+func (c ContextBookmark) FilterValue() string {
+	return string(c)
 }

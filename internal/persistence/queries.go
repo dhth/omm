@@ -10,7 +10,7 @@ import (
 
 const (
 	TaskNumLimit    = 300
-	ContentMaxBytes = 3000
+	ContentMaxBytes = 10000
 )
 
 func FetchNumActiveTasksFromDB(db *sql.DB) (int, error) {

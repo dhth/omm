@@ -2,6 +2,7 @@ package ui
 
 import (
 	"database/sql"
+	"runtime"
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
@@ -23,7 +24,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		taskList = list.New(taskItems, itemDelegate{selStyle: tlSelItemStyle}, TaskSummaryMaxLen, compactListHeight)
 		taskList.SetShowStatusBar(false)
 	case Spacious:
-		taskList = list.New(taskItems, newItemDelegate(lipgloss.Color(config.TaskListColor)), TaskSummaryMaxLen, 14)
+		taskList = list.New(taskItems, newTaskListDelegate(lipgloss.Color(config.TaskListColor)), TaskSummaryMaxLen, 14)
 		taskList.SetShowStatusBar(true)
 	}
 	taskList.SetShowTitle(false)
@@ -48,7 +49,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		archivedTaskList = list.New(archivedTaskItems, itemDelegate{selStyle: atlSelItemStyle}, TaskSummaryMaxLen, compactListHeight)
 		archivedTaskList.SetShowStatusBar(false)
 	case Spacious:
-		archivedTaskList = list.New(archivedTaskItems, newItemDelegate(lipgloss.Color(config.ArchivedTaskListColor)), TaskSummaryMaxLen, 16)
+		archivedTaskList = list.New(archivedTaskItems, newTaskListDelegate(lipgloss.Color(config.ArchivedTaskListColor)), TaskSummaryMaxLen, 16)
 		archivedTaskList.SetShowStatusBar(true)
 	}
 	archivedTaskList.SetShowTitle(false)
@@ -69,11 +70,20 @@ func InitialModel(db *sql.DB, config Config) model {
 	taskInput.CharLimit = TaskSummaryMaxLen
 	taskInput.Width = TaskSummaryMaxLen
 
+	contextBMList := list.New(nil, newContextURLListDel(contextBMColor), TaskSummaryMaxLen, compactListHeight)
+
+	contextBMList.SetShowTitle(false)
+	contextBMList.SetShowHelp(false)
+	contextBMList.DisableQuitKeybindings()
+	contextBMList.KeyMap.PrevPage.SetKeys("left", "h", "pgup")
+	contextBMList.KeyMap.NextPage.SetKeys("right", "l", "pgdown")
+
 	m := model{
 		db:                db,
 		cfg:               config,
 		taskList:          taskList,
 		archivedTaskList:  archivedTaskList,
+		contextBMList:     contextBMList,
 		taskInput:         taskInput,
 		showHelpIndicator: true,
 		tlTitleStyle:      taskListTitleStyle,
@@ -81,6 +91,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		tlSelStyle:        tlSelItemStyle,
 		atlSelStyle:       atlSelItemStyle,
 		contextVPTaskId:   0,
+		rtos:              runtime.GOOS,
 	}
 
 	return m

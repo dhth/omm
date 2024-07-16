@@ -8,6 +8,7 @@ const (
 	defaultBackgroundColor = "#282828"
 	TaskListColor          = "#fe8019"
 	ArchivedTLColor        = "#fabd2f"
+	contextBMColor         = "#83a598"
 	contextTitleColor      = "#8ec07c"
 	taskEntryTitleColor    = "#b8bb26"
 	taskDetailsTitleColor  = "#d3869b"
@@ -47,6 +48,9 @@ var (
 	taskDetailsTitleStyle = titleStyle.
 				Background(lipgloss.Color(taskDetailsTitleColor))
 
+	contextBMTitleStyle = titleStyle.
+				Background(lipgloss.Color(contextBMColor))
+
 	headerStyle = lipgloss.NewStyle().
 			PaddingTop(1).
 			PaddingBottom(1).
@@ -59,6 +63,9 @@ var (
 	contextTextStyle = lipgloss.NewStyle().
 				PaddingLeft(2).
 				Foreground(lipgloss.Color(contextTextColor))
+
+	contextFSTextStyle = lipgloss.NewStyle().
+				PaddingLeft(2)
 
 	formStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(formColor))

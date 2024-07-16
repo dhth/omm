@@ -4,6 +4,8 @@ var helpStr = `omm ("on-my-mind") is a keyboard-driven task manager for the comm
 
 Tip: Run "omm guide" for a guided walkthrough of omm's features.
 
+(scroll down if needed)
+
 [Keymaps]
 j/↓                move cursor down
 k/↑                move cursor up
@@ -26,5 +28,7 @@ C                  toggle showing context
 d                  toggle Task Details pane
 v                  toggle between compact and spacious view
 h/l                move backwards/forwards when in the task details view
+b                  open context bookmarks list
+B                  open all bookmarks in the current task's context
 q/esc/ctrl+c       go back/quit
 `

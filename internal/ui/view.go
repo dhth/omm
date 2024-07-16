@@ -105,14 +105,24 @@ func (m model) View() string {
 		}
 
 	case taskDetailsView:
-		header = taskDetailsTitleStyle.Render("task details")
+		var spVal string
+		sp := int(m.contextFSVP.ScrollPercent() * 100)
+		if sp < 100 {
+			spVal = fmt.Sprintf("  %d%% ↓", sp)
+		}
+		header = fmt.Sprintf("%s%s", taskDetailsTitleStyle.Render("task details"), spVal)
 		if !m.contextFSVPReady {
 			context = contextTextStyle.Render("Initializing...")
 		} else {
-			context = contextTextStyle.Render(m.contextFSVP.View())
+			context = contextFSTextStyle.Render(m.contextFSVP.View())
 		}
 
 		return lipgloss.JoinVertical(lipgloss.Left, headerStyle.Render(header), context, statusBarStyle.Render(statusBar))
+
+	case contextBookmarksView:
+		header = fmt.Sprintf("%s%s", contextBMTitleStyle.Render("Context Bookmarks"), helpMsg)
+
+		content = listStyle.Render(m.contextBMList.View())
 
 	case helpView:
 		header = helpTitleStyle.Render("help")

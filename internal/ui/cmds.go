@@ -2,6 +2,7 @@ package ui
 
 import (
 	"os/exec"
+	"runtime"
 	"time"
 
 	"database/sql"
@@ -87,5 +88,30 @@ func openTextEditor(fPath string, editorCmd []string, taskIndex int, taskId uint
 
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		return tea.Msg(textEditorClosed{fPath, taskIndex, taskId, oldContext, err})
+	})
+}
+
+func openURL(url string) tea.Cmd {
+	var cmd string
+	var args []string
+	switch runtime.GOOS {
+	case "windows":
+		cmd = "cmd"
+		args = []string{"/c", "start"}
+	case "darwin":
+		cmd = "open"
+	default:
+		cmd = "xdg-open"
+	}
+	c := exec.Command(cmd, append(args, url)...)
+	return tea.ExecProcess(c, func(err error) tea.Msg {
+		return urlOpenedMsg{url, err}
+	})
+}
+
+func openURLsDarwin(urls []string) tea.Cmd {
+	c := exec.Command("open", urls...)
+	return tea.ExecProcess(c, func(err error) tea.Msg {
+		return urlsOpenedDarwinMsg{urls, err}
 	})
 }
