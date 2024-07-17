@@ -65,3 +65,13 @@ type textEditorClosed struct {
 	oldContext *string
 	err        error
 }
+
+type urlOpenedMsg struct {
+	url string
+	err error
+}
+
+type urlsOpenedDarwinMsg struct {
+	urls []string
+	err  error
+}

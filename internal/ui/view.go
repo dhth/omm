@@ -105,21 +105,31 @@ func (m model) View() string {
 		}
 
 	case taskDetailsView:
-		header = taskDetailsTitleStyle.Render("task details")
-		if !m.contextFSVPReady {
-			context = contextTextStyle.Render("Initializing...")
+		var spVal string
+		sp := int(m.taskDetailsVP.ScrollPercent() * 100)
+		if sp < 100 {
+			spVal = helpSectionStyle.Render(fmt.Sprintf("  %d%% ↓", sp))
+		}
+		header = fmt.Sprintf("%s%s", taskDetailsTitleStyle.Render("task details"), spVal)
+		if !m.taskDetailsVPReady {
+			context = taskDetailsStyle.Render("Initializing...")
 		} else {
-			context = contextTextStyle.Render(m.contextFSVP.View())
+			context = taskDetailsStyle.Render(m.taskDetailsVP.View())
 		}
 
 		return lipgloss.JoinVertical(lipgloss.Left, headerStyle.Render(header), context, statusBarStyle.Render(statusBar))
 
+	case contextBookmarksView:
+		header = fmt.Sprintf("%s%s", contextBMTitleStyle.Render("Context Bookmarks"), helpMsg)
+
+		content = listStyle.Render(m.contextBMList.View())
+
 	case helpView:
-		header = helpTitleStyle.Render("help")
+		header = fmt.Sprintf("%s  %s", helpTitleStyle.Render("help"), helpSectionStyle.Render("(scroll with j/k/↓/↑)"))
 		if !m.helpVPReady {
-			content = helpSectionStyle.Render("Initializing...")
+			content = helpViewStyle.Render("Initializing...")
 		} else {
-			content = helpSectionStyle.Render(m.helpVP.View())
+			content = helpViewStyle.Render(m.helpVP.View())
 		}
 	}
 
@@ -130,11 +140,11 @@ func (m model) View() string {
 	if !listEmpty && m.cfg.ShowContext && (m.activeView == taskListView || m.activeView == archivedTaskListView) {
 
 		if !m.contextVPReady {
-			context = contextTextStyle.Render("Initializing...")
+			context = contextStyle.Render("Initializing...")
 		} else {
 			context = fmt.Sprintf("  %s\n\n%s",
 				contextTitleStyle.Render("context"),
-				contextTextStyle.Render(m.contextVP.View()),
+				contextStyle.Render(m.contextVP.View()),
 			)
 		}
 		components = append(components, context)

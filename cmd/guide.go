@@ -60,6 +60,24 @@ Press <tab> to see the archived list.
 			true,
 		},
 		{
+			"guide: task details",
+			`The "Task Details" pane is intended for when you simply want to read all the
+details associated with a task in a full screen view.
+
+You can view this pane by pressing "d".
+
+Whilst in this pane, you can move backwards and forwards in the
+task list by pressing "h/<-/->/l". You quit out of this pane by either pressing
+"d" again, or q/esc/ctrl+c.
+
+Try it out. Come back to this entry when you're done.
+
+You might have to view this guide in the "Task Details" pane if you're on a
+smaller display at the moment.
+`,
+			true,
+		},
+		{
 			"guide: an archived task",
 			`This is the archived list, meaning it holds tasks that are no longer being
 worked on.
@@ -163,6 +181,24 @@ text should get updated accordingly.
 			true,
 		},
 		{
+			"guide: context bookmarks",
+			`Sometimes you'll save some URLs to a task's context.
+
+Such URLs (eg. https://github.com/dhth/omm, https://tools.dhruvs.space,
+https://c.xkcd.com/random/comic) could be placed anywhere in the context.
+
+omm lets you open these URLs via a single keypress. You can either press "b" to
+open up a list of all URLs, and then open one of them by pressing ⏎, or open all
+of them by pressing "B".
+
+Note: if the context has a single URL in it, pressing "b" will skip showing the
+list, and open the URL directly.
+
+Try both approaches now. Press "b", interact with the list, and then press "B".
+`,
+			true,
+		},
+		{
 			"guide: task priorities",
 			`At its core, omm is a dynamic list that maintains a sequence of tasks based on
 the priorities you assign them.
@@ -178,21 +214,6 @@ priority order. It has the following keymaps to achieve this:
 
 It's recommended that you move the task that you're currently focussing on to
 the top.
-`,
-			true,
-		},
-		{
-			"guide: task details",
-			`The "Task Details" pane is intended for when you simply want to read all the
-details associated with a task in a full screen view.
-
-You can view this pane by pressing "d".
-
-Whilst in this pane, you can move backwards and forwards in the
-task list by pressing "h/l". You quit out of this pane by either pressing "d"
-again, or q/esc/ctrl+c.
-
-Try it out. Come back to this entry when you're done.
 `,
 			true,
 		},

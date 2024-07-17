@@ -179,8 +179,29 @@ omm tasks
 ---
 
 ```text
+General
+q/esc/ctrl+c       go back
+Q                  quit from anywhere
+
+Active/Archived Tasks List
 j/↓                move cursor down
 k/↑                move cursor up
+h                  go to previous page
+l                  go to next page
+g                  go to the top
+G                  go to the end
+tab                move between lists
+C                  toggle showing context
+d                  toggle Task Details pane
+b                  open context bookmarks list
+B                  open all bookmarks in the current task's context
+c                  update context for a task
+ctrl+d             archive/unarchive task
+ctrl+x             delete task
+v                  toggle between compact and spacious view
+
+Active Tasks List
+q/esc/ctrl+c       quit
 o/a                add task below cursor
 O                  add task above cursor
 I                  add task at the top
@@ -190,17 +211,13 @@ u                  update task summary
 [2-9]              move task at index [x] to top (only in compact view)
 J                  move task one position down
 K                  move task one position up
-ctrl+d             archive/unarchive task
-ctrl+x             delete task
-g                  go to the top
-G                  go to the end
-tab                move between views
-c                  update context for a task
-C                  toggle showing context
-d                  toggle Task Details pane
-v                  toggle between compact and spacious view
+
+Task Details Pane
 h/l                move backwards/forwards when in the task details view
-q/esc/ctrl+c       go back/quit
+B                  open all bookmarks in the current task's context
+
+Context Bookmarks List
+⏎                  open URL in browser
 ```
 
 Acknowledgements

@@ -13,11 +13,13 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
+	"github.com/dhth/omm/internal/utils"
 )
 
 const (
-	noSpaceAvailableMsg = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
-	noContextMsg        = "∅"
+	noSpaceAvailableMsg   = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
+	noContextMsg          = "∅"
+	viewPortMoveLineCount = 3
 )
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -74,6 +76,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.terminalHeight = msg.Height
 		m.taskList.SetWidth(msg.Width - w)
 		m.archivedTaskList.SetWidth(msg.Width - 2)
+		m.contextBMList.SetWidth(msg.Width - 2)
+		m.contextBMList.SetHeight(msg.Height - h - 4)
 
 		var listHeight int
 		if m.cfg.ShowContext {
@@ -102,17 +106,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.contextVP.Height = contextHeight
 		}
 
-		if !m.contextFSVPReady {
-			m.contextFSVP = viewport.New(msg.Width-3, m.terminalHeight-4)
-			m.contextFSVPReady = true
+		if !m.taskDetailsVPReady {
+			m.taskDetailsVP = viewport.New(msg.Width-4, m.terminalHeight-4)
+			m.taskDetailsVP.KeyMap.HalfPageDown.SetKeys("ctrl+d")
+			m.taskDetailsVPReady = true
+			m.taskDetailsVP.KeyMap.Up.SetEnabled(false)
+			m.taskDetailsVP.KeyMap.Down.SetEnabled(false)
 		} else {
-			m.contextFSVP.Width = msg.Width - 3
-			m.contextFSVP.Height = m.terminalHeight - 4
+			m.taskDetailsVP.Width = msg.Width - 4
+			m.taskDetailsVP.Height = m.terminalHeight - 4
 		}
 
 		if !m.helpVPReady {
 			m.helpVP = viewport.New(msg.Width-3, m.terminalHeight-4)
 			m.helpVP.SetContent(helpStr)
+			m.helpVP.KeyMap.Up.SetEnabled(false)
+			m.helpVP.KeyMap.Down.SetEnabled(false)
 			m.helpVPReady = true
 		} else {
 			m.helpVP.Width = msg.Width - 3
@@ -122,22 +131,34 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
 
+		case "Q":
+			m.quitting = true
+			if m.cfg.Guide {
+				_ = os.Remove(m.cfg.DBPath)
+			}
+			return m, tea.Quit
+
 		case "esc", "q", "ctrl+c":
-			if m.activeView == taskDetailsView {
-				switch m.lastActiveList {
-				case activeTasks:
-					m.activeView = taskListView
-				default:
-					m.activeView = archivedTaskListView
+			av := m.activeView
+
+			if m.activeView == archivedTaskListView {
+				m.activeView = taskListView
+				m.lastActiveList = activeTasks
+				m.lastActiveView = av
+				break
+			}
+
+			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == helpView {
+				m.activeView = m.lastActiveView
+				switch m.activeView {
+				case taskListView:
+					m.lastActiveList = activeTasks
+				case archivedTaskListView:
+					m.lastActiveList = archivedTasks
 				}
 				break
 			}
 
-			if m.activeView != taskListView {
-				m.activeView = taskListView
-				m.lastActiveList = activeTasks
-				break
-			}
 			m.quitting = true
 			if m.cfg.Guide {
 				_ = os.Remove(m.cfg.DBPath)
@@ -145,9 +166,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "?":
+			if m.activeView == taskDetailsView {
+				break
+			}
+
+			if m.activeView == helpView {
+				m.activeView = m.lastActiveView
+				break
+			}
+			m.lastActiveView = m.activeView
 			m.activeView = helpView
 
 		case "tab", "shift+tab":
+			m.lastActiveView = m.activeView
 			switch m.activeView {
 			case taskListView:
 				m.activeView = archivedTaskListView
@@ -264,8 +295,48 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.activeView = taskEntryView
 			return m, tea.Batch(cmds...)
 
+		case "j":
+			if m.activeView != taskDetailsView && m.activeView != helpView {
+				break
+			}
+
+			switch m.activeView {
+			case taskDetailsView:
+				if m.taskDetailsVP.AtBottom() {
+					break
+				}
+				m.taskDetailsVP.LineDown(viewPortMoveLineCount)
+			case helpView:
+				if m.helpVP.AtBottom() {
+					break
+				}
+				m.helpVP.LineDown(viewPortMoveLineCount)
+			}
+
+		case "k":
+			if m.activeView != taskDetailsView && m.activeView != helpView {
+				break
+			}
+
+			switch m.activeView {
+			case taskDetailsView:
+				if m.taskDetailsVP.AtTop() {
+					break
+				}
+				m.taskDetailsVP.LineUp(viewPortMoveLineCount)
+			case helpView:
+				if m.helpVP.AtTop() {
+					break
+				}
+				m.helpVP.LineUp(viewPortMoveLineCount)
+			}
+
 		case "J":
 			if m.activeView != taskListView {
+				break
+			}
+
+			if m.taskList.IsFiltered() {
 				break
 			}
 
@@ -289,6 +360,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "K":
 			if m.activeView != taskListView {
+				break
+			}
+
+			if m.taskList.IsFiltered() {
 				break
 			}
 
@@ -399,26 +474,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "enter":
-			if m.activeView != taskListView {
+			if m.activeView != taskListView && m.activeView != contextBookmarksView {
 				break
 			}
-			if len(m.taskList.Items()) == 0 {
-				break
+			switch m.activeView {
+			case taskListView:
+				if len(m.taskList.Items()) == 0 {
+					break
+				}
+
+				if m.taskList.Index() == 0 {
+					break
+				}
+
+				index := m.taskList.Index()
+				listItem := m.taskList.SelectedItem()
+				m.taskList.RemoveItem(index)
+				cmd = m.taskList.InsertItem(0, listItem)
+				cmds = append(cmds, cmd)
+				m.taskList.Select(0)
+
+				cmd = m.updateTaskSequence()
+				cmds = append(cmds, cmd)
+			case contextBookmarksView:
+				url := m.contextBMList.SelectedItem().FilterValue()
+				cmds = append(cmds, openURL(url))
 			}
-
-			if m.taskList.Index() == 0 {
-				break
-			}
-
-			index := m.taskList.Index()
-			listItem := m.taskList.SelectedItem()
-			m.taskList.RemoveItem(index)
-			cmd = m.taskList.InsertItem(0, listItem)
-			cmds = append(cmds, cmd)
-			m.taskList.Select(0)
-
-			cmd = m.updateTaskSequence()
-			cmds = append(cmds, cmd)
 
 		case "c":
 			if m.activeView != taskListView && m.activeView != archivedTaskListView && m.activeView != taskDetailsView {
@@ -491,14 +572,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch m.cfg.ListDensity {
 			case Compact:
 				taskList = list.New(m.taskList.Items(),
-					newItemDelegate(lipgloss.Color(m.cfg.TaskListColor)),
+					newTaskListDelegate(lipgloss.Color(m.cfg.TaskListColor)),
 					m.terminalWidth-w,
 					listHeight,
 				)
 				taskList.SetShowStatusBar(true)
 
 				archivedTaskList = list.New(m.archivedTaskList.Items(),
-					newItemDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor)),
+					newTaskListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor)),
 					m.terminalWidth-w,
 					listHeight,
 				)
@@ -585,12 +666,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case "d":
 			if m.activeView == taskDetailsView {
-				switch m.lastActiveList {
-				case activeTasks:
-					m.activeView = taskListView
-				default:
-					m.activeView = archivedTaskListView
-				}
+				m.activeView = m.lastActiveView
 				break
 			}
 
@@ -612,6 +688,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
+			m.taskDetailsVP.GotoTop()
 			m.setContextFSContent(t)
 
 			switch m.activeView {
@@ -620,6 +697,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			default:
 				m.lastActiveList = archivedTasks
 			}
+			m.lastActiveView = m.activeView
 			m.activeView = taskDetailsView
 
 		case "h":
@@ -642,6 +720,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
+			m.taskDetailsVP.GotoTop()
 			m.setContextFSContent(t)
 
 		case "l":
@@ -664,7 +743,70 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
+			m.taskDetailsVP.GotoTop()
 			m.setContextFSContent(t)
+		case "b":
+			if m.activeView != taskListView && m.activeView != archivedTaskListView {
+				break
+			}
+
+			urls, ok := m.getContextUrls()
+			if !ok {
+				break
+			}
+
+			if len(urls) == 0 {
+				m.errorMsg = "No bookmarks in this task's context"
+				break
+			}
+
+			if len(urls) == 1 {
+				cmds = append(cmds, openURL(urls[0]))
+				break
+			}
+
+			bmItems := make([]list.Item, len(urls))
+			for i, url := range urls {
+				bmItems[i] = list.Item(types.ContextBookmark(url))
+			}
+			m.contextBMList.SetItems(bmItems)
+			switch m.activeView {
+			case taskListView:
+				m.lastActiveList = activeTasks
+			case archivedTaskListView:
+				m.lastActiveList = archivedTasks
+			}
+			m.lastActiveView = m.activeView
+			m.activeView = contextBookmarksView
+
+		case "B":
+			if m.activeView != taskListView && m.activeView != archivedTaskListView && m.activeView != taskDetailsView {
+				break
+			}
+
+			urls, ok := m.getContextUrls()
+			if !ok {
+				break
+			}
+
+			if len(urls) == 0 {
+				m.errorMsg = "No bookmarks in this task's context"
+				break
+			}
+
+			if len(urls) == 1 {
+				cmds = append(cmds, openURL(urls[0]))
+				break
+			}
+
+			if m.rtos == types.GOOSDarwin {
+				cmds = append(cmds, openURLsDarwin(urls))
+				break
+			}
+
+			for _, url := range urls {
+				cmds = append(cmds, openURL(url))
+			}
 		}
 
 	case HideHelpMsg:
@@ -767,6 +909,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.activeView == taskDetailsView {
+				m.taskDetailsVP.GotoTop()
 				m.setContextFSContent(t)
 			}
 			// to force refresh
@@ -843,7 +986,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.errorMsg = fmt.Sprintf("warning: omm failed to remove temporary file: %s", err)
 		}
 
-		if len(context) > pers.ContentMaxBytes {
+		if len(context) > pers.ContextMaxBytes {
 			m.errorMsg = "The content you entered is too large, maybe shorten it"
 			// TODO: allow reopening the text editor with the same content again
 			break
@@ -854,6 +997,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		cmds = append(cmds, updateTaskContext(m.db, msg.taskIndex, msg.taskId, string(context), m.lastActiveList))
+	case urlOpenedMsg:
+		if msg.err != nil {
+			m.errorMsg = fmt.Sprintf("Error opening url: %s", msg.err)
+		}
+	case urlsOpenedDarwinMsg:
+		if msg.err != nil {
+			m.errorMsg = fmt.Sprintf("Error opening urls: %s", msg.err)
+		}
 	}
 
 	if m.cfg.ListDensity == Compact {
@@ -921,7 +1072,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.taskInput, viewUpdateCmd = m.taskInput.Update(msg)
 
 	case taskDetailsView:
-		m.contextFSVP, viewUpdateCmd = m.contextFSVP.Update(msg)
+		m.taskDetailsVP, viewUpdateCmd = m.taskDetailsVP.Update(msg)
+
+	case contextBookmarksView:
+		m.contextBMList, viewUpdateCmd = m.contextBMList.Update(msg)
 
 	case helpView:
 		m.helpVP, viewUpdateCmd = m.helpVP.Update(msg)
@@ -960,5 +1114,33 @@ last updated at       %s
 %s
 `, task.Summary, task.CreatedAt.Format(timeFormat), task.UpdatedAt.Format(timeFormat), ctx)
 
-	m.contextFSVP.SetContent(details)
+	m.taskDetailsVP.SetContent(details)
+}
+
+func (m model) getContextUrls() ([]string, bool) {
+	var t types.Task
+	var ok bool
+
+	switch m.activeView {
+	case taskListView:
+		t, ok = m.taskList.SelectedItem().(types.Task)
+	case archivedTaskListView:
+		t, ok = m.archivedTaskList.SelectedItem().(types.Task)
+	case taskDetailsView:
+		switch m.lastActiveList {
+		case activeTasks:
+			t, ok = m.taskList.SelectedItem().(types.Task)
+		case archivedTasks:
+			t, ok = m.archivedTaskList.SelectedItem().(types.Task)
+		}
+	}
+	if !ok {
+		return nil, false
+	}
+
+	if t.Context == nil {
+		return nil, true
+	}
+
+	return utils.ExtractURLs(m.urlRegex, *t.Context), true
 }

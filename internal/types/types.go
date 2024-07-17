@@ -16,6 +16,7 @@ const (
 	prefixDelimiter  = ":"
 	prefixPadding    = 80
 	createdAtPadding = 40
+	GOOSDarwin       = "darwin"
 )
 
 var (
@@ -52,6 +53,8 @@ type Task struct {
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
+
+type ContextBookmark string
 
 func (t Task) Title() string {
 	summEls := strings.Split(t.Summary, prefixDelimiter)
@@ -99,4 +102,16 @@ func getDynamicStyle(str string) lipgloss.Style {
 	color := taskColors[int(hash)%len(taskColors)]
 	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color(color))
+}
+
+func (c ContextBookmark) Title() string {
+	return string(c)
+}
+
+func (c ContextBookmark) Description() string {
+	return ""
+}
+
+func (c ContextBookmark) FilterValue() string {
+	return string(c)
 }

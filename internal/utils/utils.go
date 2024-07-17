@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"math"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -45,4 +46,8 @@ func HumanizeDuration(durationInSecs int) string {
 	}
 
 	return fmt.Sprintf("%dh %dm", int(duration.Hours()), modMins)
+}
+
+func ExtractURLs(rg *regexp.Regexp, text string) []string {
+	return rg.FindAllString(text, -1)
 }
