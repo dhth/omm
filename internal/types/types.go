@@ -16,6 +16,7 @@ const (
 	prefixDelimiter  = ":"
 	prefixPadding    = 80
 	createdAtPadding = 40
+	GOOSDarwin       = "darwin"
 )
 
 var (

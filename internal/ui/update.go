@@ -17,8 +17,9 @@ import (
 )
 
 const (
-	noSpaceAvailableMsg = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
-	noContextMsg        = "∅"
+	noSpaceAvailableMsg   = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
+	noContextMsg          = "∅"
+	viewPortMoveLineCount = 3
 )
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -105,18 +106,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.contextVP.Height = contextHeight
 		}
 
-		if !m.contextFSVPReady {
-			m.contextFSVP = viewport.New(msg.Width-4, m.terminalHeight-4)
-			m.contextFSVP.KeyMap.HalfPageDown.SetKeys("ctrl+d")
-			m.contextFSVPReady = true
+		if !m.taskDetailsVPReady {
+			m.taskDetailsVP = viewport.New(msg.Width-4, m.terminalHeight-4)
+			m.taskDetailsVP.KeyMap.HalfPageDown.SetKeys("ctrl+d")
+			m.taskDetailsVPReady = true
+			m.taskDetailsVP.KeyMap.Up.SetEnabled(false)
+			m.taskDetailsVP.KeyMap.Down.SetEnabled(false)
 		} else {
-			m.contextFSVP.Width = msg.Width - 4
-			m.contextFSVP.Height = m.terminalHeight - 4
+			m.taskDetailsVP.Width = msg.Width - 4
+			m.taskDetailsVP.Height = m.terminalHeight - 4
 		}
 
 		if !m.helpVPReady {
 			m.helpVP = viewport.New(msg.Width-3, m.terminalHeight-4)
 			m.helpVP.SetContent(helpStr)
+			m.helpVP.KeyMap.Up.SetEnabled(false)
+			m.helpVP.KeyMap.Down.SetEnabled(false)
 			m.helpVPReady = true
 		} else {
 			m.helpVP.Width = msg.Width - 3
@@ -289,6 +294,42 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.taskChange = taskInsert
 			m.activeView = taskEntryView
 			return m, tea.Batch(cmds...)
+
+		case "j":
+			if m.activeView != taskDetailsView && m.activeView != helpView {
+				break
+			}
+
+			switch m.activeView {
+			case taskDetailsView:
+				if m.taskDetailsVP.AtBottom() {
+					break
+				}
+				m.taskDetailsVP.LineDown(viewPortMoveLineCount)
+			case helpView:
+				if m.helpVP.AtBottom() {
+					break
+				}
+				m.helpVP.LineDown(viewPortMoveLineCount)
+			}
+
+		case "k":
+			if m.activeView != taskDetailsView && m.activeView != helpView {
+				break
+			}
+
+			switch m.activeView {
+			case taskDetailsView:
+				if m.taskDetailsVP.AtTop() {
+					break
+				}
+				m.taskDetailsVP.LineUp(viewPortMoveLineCount)
+			case helpView:
+				if m.helpVP.AtTop() {
+					break
+				}
+				m.helpVP.LineUp(viewPortMoveLineCount)
+			}
 
 		case "J":
 			if m.activeView != taskListView {
@@ -647,7 +688,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			m.contextFSVP.GotoTop()
+			m.taskDetailsVP.GotoTop()
 			m.setContextFSContent(t)
 
 			switch m.activeView {
@@ -679,7 +720,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			m.contextFSVP.GotoTop()
+			m.taskDetailsVP.GotoTop()
 			m.setContextFSContent(t)
 
 		case "l":
@@ -702,7 +743,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			m.contextFSVP.GotoTop()
+			m.taskDetailsVP.GotoTop()
 			m.setContextFSContent(t)
 		case "b":
 			if m.activeView != taskListView && m.activeView != archivedTaskListView {
@@ -758,7 +799,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			if m.rtos == goosDarwin {
+			if m.rtos == types.GOOSDarwin {
 				cmds = append(cmds, openURLsDarwin(urls))
 				break
 			}
@@ -868,7 +909,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.activeView == taskDetailsView {
-				m.contextFSVP.GotoTop()
+				m.taskDetailsVP.GotoTop()
 				m.setContextFSContent(t)
 			}
 			// to force refresh
@@ -945,7 +986,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.errorMsg = fmt.Sprintf("warning: omm failed to remove temporary file: %s", err)
 		}
 
-		if len(context) > pers.ContentMaxBytes {
+		if len(context) > pers.ContextMaxBytes {
 			m.errorMsg = "The content you entered is too large, maybe shorten it"
 			// TODO: allow reopening the text editor with the same content again
 			break
@@ -1031,7 +1072,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.taskInput, viewUpdateCmd = m.taskInput.Update(msg)
 
 	case taskDetailsView:
-		m.contextFSVP, viewUpdateCmd = m.contextFSVP.Update(msg)
+		m.taskDetailsVP, viewUpdateCmd = m.taskDetailsVP.Update(msg)
 
 	case contextBookmarksView:
 		m.contextBMList, viewUpdateCmd = m.contextBMList.Update(msg)
@@ -1073,7 +1114,7 @@ last updated at       %s
 %s
 `, task.Summary, task.CreatedAt.Format(timeFormat), task.UpdatedAt.Format(timeFormat), ctx)
 
-	m.contextFSVP.SetContent(details)
+	m.taskDetailsVP.SetContent(details)
 }
 
 func (m model) getContextUrls() ([]string, bool) {

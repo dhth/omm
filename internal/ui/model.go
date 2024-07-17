@@ -22,8 +22,6 @@ const (
 	compactListHeight = 10
 	prefixPadding     = 20
 	timeFormat        = "2006/01/02 15:04"
-	goosWindows       = "windows"
-	goosDarwin        = "darwin"
 )
 
 type itemDelegate struct {
@@ -101,34 +99,34 @@ const (
 )
 
 type model struct {
-	db                *sql.DB
-	cfg               Config
-	taskList          list.Model
-	archivedTaskList  list.Model
-	contextBMList     list.Model
-	taskIndex         int
-	taskId            uint64
-	taskChange        taskChangeType
-	contextVP         viewport.Model
-	contextVPReady    bool
-	contextFSVP       viewport.Model
-	contextFSVPReady  bool
-	helpVP            viewport.Model
-	helpVPReady       bool
-	quitting          bool
-	showHelpIndicator bool
-	errorMsg          string
-	taskInput         textinput.Model
-	activeView        activeView
-	lastActiveView    activeView
-	lastActiveList    taskListType
-	tlTitleStyle      lipgloss.Style
-	atlTitleStyle     lipgloss.Style
-	tlSelStyle        lipgloss.Style
-	atlSelStyle       lipgloss.Style
-	terminalWidth     int
-	terminalHeight    int
-	contextVPTaskId   uint64
-	rtos              string
-	urlRegex          *regexp.Regexp
+	db                 *sql.DB
+	cfg                Config
+	taskList           list.Model
+	archivedTaskList   list.Model
+	contextBMList      list.Model
+	taskIndex          int
+	taskId             uint64
+	taskChange         taskChangeType
+	contextVP          viewport.Model
+	contextVPReady     bool
+	taskDetailsVP      viewport.Model
+	taskDetailsVPReady bool
+	helpVP             viewport.Model
+	helpVPReady        bool
+	quitting           bool
+	showHelpIndicator  bool
+	errorMsg           string
+	taskInput          textinput.Model
+	activeView         activeView
+	lastActiveView     activeView
+	lastActiveList     taskListType
+	tlTitleStyle       lipgloss.Style
+	atlTitleStyle      lipgloss.Style
+	tlSelStyle         lipgloss.Style
+	atlSelStyle        lipgloss.Style
+	terminalWidth      int
+	terminalHeight     int
+	contextVPTaskId    uint64
+	rtos               string
+	urlRegex           *regexp.Regexp
 }

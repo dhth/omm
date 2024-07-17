@@ -13,13 +13,15 @@ const (
 	taskEntryTitleColor    = "#b8bb26"
 	taskDetailsTitleColor  = "#d3869b"
 	taskListHeaderColor    = "#928374"
-	contextTextColor       = "#928374"
+	taskDetailsColor       = "#bdae93"
+	contextColor           = "#928374"
 	formHelpColor          = "#928374"
 	formColor              = "#928374"
 	helpMsgColor           = "#928374"
 	helpViewTitleColor     = "#83a598"
 	helpTitleColor         = "#83a598"
-	helpSectionColor       = "#928374"
+	helpHeaderColor        = "#83a598"
+	helpSectionColor       = "#bdae93"
 	statusBarColor         = "#fb4934"
 	footerColor            = "#928374"
 )
@@ -60,12 +62,12 @@ var (
 			PaddingLeft(2).
 			Foreground(lipgloss.Color(statusBarColor))
 
-	contextTextStyle = lipgloss.NewStyle().
+	taskDetailsStyle = lipgloss.NewStyle().
 				PaddingLeft(2).
-				Foreground(lipgloss.Color(contextTextColor))
+				Foreground(lipgloss.Color(taskDetailsColor))
 
-	contextFSTextStyle = lipgloss.NewStyle().
-				PaddingLeft(2)
+	contextStyle = taskDetailsStyle.
+			Foreground(lipgloss.Color(contextColor))
 
 	formStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(formColor))
@@ -73,9 +75,20 @@ var (
 	formHelpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(formHelpColor))
 
-	helpSectionStyle = lipgloss.NewStyle().
-				PaddingLeft(2).
+	helpViewStyle = lipgloss.NewStyle().
+			PaddingLeft(2)
+
+	helpStyle = lipgloss.NewStyle()
+
+	helpHeadingStyle = helpStyle.
+				Bold(true).
+				Foreground(lipgloss.Color(helpHeaderColor))
+
+	helpSectionStyle = helpStyle.
 				Foreground(lipgloss.Color(helpSectionColor))
+
+	helpSubHeadingStyle = helpSectionStyle.
+				Bold(true)
 
 	helpMsgStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(helpMsgColor))
