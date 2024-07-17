@@ -75,3 +75,7 @@ type urlsOpenedDarwinMsg struct {
 	urls []string
 	err  error
 }
+
+type contextWrittenToCBMsg struct {
+	err error
+}

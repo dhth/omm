@@ -7,6 +7,7 @@ import (
 
 	"database/sql"
 
+	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
@@ -114,4 +115,11 @@ func openURLsDarwin(urls []string) tea.Cmd {
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		return urlsOpenedDarwinMsg{urls, err}
 	})
+}
+
+func copyContextToClipboard(context string) tea.Cmd {
+	return func() tea.Msg {
+		err := clipboard.WriteAll(context)
+		return contextWrittenToCBMsg{err}
+	}
 }

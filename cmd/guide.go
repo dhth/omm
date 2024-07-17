@@ -177,6 +177,8 @@ order). You can override this behavior by passing the "editor" flag to omm, like
 
 Go ahead, press "c". Try changing the text, and then save the file. This context
 text should get updated accordingly.
+
+Once saved, you can also copy a tasks's context to your system clipboard by pressing "y".
 `,
 			true,
 		},

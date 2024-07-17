@@ -25,6 +25,7 @@ const (
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
+	m.successMsg = ""
 	m.errorMsg = ""
 
 	if m.activeView == taskEntryView {
@@ -33,14 +34,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch keypress := msg.String(); keypress {
 			case "esc", "ctrl+c":
 				m.activeView = taskListView
-				m.lastActiveList = activeTasks
+				m.activeTaskList = activeTasks
 			case "enter":
 				taskSummary := m.taskInput.Value()
 				taskSummary = strings.TrimSpace(taskSummary)
 
 				if taskSummary == "" {
 					m.activeView = taskListView
-					m.lastActiveList = activeTasks
+					m.activeTaskList = activeTasks
 					break
 				}
 
@@ -51,13 +52,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					cmds = append(cmds, cmd)
 					m.taskInput.Reset()
 					m.activeView = taskListView
-					m.lastActiveList = activeTasks
+					m.activeTaskList = activeTasks
 				case taskUpdateSummary:
 					cmd = updateTaskSummary(m.db, m.taskIndex, m.taskId, taskSummary)
 					cmds = append(cmds, cmd)
 					m.taskInput.Reset()
 					m.activeView = taskListView
-					m.lastActiveList = activeTasks
+					m.activeTaskList = activeTasks
 				}
 			}
 		}
@@ -71,7 +72,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		w, h := listStyle.GetFrameSize()
 		_, h2 := headerStyle.GetFrameSize()
-		_, h3 := statusBarStyle.GetFrameSize()
+		_, h3 := statusBarMsgStyle.GetFrameSize()
 		m.terminalWidth = msg.Width
 		m.terminalHeight = msg.Height
 		m.taskList.SetWidth(msg.Width - w)
@@ -143,7 +144,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if m.activeView == archivedTaskListView {
 				m.activeView = taskListView
-				m.lastActiveList = activeTasks
+				m.activeTaskList = activeTasks
 				m.lastActiveView = av
 				break
 			}
@@ -152,9 +153,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.activeView = m.lastActiveView
 				switch m.activeView {
 				case taskListView:
-					m.lastActiveList = activeTasks
+					m.activeTaskList = activeTasks
 				case archivedTaskListView:
-					m.lastActiveList = archivedTasks
+					m.activeTaskList = archivedTasks
 				}
 				break
 			}
@@ -182,10 +183,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch m.activeView {
 			case taskListView:
 				m.activeView = archivedTaskListView
-				m.lastActiveList = archivedTasks
+				m.activeTaskList = archivedTasks
 			case archivedTaskListView:
 				m.activeView = taskListView
-				m.lastActiveList = activeTasks
+				m.activeTaskList = activeTasks
 			}
 
 		case "2", "3", "4", "5", "6", "7", "8", "9":
@@ -510,7 +511,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			var ok bool
 			var index int
 
-			switch m.lastActiveList {
+			switch m.activeTaskList {
 			case activeTasks:
 				t, ok = m.taskList.SelectedItem().(types.Task)
 				if !ok {
@@ -557,7 +558,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			var taskList list.Model
 			var archivedTaskList list.Model
 			_, h2 := headerStyle.GetFrameSize()
-			_, h3 := statusBarStyle.GetFrameSize()
+			_, h3 := statusBarMsgStyle.GetFrameSize()
 
 			tlIndex := m.taskList.Index()
 			atlIndex := m.archivedTaskList.Index()
@@ -654,7 +655,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			_, h2 := headerStyle.GetFrameSize()
-			_, h3 := statusBarStyle.GetFrameSize()
+			_, h3 := statusBarMsgStyle.GetFrameSize()
 
 			var contextHeight int
 			if m.cfg.ListDensity == Compact {
@@ -693,9 +694,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch m.activeView {
 			case taskListView:
-				m.lastActiveList = activeTasks
+				m.activeTaskList = activeTasks
 			default:
-				m.lastActiveList = archivedTasks
+				m.activeTaskList = archivedTasks
 			}
 			m.lastActiveView = m.activeView
 			m.activeView = taskDetailsView
@@ -707,7 +708,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			var t types.Task
 			var ok bool
 
-			switch m.lastActiveList {
+			switch m.activeTaskList {
 			case activeTasks:
 				m.taskList.CursorUp()
 				t, ok = m.taskList.SelectedItem().(types.Task)
@@ -730,7 +731,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			var t types.Task
 			var ok bool
 
-			switch m.lastActiveList {
+			switch m.activeTaskList {
 			case activeTasks:
 				m.taskList.CursorDown()
 				t, ok = m.taskList.SelectedItem().(types.Task)
@@ -772,9 +773,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.contextBMList.SetItems(bmItems)
 			switch m.activeView {
 			case taskListView:
-				m.lastActiveList = activeTasks
+				m.activeTaskList = activeTasks
 			case archivedTaskListView:
-				m.lastActiveList = archivedTasks
+				m.activeTaskList = archivedTasks
 			}
 			m.lastActiveView = m.activeView
 			m.activeView = contextBookmarksView
@@ -807,6 +808,39 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			for _, url := range urls {
 				cmds = append(cmds, openURL(url))
 			}
+
+		case "y":
+			if m.activeView != taskListView && m.activeView != archivedTaskListView && m.activeView != taskDetailsView {
+				break
+			}
+
+			var t types.Task
+			var ok bool
+
+			switch m.activeView {
+			case taskListView:
+				t, ok = m.taskList.SelectedItem().(types.Task)
+			case archivedTaskListView:
+				t, ok = m.archivedTaskList.SelectedItem().(types.Task)
+			case taskDetailsView:
+				switch m.activeTaskList {
+				case activeTasks:
+					t, ok = m.taskList.SelectedItem().(types.Task)
+				case archivedTasks:
+					t, ok = m.archivedTaskList.SelectedItem().(types.Task)
+				}
+			}
+
+			if !ok {
+				break
+			}
+
+			if t.Context == nil {
+				m.errorMsg = "There's no context to copy"
+				break
+			}
+
+			cmds = append(cmds, copyContextToClipboard(*t.Context))
 		}
 
 	case HideHelpMsg:
@@ -996,7 +1030,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
-		cmds = append(cmds, updateTaskContext(m.db, msg.taskIndex, msg.taskId, string(context), m.lastActiveList))
+		cmds = append(cmds, updateTaskContext(m.db, msg.taskIndex, msg.taskId, string(context), m.activeTaskList))
 	case urlOpenedMsg:
 		if msg.err != nil {
 			m.errorMsg = fmt.Sprintf("Error opening url: %s", msg.err)
@@ -1004,6 +1038,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case urlsOpenedDarwinMsg:
 		if msg.err != nil {
 			m.errorMsg = fmt.Sprintf("Error opening urls: %s", msg.err)
+		}
+
+	case contextWrittenToCBMsg:
+		if msg.err != nil {
+			m.errorMsg = fmt.Sprintf("Couldn't copy context to clipboard: %s", msg.err)
+		} else {
+			m.successMsg = "Context copied to clipboard!"
 		}
 	}
 
@@ -1127,7 +1168,7 @@ func (m model) getContextUrls() ([]string, bool) {
 	case archivedTaskListView:
 		t, ok = m.archivedTaskList.SelectedItem().(types.Task)
 	case taskDetailsView:
-		switch m.lastActiveList {
+		switch m.activeTaskList {
 		case activeTasks:
 			t, ok = m.taskList.SelectedItem().(types.Task)
 		case archivedTasks:

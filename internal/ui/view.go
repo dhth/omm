@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/dhth/omm/internal/utils"
 )
 
 var (
@@ -22,8 +23,15 @@ func (m model) View() string {
 	var helpMsg string
 	var listEmpty bool
 
-	if m.errorMsg != "" {
-		statusBar = m.errorMsg
+	if m.errorMsg != "" && m.successMsg != "" {
+		statusBar = fmt.Sprintf("%s%s",
+			sBErrMsgStyle.Render(utils.Trim(m.errorMsg, (m.terminalWidth/2)-3)),
+			sBSuccessMsgStyle.Render(utils.Trim(m.successMsg, (m.terminalWidth/2)-3)),
+		)
+	} else if m.errorMsg != "" {
+		statusBar = sBErrMsgStyle.Render(m.errorMsg)
+	} else if m.successMsg != "" {
+		statusBar = sBSuccessMsgStyle.Render(m.successMsg)
 	}
 
 	if m.showHelpIndicator && (m.activeView == taskListView || m.activeView == archivedTaskListView) {
@@ -117,7 +125,7 @@ func (m model) View() string {
 			context = taskDetailsStyle.Render(m.taskDetailsVP.View())
 		}
 
-		return lipgloss.JoinVertical(lipgloss.Left, headerStyle.Render(header), context, statusBarStyle.Render(statusBar))
+		return lipgloss.JoinVertical(lipgloss.Left, headerStyle.Render(header), context, statusBar)
 
 	case contextBookmarksView:
 		header = fmt.Sprintf("%s%s", contextBMTitleStyle.Render("Context Bookmarks"), helpMsg)
@@ -150,7 +158,7 @@ func (m model) View() string {
 		components = append(components, context)
 	}
 
-	components = append(components, statusBarStyle.Render(statusBar))
+	components = append(components, statusBar)
 
 	return lipgloss.JoinVertical(lipgloss.Left, components...)
 

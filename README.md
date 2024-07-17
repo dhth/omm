@@ -198,6 +198,7 @@ B                  open all bookmarks in the current task's context
 c                  update context for a task
 ctrl+d             archive/unarchive task
 ctrl+x             delete task
+y                  copy selected task's context to system clipboard
 v                  toggle between compact and spacious view
 
 Active Tasks List
@@ -214,6 +215,7 @@ K                  move task one position up
 
 Task Details Pane
 h/l                move backwards/forwards when in the task details view
+y                  copy selected task's context to system clipboard
 B                  open all bookmarks in the current task's context
 
 Context Bookmarks List

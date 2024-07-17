@@ -115,11 +115,12 @@ type model struct {
 	helpVPReady        bool
 	quitting           bool
 	showHelpIndicator  bool
+	successMsg         string
 	errorMsg           string
 	taskInput          textinput.Model
 	activeView         activeView
 	lastActiveView     activeView
-	lastActiveList     taskListType
+	activeTaskList     taskListType
 	tlTitleStyle       lipgloss.Style
 	atlTitleStyle      lipgloss.Style
 	tlSelStyle         lipgloss.Style

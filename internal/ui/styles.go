@@ -22,7 +22,8 @@ const (
 	helpTitleColor         = "#83a598"
 	helpHeaderColor        = "#83a598"
 	helpSectionColor       = "#bdae93"
-	statusBarColor         = "#fb4934"
+	sBSuccessMsgColor      = "#d3869b"
+	sBErrMsgColor          = "#fb4934"
 	footerColor            = "#928374"
 )
 
@@ -58,9 +59,14 @@ var (
 			PaddingBottom(1).
 			PaddingLeft(2)
 
-	statusBarStyle = lipgloss.NewStyle().
-			PaddingLeft(2).
-			Foreground(lipgloss.Color(statusBarColor))
+	statusBarMsgStyle = lipgloss.NewStyle().
+				PaddingLeft(2)
+
+	sBErrMsgStyle = statusBarMsgStyle.
+			Foreground(lipgloss.Color(sBErrMsgColor))
+
+	sBSuccessMsgStyle = statusBarMsgStyle.
+				Foreground(lipgloss.Color(sBSuccessMsgColor))
 
 	taskDetailsStyle = lipgloss.NewStyle().
 				PaddingLeft(2).

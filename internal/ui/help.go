@@ -54,6 +54,7 @@ B                  open all bookmarks in the current task's context
 c                  update context for a task
 ctrl+d             archive/unarchive task
 ctrl+x             delete task
+y                  copy selected task's context to system clipboard
 v                  toggle between compact and spacious view`),
 		helpSubHeadingStyle.Render("Active Tasks List"),
 		helpSectionStyle.Render(`q/esc/ctrl+c       quit
@@ -68,6 +69,7 @@ J                  move task one position down
 K                  move task one position up`),
 		helpSubHeadingStyle.Render("Task Details Pane"),
 		helpSectionStyle.Render(`h/l                move backwards/forwards when in the task details view
+y                  copy current task's context to system clipboard
 B                  open all bookmarks in the current task's context`),
 		helpSubHeadingStyle.Render("Context Bookmarks List"),
 		helpSectionStyle.Render(`⏎                  open URL in browser`),
