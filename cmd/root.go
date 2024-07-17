@@ -16,29 +16,36 @@ import (
 	"github.com/dhth/omm/internal/ui"
 	"github.com/dhth/omm/internal/utils"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
 const (
-	author                = "@dhth"
-	repoIssuesUrl         = "https://github.com/dhth/omm/issues"
-	defaultDataDir        = ".local/share"
-	defaultDataDirWindows = "AppData/Local"
-	dbFileName            = "omm/omm.db"
-	printTasksDefault     = 20
-	taskListTitleMaxLen   = 8
+	defaultConfigFilename      = "omm"
+	envPrefix                  = "OMM"
+	replaceHyphenWithCamelCase = false
+
+	author                  = "@dhth"
+	repoIssuesUrl           = "https://github.com/dhth/omm/issues"
+	defaultConfigDir        = ".config"
+	defaultDataDir          = ".local/share"
+	defaultConfigDirWindows = "AppData/Roaming"
+	defaultDataDirWindows   = "AppData/Local"
+	configFileName          = "omm/omm.toml"
+	dbFileName              = "omm/omm.db"
+	printTasksDefault       = 20
+	taskListTitleMaxLen     = 8
 )
 
 var (
-	dbPath                string
-	db                    *sql.DB
-	taskListColor         string
-	archivedTaskListColor string
-	printTasksNum         uint8
-	taskListTitle         string
-	listDensityFlagInp    string
-	editorFlagInp         string
-	editorCmd             string
-	showContextFlagInp    bool
+	configFileExtIncorrectErr = errors.New("config file must be a TOML file")
+	configFileDoesntExistErr  = errors.New("config file does not exist")
+	dbFileExtIncorrectErr     = errors.New("db file needs to end with .db")
+
+	maxImportLimitExceededErr = fmt.Errorf("Max number of tasks that can be imported at a time: %d", pers.TaskNumLimit)
+	nothingToImportErr        = errors.New("Nothing to import")
+
+	listDensityIncorrectErr = errors.New("List density is incorrect; valid values: compact/spacious")
 )
 
 func die(msg string, args ...any) {
@@ -47,20 +54,17 @@ func die(msg string, args ...any) {
 }
 
 func Execute() {
-	err := rootCmd.Execute()
+	rootCmd, err := NewRootCommand()
 	if err != nil {
-		die("Something went wrong: %s", err)
+		die("Error: %s", err)
 	}
+
+	_ = rootCmd.Execute()
 }
 
-func setupDB() {
+func setupDB(dbPathFull string) (*sql.DB, error) {
 
-	if dbPath == "" {
-		die("DB path cannot be empty")
-	}
-
-	dbPathFull := expandTilde(dbPath)
-
+	var db *sql.DB
 	var err error
 
 	_, err = os.Stat(dbPathFull)
@@ -69,7 +73,7 @@ func setupDB() {
 		dir := filepath.Dir(dbPathFull)
 		err = os.MkdirAll(dir, 0755)
 		if err != nil {
-			die(`Couldn't create directory for data files: %s
+			return nil, fmt.Errorf(`Couldn't create directory for data files: %s
 Error: %s`,
 				dir,
 				err)
@@ -78,7 +82,7 @@ Error: %s`,
 		db, err = getDB(dbPathFull)
 
 		if err != nil {
-			die(`Couldn't create omm's local database. This is a fatal error;
+			return nil, fmt.Errorf(`Couldn't create omm's local database. This is a fatal error;
 Let %s know about this via %s.
 
 Error: %s`,
@@ -89,7 +93,7 @@ Error: %s`,
 
 		err = initDB(db)
 		if err != nil {
-			die(`Couldn't create omm's local database. This is a fatal error;
+			return nil, fmt.Errorf(`Couldn't create omm's local database. This is a fatal error;
 Let %s know about this via %s.
 
 Error: %s`,
@@ -101,7 +105,7 @@ Error: %s`,
 	} else {
 		db, err = getDB(dbPathFull)
 		if err != nil {
-			die(`Couldn't open omm's local database. This is a fatal error;
+			return nil, fmt.Errorf(`Couldn't open omm's local database. This is a fatal error;
 Let %s know about this via %s.
 
 Error: %s`,
@@ -111,12 +115,32 @@ Error: %s`,
 		}
 		upgradeDBIfNeeded(db)
 	}
+
+	return db, nil
 }
 
-var rootCmd = &cobra.Command{
-	Use:   "omm",
-	Short: "omm (\"on my mind\") is a keyboard-driven task manager for the command line",
-	Long: `omm ("on my mind") is a keyboard-driven task manager for the command line.
+func NewRootCommand() (*cobra.Command, error) {
+
+	var (
+		configPath            string
+		configPathFull        string
+		dbPath                string
+		dbPathFull            string
+		db                    *sql.DB
+		taskListColor         string
+		archivedTaskListColor string
+		printTasksNum         uint8
+		taskListTitle         string
+		listDensityFlagInp    string
+		editorFlagInp         string
+		editorCmd             string
+		showContextFlagInp    bool
+	)
+
+	rootCmd := &cobra.Command{
+		Use:   "omm",
+		Short: "omm (\"on my mind\") is a keyboard-driven task manager for the command line",
+		Long: `omm ("on my mind") is a keyboard-driven task manager for the command line.
 
 It is intended to help you visualize and arrange the tasks you need to finish,
 based on the priority you assign them. The higher a task is in omm's list, the
@@ -124,176 +148,189 @@ higher priority it takes.
 
 Tip: Quickly add a task using 'omm "task summary goes here"'.
 `,
-	Args: cobra.MaximumNArgs(1),
-	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		Args:         cobra.MaximumNArgs(1),
+		SilenceUsage: true,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			configPathFull = expandTilde(configPath)
 
-		if cmd.CalledAs() == "guide" {
-			tempDir := os.TempDir()
-			timestamp := time.Now().UnixNano()
-			tempFileName := fmt.Sprintf("omm-%d.db", timestamp)
-			tempFilePath := filepath.Join(tempDir, tempFileName)
-			dbPath = tempFilePath
-		}
+			if filepath.Ext(configPathFull) != ".toml" {
+				return configFileExtIncorrectErr
+			}
+			_, err := os.Stat(configPathFull)
 
-		setupDB()
-	},
-	Run: func(cmd *cobra.Command, args []string) {
+			fl := cmd.Flags()
+			if fl != nil {
+				cf := fl.Lookup("config-path")
+				if cf != nil && cf.Changed && errors.Is(err, fs.ErrNotExist) {
+					return configFileDoesntExistErr
+				}
+			}
 
-		if len(args) != 0 {
-			summary := utils.Trim(args[0], ui.TaskSummaryMaxLen)
-			err := importTask(db, summary)
+			err = initializeConfig(cmd, configPathFull)
 			if err != nil {
-				die("There was an error adding the task: %s", err)
+				return err
 			}
-			return
-		}
 
-		// config management
-		if cmd.Flags().Lookup("editor").Changed {
-			editorCmd = editorFlagInp
-		} else {
-			editorCmd = getUserConfiguredEditor(editorFlagInp)
-		}
-
-		var sc bool
-		var scErr error
-		if cmd.Flags().Lookup("show-context").Changed {
-			sc = showContextFlagInp
-		} else {
-			sc, scErr = getUserConfiguredShowContext(showContextFlagInp)
-			if scErr != nil {
-				die("%s", scErr)
+			if cmd.CalledAs() == "guide" {
+				tempDir := os.TempDir()
+				timestamp := time.Now().UnixNano()
+				tempFileName := fmt.Sprintf("omm-%d.db", timestamp)
+				tempFilePath := filepath.Join(tempDir, tempFileName)
+				dbPath = tempFilePath
 			}
-		}
 
-		var ld ui.ListDensityType
-		var ldErr error
-		if cmd.Flags().Lookup("list-density").Changed {
+			dbPathFull = expandTilde(dbPath)
+			if filepath.Ext(dbPathFull) != ".db" {
+				return dbFileExtIncorrectErr
+			}
+
+			db, err = setupDB(dbPathFull)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
+
+			if len(args) != 0 {
+				summary := utils.Trim(args[0], ui.TaskSummaryMaxLen)
+				err := importTask(db, summary)
+				if err != nil {
+					return err
+				}
+				return nil
+			}
+
+			// config management
+			if cmd.Flags().Lookup("editor").Changed {
+				editorCmd = editorFlagInp
+			} else {
+				editorCmd = getUserConfiguredEditor(editorFlagInp)
+			}
+
+			var ld ui.ListDensityType
 			switch listDensityFlagInp {
 			case ui.CompactDensityVal:
 				ld = ui.Compact
 			case ui.SpaciousDensityVal:
 				ld = ui.Spacious
 			default:
-				die("--list-density is incorrect")
-			}
-		} else {
-			ld, ldErr = getUserConfiguredListDensity(listDensityFlagInp)
-			if ldErr != nil {
-				die("%s", ldErr)
-			}
-		}
-
-		if len(taskListTitle) > taskListTitleMaxLen {
-			taskListTitle = taskListTitle[:taskListTitleMaxLen]
-		}
-
-		config := ui.Config{
-			DBPath:                dbPath,
-			ListDensity:           ld,
-			TaskListColor:         taskListColor,
-			ArchivedTaskListColor: archivedTaskListColor,
-			TaskListTitle:         taskListTitle,
-			TextEditorCmd:         strings.Fields(editorCmd),
-			ShowContext:           sc,
-		}
-
-		ui.RenderUI(db, config)
-	},
-}
-
-var importCmd = &cobra.Command{
-	Use:   "import",
-	Short: "Import tasks into omm from stdin",
-	Run: func(cmd *cobra.Command, args []string) {
-
-		var tasks []string
-		taskCounter := 0
-
-		scanner := bufio.NewScanner(os.Stdin)
-		for scanner.Scan() {
-			if taskCounter > pers.TaskNumLimit {
-				die("Max number of tasks that can be imported at a time: %d", pers.TaskNumLimit)
+				return listDensityIncorrectErr
 			}
 
-			line := scanner.Text()
-			line = strings.TrimSpace(line)
-			if len(line) > ui.TaskSummaryMaxLen {
-				line = utils.Trim(line, ui.TaskSummaryMaxLen)
+			if len(taskListTitle) > taskListTitleMaxLen {
+				taskListTitle = taskListTitle[:taskListTitleMaxLen]
 			}
 
-			if line != "" {
-				tasks = append(tasks, line)
+			config := ui.Config{
+				DBPath:                dbPathFull,
+				ListDensity:           ld,
+				TaskListColor:         taskListColor,
+				ArchivedTaskListColor: archivedTaskListColor,
+				TaskListTitle:         taskListTitle,
+				TextEditorCmd:         strings.Fields(editorCmd),
+				ShowContext:           showContextFlagInp,
 			}
-			taskCounter++
-		}
 
-		if len(tasks) == 0 {
-			die("Nothing to import")
-		}
+			ui.RenderUI(db, config)
 
-		err := importTasks(db, tasks)
-		if err != nil {
-			die("There was an error importing tasks: %s", err)
-		}
-	},
-}
+			return nil
+		},
+	}
 
-var tasksCmd = &cobra.Command{
-	Use:   "tasks",
-	Short: "Output tasks tracked by omm to stdout",
-	Run: func(cmd *cobra.Command, args []string) {
+	importCmd := &cobra.Command{
+		Use:   "import",
+		Short: "Import tasks into omm from stdin",
+		RunE: func(cmd *cobra.Command, args []string) error {
 
-		err := printTasks(db, printTasksNum, os.Stdout)
-		if err != nil {
-			die("There was an error importing tasks: %s", err)
-		}
-	},
-}
+			var tasks []string
+			taskCounter := 0
 
-var guideCmd = &cobra.Command{
-	Use:   "guide",
-	Short: "Starts a guided walkthrough of omm's features",
-	PreRun: func(cmd *cobra.Command, args []string) {
+			scanner := bufio.NewScanner(os.Stdin)
+			for scanner.Scan() {
+				if taskCounter > pers.TaskNumLimit {
+					return maxImportLimitExceededErr
+				}
 
-		guideErr := insertGuideTasks(db)
-		if guideErr != nil {
-			die(`Failed to set up a guided walkthrough.
+				line := scanner.Text()
+				line = strings.TrimSpace(line)
+				if len(line) > ui.TaskSummaryMaxLen {
+					line = utils.Trim(line, ui.TaskSummaryMaxLen)
+				}
+
+				if line != "" {
+					tasks = append(tasks, line)
+				}
+				taskCounter++
+			}
+
+			if len(tasks) == 0 {
+				return nothingToImportErr
+			}
+
+			err := importTasks(db, tasks)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		},
+	}
+
+	tasksCmd := &cobra.Command{
+		Use:   "tasks",
+		Short: "Output tasks tracked by omm to stdout",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return printTasks(db, printTasksNum, os.Stdout)
+		},
+	}
+
+	guideCmd := &cobra.Command{
+		Use:   "guide",
+		Short: "Starts a guided walkthrough of omm's features",
+		PreRunE: func(cmd *cobra.Command, args []string) error {
+
+			guideErr := insertGuideTasks(db)
+			if guideErr != nil {
+				return fmt.Errorf(`Failed to set up a guided walkthrough.
 Let %s know about this via %s.
 
 Error: %s`, author, repoIssuesUrl, guideErr)
-		}
-	},
-	Run: func(cmd *cobra.Command, args []string) {
+			}
 
-		if cmd.Flags().Lookup("editor").Changed {
-			editorCmd = editorFlagInp
-		} else {
-			editorCmd = getUserConfiguredEditor(editorFlagInp)
-		}
-		config := ui.Config{
-			DBPath:                dbPath,
-			ListDensity:           ui.Compact,
-			TaskListColor:         taskListColor,
-			ArchivedTaskListColor: archivedTaskListColor,
-			TaskListTitle:         taskListTitle,
-			TextEditorCmd:         strings.Fields(editorCmd),
-			ShowContext:           true,
-			Guide:                 true,
-		}
+			return nil
+		},
+		RunE: func(cmd *cobra.Command, args []string) error {
 
-		ui.RenderUI(db, config)
-	},
-}
+			if cmd.Flags().Lookup("editor").Changed {
+				editorCmd = editorFlagInp
+			} else {
+				editorCmd = getUserConfiguredEditor(editorFlagInp)
+			}
+			config := ui.Config{
+				DBPath:                dbPathFull,
+				ListDensity:           ui.Compact,
+				TaskListColor:         taskListColor,
+				ArchivedTaskListColor: archivedTaskListColor,
+				TaskListTitle:         taskListTitle,
+				TextEditorCmd:         strings.Fields(editorCmd),
+				ShowContext:           true,
+				Guide:                 true,
+			}
 
-func init() {
+			ui.RenderUI(db, config)
+
+			return nil
+		},
+	}
 	ros := runtime.GOOS
-	var defaultDBPath string
-	var dbPathAdditionalCxt string
+	var defaultConfigPath, defaultDBPath string
+	var configPathAdditionalCxt, dbPathAdditionalCxt string
 	hd, err := os.UserHomeDir()
 
 	if err != nil {
-		die(`Couldn't get your home directory. This is a fatal error;
+		return nil, fmt.Errorf(`Couldn't get your home directory. This is a fatal error;
 use --dbpath to specify database path manually
 Let %s know about this via %s.
 
@@ -303,18 +340,28 @@ Error: %s`, author, repoIssuesUrl, err)
 	switch ros {
 	case "linux":
 		xdgDataHome := os.Getenv("XDG_DATA_HOME")
+		xdgConfigHome := os.Getenv("XDG_CONFIG_HOME")
+		if xdgConfigHome != "" {
+			defaultConfigPath = filepath.Join(xdgConfigHome, configFileName)
+		} else {
+			defaultConfigPath = filepath.Join(hd, defaultConfigDir, configFileName)
+		}
 		if xdgDataHome != "" {
 			defaultDBPath = filepath.Join(xdgDataHome, dbFileName)
 		} else {
 			defaultDBPath = filepath.Join(hd, defaultDataDir, dbFileName)
 		}
+		configPathAdditionalCxt = "; will use $XDG_CONFIG_HOME by default, if set"
 		dbPathAdditionalCxt = "; will use $XDG_DATA_HOME by default, if set"
 	case "windows":
+		defaultConfigPath = filepath.Join(hd, defaultConfigDirWindows, configFileName)
 		defaultDBPath = filepath.Join(hd, defaultDataDirWindows, dbFileName)
 	default:
+		defaultConfigPath = filepath.Join(hd, defaultConfigDir, configFileName)
 		defaultDBPath = filepath.Join(hd, defaultDataDir, dbFileName)
 	}
 
+	rootCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	rootCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
 	rootCmd.Flags().StringVar(&taskListColor, "tl-color", ui.TaskListColor, "hex color used for the task list")
 	rootCmd.Flags().StringVar(&archivedTaskListColor, "atl-color", ui.ArchivedTLColor, "hex color used for the archived tasks list")
@@ -324,8 +371,10 @@ Error: %s`, author, repoIssuesUrl, err)
 	rootCmd.Flags().BoolVar(&showContextFlagInp, "show-context", true, "whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI; this config property can also be set via $OMM_SHOW_CONTEXT")
 
 	tasksCmd.Flags().Uint8VarP(&printTasksNum, "num", "n", printTasksDefault, "number of tasks to print")
+	tasksCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	tasksCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
 
+	importCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	importCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
 
 	guideCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task; this config property can also be set via $OMM_EDITOR/$EDITOR/$VISUAL")
@@ -335,4 +384,49 @@ Error: %s`, author, repoIssuesUrl, err)
 	rootCmd.AddCommand(guideCmd)
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
+
+	return rootCmd, nil
+}
+
+func initializeConfig(cmd *cobra.Command, configFile string) error {
+	v := viper.New()
+
+	v.SetConfigName(filepath.Base(configFile))
+	v.SetConfigType("toml")
+	v.AddConfigPath(filepath.Dir(configFile))
+
+	var err error
+	if err = v.ReadInConfig(); err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			return err
+		}
+	}
+
+	v.SetEnvPrefix(envPrefix)
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+	v.AutomaticEnv()
+
+	err = bindFlags(cmd, v)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func bindFlags(cmd *cobra.Command, v *viper.Viper) error {
+	var err error
+	cmd.Flags().VisitAll(func(f *pflag.Flag) {
+		configName := strings.ReplaceAll(f.Name, "-", "_")
+
+		if !f.Changed && v.IsSet(configName) {
+			val := v.Get(configName)
+			fErr := cmd.Flags().Set(f.Name, fmt.Sprintf("%v", val))
+			if fErr != nil {
+				err = fErr
+				return
+			}
+		}
+	})
+	return err
 }
