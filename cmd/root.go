@@ -21,10 +21,8 @@ import (
 )
 
 const (
-	defaultConfigFilename      = "omm"
-	envPrefix                  = "OMM"
-	replaceHyphenWithCamelCase = false
-
+	defaultConfigFilename   = "omm"
+	envPrefix               = "OMM"
 	author                  = "@dhth"
 	repoIssuesUrl           = "https://github.com/dhth/omm/issues"
 	defaultConfigDir        = ".config"
@@ -324,6 +322,7 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 			return nil
 		},
 	}
+
 	ros := runtime.GOOS
 	var defaultConfigPath, defaultDBPath string
 	var configPathAdditionalCxt, dbPathAdditionalCxt string
@@ -366,9 +365,9 @@ Error: %s`, author, repoIssuesUrl, err)
 	rootCmd.Flags().StringVar(&taskListColor, "tl-color", ui.TaskListColor, "hex color used for the task list")
 	rootCmd.Flags().StringVar(&archivedTaskListColor, "atl-color", ui.ArchivedTLColor, "hex color used for the archived tasks list")
 	rootCmd.Flags().StringVar(&taskListTitle, "title", ui.TaskListDefaultTitle, fmt.Sprintf("title of the task list, will trim till %d chars", taskListTitleMaxLen))
-	rootCmd.Flags().StringVar(&listDensityFlagInp, "list-density", ui.CompactDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]; this config property can also be set via $OMM_LIST_DENSITY", ui.CompactDensityVal, ui.SpaciousDensityVal))
-	rootCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task; this config property can also be set via $OMM_EDITOR/$EDITOR/$VISUAL")
-	rootCmd.Flags().BoolVar(&showContextFlagInp, "show-context", true, "whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI; this config property can also be set via $OMM_SHOW_CONTEXT")
+	rootCmd.Flags().StringVar(&listDensityFlagInp, "list-density", ui.CompactDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]", ui.CompactDensityVal, ui.SpaciousDensityVal))
+	rootCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
+	rootCmd.Flags().BoolVar(&showContextFlagInp, "show-context", true, "whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI")
 
 	tasksCmd.Flags().Uint8VarP(&printTasksNum, "num", "n", printTasksDefault, "number of tasks to print")
 	tasksCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
@@ -377,7 +376,7 @@ Error: %s`, author, repoIssuesUrl, err)
 	importCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	importCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
 
-	guideCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task; this config property can also be set via $OMM_EDITOR/$EDITOR/$VISUAL")
+	guideCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
 
 	rootCmd.AddCommand(importCmd)
 	rootCmd.AddCommand(tasksCmd)

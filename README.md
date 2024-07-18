@@ -57,6 +57,16 @@ omm guide
 ⚡️ Usage
 ---
 
+### Configuration
+
+`omm` allows you to change the some of its behavior via configuration, which it
+will consider in the order listed below:
+
+- CLI flags (run `omm -h` to see details)
+- Environment variables (eg. `OMM_EDITOR`)
+- A TOML configuration file (run `omm -h` to see where this lives; you can
+    change this via the flag `--config-path`)
+
 ### TUI
 
 `omm`'s TUI is comprised of several panes: 2 lists (for active and archived
@@ -92,15 +102,11 @@ For tasks that need more details that you can fit in a one line summary, there
 is the context pane. You add/update context for a task via a text editor which
 is chosen based on the following look ups:
 
-- the `--editor` flag
-- the environment variable `OMM_EDITOR`
-- the environment variable `EDITOR`
-- the environment variable `VISUAL`
+- the "--editor" flag
+- $OMM_EDITOR
+- "editor" property in omm's toml config
+- $EDITOR/$VISUAL
 - `vi` (fallback)
-
-The context pane can be hidden on startup by either setting the environment
-variable `OMM_SHOW_CONTEXT=0`, or by providing the flag `--show-context=false`
-(the latter takes priority).
 
 ![active-tasks](https://tools.dhruvs.space/images/omm/omm-context-1.png)
 
