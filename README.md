@@ -57,20 +57,11 @@ omm guide
 ⚡️ Usage
 ---
 
-### Configuration
-
-`omm` allows you to change the some of its behavior via configuration, which it
-will consider in the order listed below:
-
-- CLI flags (run `omm -h` to see details)
-- Environment variables (eg. `OMM_EDITOR`)
-- A TOML configuration file (run `omm -h` to see where this lives; you can
-    change this via the flag `--config-path`)
-
 ### TUI
 
-`omm`'s TUI is comprised of several panes: 2 lists (for active and archived
-tasks), a context pane, and a task entry/update pane.
+`omm`'s TUI is comprised of several panes: 3 lists (for active and archived
+tasks, and one for context bookmarks), a context pane, and a task entry/update
+pane.
 
 #### Active Tasks List
 
@@ -109,6 +100,8 @@ is chosen based on the following look ups:
 - `vi` (fallback)
 
 ![active-tasks](https://tools.dhruvs.space/images/omm/omm-context-1.png)
+
+**[`^ back to top ^`](#omm)**
 
 #### Task Entry Pane
 
@@ -172,6 +165,30 @@ up the TUI.
 omm "Install spring-loaded boxing glove"
 ```
 
+### Configuration
+
+`omm` allows you to change the some of its behavior via configuration, which it
+will consider in the order listed below:
+
+- CLI flags (run `omm -h` to see details)
+- Environment variables (eg. `OMM_EDITOR`)
+- A TOML configuration file (run `omm -h` to see where this lives; you can
+    change this via the flag `--config-path`)
+
+    Here's a sample config file:
+
+    ```toml
+    db_path      = "~/.local/share/omm/omm-w.db"
+    tl_color     = "#b8bb26"
+    atl_color    = "#fabd2f"
+    title        = "work"
+    list_density = "spacious"
+    show_context = false
+    editor       = "vi -u NONE"
+    ```
+
+**[`^ back to top ^`](#omm)**
+
 Outputting tasks
 ---
 
@@ -231,8 +248,10 @@ Context Bookmarks List
 Acknowledgements
 ---
 
-`omm` is built using [bubbletea][1], and is released using [goreleaser][2], both
-of which are amazing tools.
+`omm` stands on the shoulders of giants. 
 
-[1]: https://github.com/charmbracelet/bubbletea
-[2]: https://github.com/goreleaser/goreleaser
+- [bubbletea](https://github.com/charmbracelet/bubbletea) as the TUI framework
+- [sqlite](https://www.sqlite.org) as the local database
+- [goreleaser](https://github.com/goreleaser/goreleaser) for releasing binaries
+
+**[`^ back to top ^`](#omm)**

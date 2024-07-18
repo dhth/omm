@@ -46,15 +46,11 @@ var (
 	listDensityIncorrectErr = errors.New("List density is incorrect; valid values: compact/spacious")
 )
 
-func die(msg string, args ...any) {
-	fmt.Fprintf(os.Stderr, msg+"\n", args...)
-	os.Exit(1)
-}
-
 func Execute() {
 	rootCmd, err := NewRootCommand()
 	if err != nil {
-		die("Error: %s", err)
+		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		os.Exit(1)
 	}
 
 	_ = rootCmd.Execute()
@@ -99,7 +95,10 @@ Error: %s`,
 				repoIssuesUrl,
 				err)
 		}
-		upgradeDB(db, 1)
+		err = upgradeDB(db, 1)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		db, err = getDB(dbPathFull)
 		if err != nil {
@@ -111,7 +110,10 @@ Error: %s`,
 				repoIssuesUrl,
 				err)
 		}
-		upgradeDBIfNeeded(db)
+		err = upgradeDBIfNeeded(db)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return db, nil

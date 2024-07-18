@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 )
 
@@ -46,10 +47,10 @@ LIMIT 1;
 	return dbVersion, err
 }
 
-func upgradeDBIfNeeded(db *sql.DB) {
+func upgradeDBIfNeeded(db *sql.DB) error {
 	latestVersionInDB, versionErr := fetchLatestDBVersion(db)
 	if versionErr != nil {
-		die(`Couldn't get omm's latest database version. This is a fatal error; let %s
+		return fmt.Errorf(`Couldn't get omm's latest database version. This is a fatal error; let %s
 know about this via %s.
 
 Error: %s`,
@@ -59,38 +60,43 @@ Error: %s`,
 	}
 
 	if latestVersionInDB.version > latestDBVersion {
-		die(`Looks like you downgraded omm. You should either delete omm's
+		return fmt.Errorf(`Looks like you downgraded omm. You should either delete omm's
 database file (you will lose data by doing that), or upgrade omm to
 the latest version.`)
 	}
 
 	if latestVersionInDB.version < latestDBVersion {
-		upgradeDB(db, latestVersionInDB.version)
+		err := upgradeDB(db, latestVersionInDB.version)
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }
 
-func upgradeDB(db *sql.DB, currentVersion int) {
+func upgradeDB(db *sql.DB, currentVersion int) error {
 	migrations := getMigrations()
 	for i := currentVersion + 1; i <= latestDBVersion; i++ {
 		migrateQuery := migrations[i]
 		migrateErr := runMigration(db, migrateQuery, i)
 		if migrateErr != nil {
-			die(`Something went wrong migrating omm's database to version %d. This is not
+			return fmt.Errorf(`Something went wrong migrating omm's database to version %d. This is not
 supposed to happen. You can try running omm by passing it a custom database
 file path (using --dbpath; this will create a new database) to see if that fixes
 things. If that works, you can either delete the previous database, or keep
 using this new database (both are not ideal).
 
-If you can, let %s know about this error via
-%s.
+If you can, let %s know about this error via %s.
 Sorry for breaking the upgrade step!
 
 ---
 
-Error: %s
+DB Error: %s
 `, i, author, repoIssuesUrl, migrateErr)
 		}
 	}
+	return nil
 }
 
 func runMigration(db *sql.DB, migrateQuery string, version int) error {

@@ -226,8 +226,8 @@ Similarly, you can also update a task's context any time (by pressing "c").
 		},
 		{
 			"config: changing the defaults",
-			`allows you to change the some of its behavior via configuration, which it will
-consider in the order listed below:
+			`omm allows you to change the some of its behavior via configuration, which it
+will consider in the order listed below:
 
 - CLI flags (run "omm -h" to see details)
 - Environment variables (eg. "OMM_EDITOR")
@@ -240,7 +240,19 @@ take the highest priority.
 			true,
 		},
 		{
-			"config: a sample config",
+			"config: flags, env vars, and config file",
+			`Every flag listed by "omm -h" (except "--config-path") has an environment
+variable counterpart, as well as a TOML config counterpart. 
+
+For example:
+
+--show-context  ->  OMM_SHOW_CONTEXT  ->  show_context
+--editor        ->  OMM_EDITOR        ->  editor
+`,
+			true,
+		},
+		{
+			"config: a sample TOML config",
 			fmt.Sprintf(`Here's a sample TOML configuration file:
 
 %s`, sampleCfg),
