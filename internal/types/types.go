@@ -12,11 +12,13 @@ import (
 )
 
 const (
-	timeFormat       = "2006/01/02 15:04"
-	prefixDelimiter  = ":"
-	prefixPadding    = 80
-	createdAtPadding = 40
-	GOOSDarwin       = "darwin"
+	timeFormat        = "2006/01/02 15:04"
+	prefixDelimiter   = ":"
+	prefixPadding     = 80
+	createdAtPadding  = 40
+	GOOSDarwin        = "darwin"
+	taskSummaryWidth  = 100
+	TaskSummaryMaxLen = 300
 )
 
 var (
@@ -61,7 +63,7 @@ func (t Task) Title() string {
 	if len(summEls) == 1 {
 		return t.Summary
 	}
-	return strings.TrimSpace(strings.Join(summEls[1:], prefixDelimiter))
+	return utils.Trim(strings.TrimSpace(strings.Join(summEls[1:], prefixDelimiter)), taskSummaryWidth)
 }
 
 func (t Task) Description() string {

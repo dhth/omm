@@ -128,7 +128,7 @@ func (m model) View() string {
 		return lipgloss.JoinVertical(lipgloss.Left, headerStyle.Render(header), context, statusBar)
 
 	case contextBookmarksView:
-		header = fmt.Sprintf("%s%s", contextBMTitleStyle.Render("Context Bookmarks"), helpMsg)
+		header = fmt.Sprintf("%s%s", contextBMTitleStyle.Render("Task Bookmarks"), helpMsg)
 
 		content = listStyle.Render(m.contextBMList.View())
 

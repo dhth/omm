@@ -34,7 +34,7 @@ Tip: Run "omm guide" for a guided walkthrough of omm's features.`),
 2:    Archived Tasks List
 3:    Task creation/update Pane
 4:    Task Details Pane
-5:    Context Bookmarks List`),
+5:    Task Bookmarks List`),
 		helpHeadingStyle.Render("Keymaps"),
 		helpSubHeadingStyle.Render("General"),
 		helpSectionStyle.Render(`q/esc/ctrl+c       go back
@@ -49,11 +49,12 @@ G                  go to the end
 tab                move between lists
 C                  toggle showing context
 d                  toggle Task Details pane
-b                  open context bookmarks list
-B                  open all bookmarks in the current task's context
+b                  open Task Bookmarks list
+B                  open all bookmarks added to current task
 c                  update context for a task
 ctrl+d             archive/unarchive task
 ctrl+x             delete task
+ctrl+r             reload task lists
 y                  copy selected task's context to system clipboard
 v                  toggle between compact and spacious view`),
 		helpSubHeadingStyle.Render("Active Tasks List"),
@@ -70,8 +71,8 @@ K                  move task one position up`),
 		helpSubHeadingStyle.Render("Task Details Pane"),
 		helpSectionStyle.Render(`h/l                move backwards/forwards when in the task details view
 y                  copy current task's context to system clipboard
-B                  open all bookmarks in the current task's context`),
-		helpSubHeadingStyle.Render("Context Bookmarks List"),
+B                  open all bookmarks added to current task`),
+		helpSubHeadingStyle.Render("Task Bookmarks List"),
 		helpSectionStyle.Render(`⏎                  open URL in browser`),
 	)
 )

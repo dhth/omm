@@ -60,7 +60,7 @@ omm guide
 ### TUI
 
 `omm`'s TUI is comprised of several panes: 3 lists (for active and archived
-tasks, and one for context bookmarks), a context pane, and a task entry/update
+tasks, and one for task bookmarks), a context pane, and a task entry/update
 pane.
 
 #### Active Tasks List
@@ -216,11 +216,12 @@ G                  go to the end
 tab                move between lists
 C                  toggle showing context
 d                  toggle Task Details pane
-b                  open context bookmarks list
-B                  open all bookmarks in the current task's context
+b                  open task bookmarks list
+B                  open all bookmarks added to current task
 c                  update context for a task
 ctrl+d             archive/unarchive task
 ctrl+x             delete task
+ctrl+r             reload task lists
 y                  copy selected task's context to system clipboard
 v                  toggle between compact and spacious view
 
@@ -239,9 +240,9 @@ K                  move task one position up
 Task Details Pane
 h/l                move backwards/forwards when in the task details view
 y                  copy selected task's context to system clipboard
-B                  open all bookmarks in the current task's context
+B                  open all bookmarks added to current task
 
-Context Bookmarks List
+Task Bookmarks List
 ⏎                  open URL in browser
 ```
 

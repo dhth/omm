@@ -2,12 +2,19 @@ package cmd
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 )
 
 const (
 	latestDBVersion = 2 // only upgrade this after adding a migration in getMigrations
+)
+
+var (
+	dbDowngradedErr = errors.New(`Looks like you downgraded omm. You should either delete omm's
+database file (you will lose data by doing that), or upgrade omm to
+the latest version.`)
 )
 
 type dbVersionInfo struct {
@@ -60,9 +67,7 @@ Error: %s`,
 	}
 
 	if latestVersionInDB.version > latestDBVersion {
-		return fmt.Errorf(`Looks like you downgraded omm. You should either delete omm's
-database file (you will lose data by doing that), or upgrade omm to
-the latest version.`)
+		return dbDowngradedErr
 	}
 
 	if latestVersionInDB.version < latestDBVersion {

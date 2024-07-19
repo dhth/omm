@@ -22,6 +22,7 @@ const (
 	compactListHeight = 10
 	prefixPadding     = 20
 	timeFormat        = "2006/01/02 15:04"
+	taskSummaryWidth  = 100
 )
 
 type itemDelegate struct {
@@ -52,7 +53,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	if t.Context != nil {
 		hasContext = "(c)"
 	}
-	str := fmt.Sprintf("[%d]\t%s%s", si+1, utils.RightPadTrim(summ, TaskSummaryMaxLen, true), hasContext)
+	str := fmt.Sprintf("[%d]\t%s%s", si+1, utils.RightPadTrim(summ, taskSummaryWidth, true), hasContext)
 
 	fn := itemStyle.Render
 	if index == m.Index() {

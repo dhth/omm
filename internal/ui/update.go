@@ -407,6 +407,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.activeView = taskEntryView
 			return m, tea.Batch(cmds...)
 
+		case "ctrl+r":
+			if m.activeView != taskListView && m.activeView != archivedTaskListView {
+				break
+			}
+
+			cmds = append(cmds, fetchTasks(m.db, true, pers.TaskNumLimit))
+			cmds = append(cmds, fetchTasks(m.db, false, pers.TaskNumLimit))
+
 		case "ctrl+d":
 			switch m.activeView {
 			case taskListView:
@@ -746,18 +754,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.taskDetailsVP.GotoTop()
 			m.setContextFSContent(t)
+
 		case "b":
 			if m.activeView != taskListView && m.activeView != archivedTaskListView {
 				break
 			}
 
-			urls, ok := m.getContextUrls()
+			urls, ok := m.getTaskUrls()
 			if !ok {
 				break
 			}
 
 			if len(urls) == 0 {
-				m.errorMsg = "No bookmarks in this task's context"
+				m.errorMsg = "No bookmarks for this task"
 				break
 			}
 
@@ -785,13 +794,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			urls, ok := m.getContextUrls()
+			urls, ok := m.getTaskUrls()
 			if !ok {
 				break
 			}
 
 			if len(urls) == 0 {
-				m.errorMsg = "No bookmarks in this task's context"
+				m.errorMsg = "No bookmarks for this task"
 				break
 			}
 
@@ -1158,7 +1167,7 @@ last updated at       %s
 	m.taskDetailsVP.SetContent(details)
 }
 
-func (m model) getContextUrls() ([]string, bool) {
+func (m model) getTaskUrls() ([]string, bool) {
 	var t types.Task
 	var ok bool
 
@@ -1179,9 +1188,11 @@ func (m model) getContextUrls() ([]string, bool) {
 		return nil, false
 	}
 
-	if t.Context == nil {
-		return nil, true
+	var urls []string
+	urls = append(urls, utils.ExtractURLs(m.urlRegex, t.Summary)...)
+	if t.Context != nil {
+		urls = append(urls, utils.ExtractURLs(m.urlRegex, *t.Context)...)
 	}
 
-	return utils.ExtractURLs(m.urlRegex, *t.Context), true
+	return urls, true
 }

@@ -7,11 +7,8 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/dhth/omm/internal/types"
 	"mvdan.cc/xurls/v2"
-)
-
-const (
-	TaskSummaryMaxLen = 100
 )
 
 func InitialModel(db *sql.DB, config Config) model {
@@ -22,10 +19,10 @@ func InitialModel(db *sql.DB, config Config) model {
 	var taskList list.Model
 	switch config.ListDensity {
 	case Compact:
-		taskList = list.New(taskItems, itemDelegate{selStyle: tlSelItemStyle}, TaskSummaryMaxLen, compactListHeight)
+		taskList = list.New(taskItems, itemDelegate{selStyle: tlSelItemStyle}, taskSummaryWidth, compactListHeight)
 		taskList.SetShowStatusBar(false)
 	case Spacious:
-		taskList = list.New(taskItems, newTaskListDelegate(lipgloss.Color(config.TaskListColor)), TaskSummaryMaxLen, 14)
+		taskList = list.New(taskItems, newTaskListDelegate(lipgloss.Color(config.TaskListColor)), taskSummaryWidth, 14)
 		taskList.SetShowStatusBar(true)
 	}
 	taskList.SetShowTitle(false)
@@ -47,10 +44,10 @@ func InitialModel(db *sql.DB, config Config) model {
 	var archivedTaskList list.Model
 	switch config.ListDensity {
 	case Compact:
-		archivedTaskList = list.New(archivedTaskItems, itemDelegate{selStyle: atlSelItemStyle}, TaskSummaryMaxLen, compactListHeight)
+		archivedTaskList = list.New(archivedTaskItems, itemDelegate{selStyle: atlSelItemStyle}, taskSummaryWidth, compactListHeight)
 		archivedTaskList.SetShowStatusBar(false)
 	case Spacious:
-		archivedTaskList = list.New(archivedTaskItems, newTaskListDelegate(lipgloss.Color(config.ArchivedTaskListColor)), TaskSummaryMaxLen, 16)
+		archivedTaskList = list.New(archivedTaskItems, newTaskListDelegate(lipgloss.Color(config.ArchivedTaskListColor)), taskSummaryWidth, 16)
 		archivedTaskList.SetShowStatusBar(true)
 	}
 	archivedTaskList.SetShowTitle(false)
@@ -68,10 +65,10 @@ func InitialModel(db *sql.DB, config Config) model {
 
 	taskInput := textinput.New()
 	taskInput.Placeholder = "prefix: task summary goes here"
-	taskInput.CharLimit = TaskSummaryMaxLen
-	taskInput.Width = TaskSummaryMaxLen
+	taskInput.CharLimit = types.TaskSummaryMaxLen
+	taskInput.Width = taskSummaryWidth
 
-	contextBMList := list.New(nil, newContextURLListDel(contextBMColor), TaskSummaryMaxLen, compactListHeight)
+	contextBMList := list.New(nil, newContextURLListDel(contextBMColor), taskSummaryWidth, compactListHeight)
 
 	contextBMList.SetShowTitle(false)
 	contextBMList.SetShowHelp(false)
