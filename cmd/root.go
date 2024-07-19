@@ -46,8 +46,10 @@ var (
 	listDensityIncorrectErr = errors.New("List density is incorrect; valid values: compact/spacious")
 )
 
-func Execute() {
+func Execute(version string) {
 	rootCmd, err := NewRootCommand()
+
+	rootCmd.Version = version
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
 		os.Exit(1)
@@ -238,6 +240,8 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			return nil
 		},
 	}
+	rootCmd.SetVersionTemplate(`{{with .Name}}{{printf "%s " .}}{{end}}{{printf "%s" .Version}}
+`)
 
 	importCmd := &cobra.Command{
 		Use:   "import",
