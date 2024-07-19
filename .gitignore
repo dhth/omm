@@ -7,3 +7,4 @@ justfile
 debug.log
 tasks.txt
 .cmds
+dist

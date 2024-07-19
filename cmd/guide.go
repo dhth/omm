@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	pers "github.com/dhth/omm/internal/persistence"
@@ -31,7 +32,7 @@ instructions.
 			true,
 		},
 		{
-			"guide: tasks",
+			"domain: tasks",
 			`omm ("on-my-mind") is a task manager. You can also think of it as a keyboard
 driven to-do list.
 
@@ -46,7 +47,7 @@ you want to save details that don't fit in a single line.
 			true,
 		},
 		{
-			"guide: task state",
+			"domain: task state",
 			`A task can be in one of two states: active or archived.
 
 This list shows active tasks.
@@ -60,7 +61,7 @@ Press <tab> to see the archived list.
 			true,
 		},
 		{
-			"guide: task details",
+			"domain: task details",
 			`The "Task Details" pane is intended for when you simply want to read all the
 details associated with a task in a full screen view.
 
@@ -78,7 +79,7 @@ smaller display at the moment.
 			true,
 		},
 		{
-			"guide: an archived task",
+			"domain: an archived task",
 			`This is the archived list, meaning it holds tasks that are no longer being
 worked on.
 
@@ -92,7 +93,7 @@ Press tab/q/esc/ctrl+c to go back to the active list.
 			false,
 		},
 		{
-			"guide: list density",
+			"visuals: list density",
 			`omm's task lists can be viewed in two density modes: compact and spacious.
 
 This is the compact mode. As opposed to this, the spacious mode shows tasks in a
@@ -100,33 +101,26 @@ more roomier list, alongside highlighting prefixes (we'll see what that means),
 and showing creation timestamps. Since the list in this mode takes more space,
 the context pane is shorter than the one in the compact mode. 
 
-omm starts up with compact mode by default, but you can change that by either
-setting the environment variable $OMM_LIST_DENSITY=spacious, or by passing the
-flag "--list-density=spacious" to omm (the latter takes priority).
-
-You can toggle between the two modes by pressing "v". Choose whichever mode fits
-your workflow better.
+omm starts up with compact mode by default (you can change this, as we'll see
+soon). You can toggle between the two modes by pressing "v". Choose whichever
+mode fits your workflow better.
 
 Try it out. Come back to this mode once you're done.
 `,
 			true,
 		},
 		{
-			"guide: toggling context pane",
+			"visuals: toggling context pane",
 			`The context pane can be toggled on/off by pressing "C".
 
 You can choose to display it or not based on your preference. For convenience,
 the lists will always highlight tasks that have a context associated with them
 by having a "(c)" marker on them.
-
-You can start omm with the context pane hidden by either setting the environment
-variable OMM_SHOW_CONTEXT to "0/1" or "true/false", or by passing the flag
-"--show-context=false" (the latter takes priority).
 `,
 			true,
 		},
 		{
-			"guide: adding tasks",
+			"actions: adding tasks",
 			`Let's get to the crux of omm: adding and prioritizing tasks.
 
 We'll begin with adding tasks. You can add a task below the cursor by pressing
@@ -145,7 +139,7 @@ Go ahead, create a task, then move to the next guided item.
 			true,
 		},
 		{
-			"guide: adding tasks via the CLI",
+			"actions: adding tasks via the CLI",
 			`You can also add a task to omm via its command line interface. For example:
 
 omm 'prefix: a task summary'
@@ -166,24 +160,19 @@ omm will expect each line in stdin to hold one task's summary.
 			true,
 		},
 		{
-			"guide: adding context",
+			"actions: adding context",
 			`As mentioned before, once a task is created, you might want to add context to
 it.
 
-You do that by pressing "c". This will open up the text editor you've configured
-via the environment variables $OMM_EDITOR/$EDITOR/$VISUAL (looked up in that
-order). You can override this behavior by passing the "editor" flag to omm, like
-"--editor='vi -u NONE'". If none of these are set, omm falls back to "vi".
-
-Go ahead, press "c". Try changing the text, and then save the file. This context
-text should get updated accordingly.
+You do that by pressing "c". Go ahead, try it out. Try changing the text, and
+then save the file. This context text should get updated accordingly.
 
 Once saved, you can also copy a tasks's context to your system clipboard by pressing "y".
 `,
 			true,
 		},
 		{
-			"guide: context bookmarks",
+			"domain: context bookmarks",
 			`Sometimes you'll save some URLs to a task's context.
 
 Such URLs (eg. https://github.com/dhth/omm, https://tools.dhruvs.space,
@@ -201,7 +190,7 @@ Try both approaches now. Press "b", interact with the list, and then press "B".
 			true,
 		},
 		{
-			"guide: task priorities",
+			"domain: task priorities",
 			`At its core, omm is a dynamic list that maintains a sequence of tasks based on
 the priorities you assign them.
 
@@ -220,7 +209,7 @@ the top.
 			true,
 		},
 		{
-			"guide: updating task details",
+			"actions: updating task details",
 			`Once a task is created, its summary and context can be changed at any point.
 
 You can update a task's summary by pressing "u".
@@ -233,6 +222,40 @@ and then come back to it later to refine it more.
 
 Similarly, you can also update a task's context any time (by pressing "c").
 `,
+			true,
+		},
+		{
+			"config: changing the defaults",
+			`omm allows you to change the some of its behavior via configuration, which it
+will consider in the order listed below:
+
+- CLI flags (run "omm -h" to see details)
+- Environment variables (eg. "OMM_EDITOR")
+- A TOML configuration file (run "omm -h" to see where this lives; you can
+    change this via the flag "--config-path")
+
+omm will consider configuration in the order laid out above, ie, CLI flags will
+take the highest priority.
+`,
+			true,
+		},
+		{
+			"config: flags, env vars, and config file",
+			`Every flag listed by "omm -h" (except "--config-path") has an environment
+variable counterpart, as well as a TOML config counterpart. 
+
+For example:
+
+--show-context  ->  OMM_SHOW_CONTEXT  ->  show_context
+--editor        ->  OMM_EDITOR        ->  editor
+`,
+			true,
+		},
+		{
+			"config: a sample TOML config",
+			fmt.Sprintf(`Here's a sample TOML configuration file:
+
+%s`, sampleCfg),
 			true,
 		},
 		{
