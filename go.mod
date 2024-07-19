@@ -12,7 +12,7 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0
-	modernc.org/sqlite v1.30.1
+	modernc.org/sqlite v1.30.2
 	mvdan.cc/xurls/v2 v2.5.0
 
 )
