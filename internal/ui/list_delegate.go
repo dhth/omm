@@ -5,7 +5,21 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func newTaskListDelegate(color lipgloss.Color) list.DefaultDelegate {
+func newCompactListDel(color lipgloss.Color) list.DefaultDelegate {
+	d := list.NewDefaultDelegate()
+	d.ShowDescription = false
+	d.SetHeight(1)
+
+	d.Styles.SelectedTitle = d.Styles.
+		SelectedTitle.
+		Foreground(color).
+		BorderLeftForeground(color)
+	d.Styles.FilterMatch = lipgloss.NewStyle()
+
+	return d
+}
+
+func newSpaciousListDel(color lipgloss.Color) list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
 
 	d.Styles.SelectedTitle = d.Styles.
@@ -15,6 +29,8 @@ func newTaskListDelegate(color lipgloss.Color) list.DefaultDelegate {
 
 	d.Styles.SelectedDesc = d.Styles.
 		SelectedTitle
+
+	d.Styles.FilterMatch = lipgloss.NewStyle()
 
 	return d
 }

@@ -65,7 +65,6 @@ I                  add task at the top
 A                  add task at the end
 u                  update task summary
 ⏎                  move task to the top
-[2-9]              move task at index [x] to top (only in compact view)
 J                  move task one position down
 K                  move task one position up`),
 		helpSubHeadingStyle.Render("Task Details Pane"),

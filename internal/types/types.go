@@ -12,13 +12,14 @@ import (
 )
 
 const (
-	timeFormat        = "2006/01/02 15:04"
-	prefixDelimiter   = ":"
-	prefixPadding     = 80
-	createdAtPadding  = 40
-	GOOSDarwin        = "darwin"
-	taskSummaryWidth  = 100
-	TaskSummaryMaxLen = 300
+	timeFormat            = "2006/01/02 15:04"
+	prefixDelimiter       = ":"
+	compactPrefixPadding  = 20
+	spaciousPrefixPadding = 80
+	createdAtPadding      = 40
+	GOOSDarwin            = "darwin"
+	taskSummaryWidth      = 120
+	TaskSummaryMaxLen     = 300
 )
 
 var (
@@ -48,6 +49,7 @@ var (
 )
 
 type Task struct {
+	ItemTitle string
 	ID        uint64
 	Summary   string
 	Context   *string
@@ -58,12 +60,36 @@ type Task struct {
 
 type ContextBookmark string
 
-func (t Task) Title() string {
+func (t *Task) SetTitle(compact bool) {
 	summEls := strings.Split(t.Summary, prefixDelimiter)
-	if len(summEls) == 1 {
-		return t.Summary
+
+	if compact {
+		var summ string
+		if len(summEls) > 1 {
+			prefix := utils.RightPadTrim(summEls[0], compactPrefixPadding, true)
+			summ = prefix + strings.Join(summEls[1:], ":")
+		} else {
+			summ = t.Summary
+		}
+
+		var hasContext string
+		if t.Context != nil {
+			hasContext = "(c)"
+		}
+		t.ItemTitle = fmt.Sprintf("%s%s", utils.RightPadTrim(summ, taskSummaryWidth, true), hasContext)
+		return
 	}
-	return utils.Trim(strings.TrimSpace(strings.Join(summEls[1:], prefixDelimiter)), taskSummaryWidth)
+
+	if len(summEls) == 1 {
+		t.ItemTitle = t.Summary
+		return
+	}
+
+	t.ItemTitle = utils.Trim(strings.TrimSpace(strings.Join(summEls[1:], prefixDelimiter)), taskSummaryWidth)
+}
+
+func (t Task) Title() string {
+	return t.ItemTitle
 }
 
 func (t Task) Description() string {
@@ -73,9 +99,9 @@ func (t Task) Description() string {
 
 	summEls := strings.Split(t.Summary, prefixDelimiter)
 	if len(summEls) > 1 {
-		prefix = getDynamicStyle(summEls[0]).Render(utils.RightPadTrim(summEls[0], prefixPadding, true))
+		prefix = getDynamicStyle(summEls[0]).Render(utils.RightPadTrim(summEls[0], spaciousPrefixPadding, true))
 	} else {
-		prefix = strings.Repeat(" ", prefixPadding)
+		prefix = strings.Repeat(" ", spaciousPrefixPadding)
 	}
 	now := time.Now()
 

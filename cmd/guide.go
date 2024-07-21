@@ -72,9 +72,6 @@ task list by pressing "h/<-/->/l". You quit out of this pane by either pressing
 "d" again, or q/esc/ctrl+c.
 
 Try it out. Come back to this entry when you're done.
-
-You might have to view this guide in the "Task Details" pane if you're on a
-smaller display at the moment.
 `,
 			true,
 		},
@@ -98,10 +95,9 @@ Press tab/q/esc/ctrl+c to go back to the active list.
 
 This is the compact mode. As opposed to this, the spacious mode shows tasks in a
 more roomier list, alongside highlighting prefixes (we'll see what that means),
-and showing creation timestamps. Since the list in this mode takes more space,
-the context pane is shorter than the one in the compact mode. 
+and showing creation timestamps.
 
-omm starts up with compact mode by default (you can change this, as we'll see
+omm starts up with spacious mode by default (you can change this, as we'll see
 soon). You can toggle between the two modes by pressing "v". Choose whichever
 mode fits your workflow better.
 
@@ -116,18 +112,20 @@ Try it out. Come back to this mode once you're done.
 You can choose to display it or not based on your preference. For convenience,
 the lists will always highlight tasks that have a context associated with them
 by having a "(c)" marker on them.
+
+omm starts up with the context pane hidden by default (you can change this, as
+we'll see soon).
 `,
 			true,
 		},
 		{
 			"actions: adding tasks",
-			`Let's get to the crux of omm: adding and prioritizing tasks.
+			`Let's get to the crux of omm: adding and prioritizing tasks. We'll
+begin with adding tasks.
 
-We'll begin with adding tasks. You can add a task below the cursor by pressing
-"a".
-
-Once you get acquainted with omm, you'll want to have more control on the
-position of the newly added task. omm offers the following keymaps for that.
+You can add a task below the cursor by pressing "a". Once you get acquainted
+with omm, you'll want to have more control on the position of the newly added
+task. omm offers the following keymaps for that.
 
   o/a            add task below cursor
   O              add task above cursor
@@ -139,14 +137,18 @@ Go ahead, create a task, then move to the next guided item.
 			true,
 		},
 		{
-			"actions: adding tasks via the CLI",
+			"cli: adding a task via the CLI",
 			`You can also add a task to omm via its command line interface. For example:
 
 omm 'prefix: a task summary'
 
 This will add an entry to the top of the active tasks list.
-
-You can also import more than one task at a time by using the "import"
+`,
+			true,
+		},
+		{
+			"cli: importing several tasks via the CLI",
+			`You can also import more than one task at a time by using the "import"
 subcommand. For example:
 
 cat << 'EOF' | omm import
@@ -168,6 +170,19 @@ You do that by pressing "c". Go ahead, try it out. Try changing the text, and
 then save the file. This context text should get updated accordingly.
 
 Once saved, you can also copy a tasks's context to your system clipboard by pressing "y".
+`,
+			true,
+		},
+		{
+			"actions: filtering tasks",
+			`You can filter tasks in a list by pressing "/". Doing this will open up a search
+prompt, which will match your query with task summaries.
+
+Try it out now.
+
+Note: You cannot add tasks or move them around in a filtered state. But, you can
+move a task to the top of the list (by pressing ⏎). Doing this will also get you
+out of the filtered state.
 `,
 			true,
 		},
@@ -200,7 +215,6 @@ tasks on any given day. As such, omm allows you to move tasks around in the
 priority order. It has the following keymaps to achieve this:
 
   ⏎              move task to the top
-  [2-9]          move task at index [x] to top (only in compact view)
   J              move task one position down
   K              move task one position up
 

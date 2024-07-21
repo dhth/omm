@@ -17,7 +17,7 @@ const (
 	contextColor           = "#928374"
 	formHelpColor          = "#928374"
 	formColor              = "#928374"
-	helpMsgColor           = "#928374"
+	helpMsgColor           = "#83a598"
 	helpViewTitleColor     = "#83a598"
 	helpTitleColor         = "#83a598"
 	helpHeaderColor        = "#83a598"
@@ -28,8 +28,6 @@ const (
 )
 
 var (
-	itemStyle = lipgloss.NewStyle().PaddingLeft(2)
-
 	titleStyle = lipgloss.NewStyle().
 			PaddingLeft(1).
 			PaddingRight(1).
@@ -37,7 +35,7 @@ var (
 			Background(lipgloss.Color(TaskListColor)).
 			Foreground(lipgloss.Color(defaultBackgroundColor))
 
-	listStyle = lipgloss.NewStyle().PaddingBottom(1)
+	listStyle = lipgloss.NewStyle().PaddingBottom(1).PaddingTop(1)
 
 	taskEntryTitleStyle = titleStyle.
 				Background(lipgloss.Color(taskEntryTitleColor))
@@ -50,9 +48,6 @@ var (
 
 	taskDetailsTitleStyle = titleStyle.
 				Background(lipgloss.Color(taskDetailsTitleColor))
-
-	contextBMTitleStyle = titleStyle.
-				Background(lipgloss.Color(contextBMColor))
 
 	headerStyle = lipgloss.NewStyle().
 			PaddingTop(1).
