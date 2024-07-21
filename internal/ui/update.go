@@ -577,14 +577,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch m.cfg.ListDensity {
 			case Compact:
-				tlDel = newSpaciousListDel(lipgloss.Color(m.cfg.TaskListColor))
-				atlDel = newSpaciousListDel(lipgloss.Color(m.cfg.ArchivedTaskListColor))
+				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), true)
+				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), true)
 
 				m.cfg.ListDensity = Spacious
 
 			case Spacious:
-				tlDel = newCompactListDel(lipgloss.Color(m.cfg.TaskListColor))
-				atlDel = newCompactListDel(lipgloss.Color(m.cfg.ArchivedTaskListColor))
+				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), false)
+				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), false)
 				m.cfg.ListDensity = Compact
 			}
 

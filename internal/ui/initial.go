@@ -19,9 +19,9 @@ func InitialModel(db *sql.DB, config Config) model {
 	var taskList list.Model
 	switch config.ListDensity {
 	case Compact:
-		taskList = list.New(taskItems, newCompactListDel(lipgloss.Color(config.TaskListColor)), taskSummaryWidth, defaultListHeight)
+		taskList = list.New(taskItems, newListDelegate(lipgloss.Color(config.TaskListColor), false), taskSummaryWidth, defaultListHeight)
 	case Spacious:
-		taskList = list.New(taskItems, newSpaciousListDel(lipgloss.Color(config.TaskListColor)), taskSummaryWidth, defaultListHeight)
+		taskList = list.New(taskItems, newListDelegate(lipgloss.Color(config.TaskListColor), true), taskSummaryWidth, defaultListHeight)
 	}
 	taskList.Title = config.TaskListTitle
 	taskList.SetFilteringEnabled(true)
@@ -44,9 +44,9 @@ func InitialModel(db *sql.DB, config Config) model {
 	var archivedTaskList list.Model
 	switch config.ListDensity {
 	case Compact:
-		archivedTaskList = list.New(archivedTaskItems, newCompactListDel(lipgloss.Color(config.ArchivedTaskListColor)), taskSummaryWidth, defaultListHeight)
+		archivedTaskList = list.New(archivedTaskItems, newListDelegate(lipgloss.Color(config.ArchivedTaskListColor), false), taskSummaryWidth, defaultListHeight)
 	case Spacious:
-		archivedTaskList = list.New(archivedTaskItems, newSpaciousListDel(lipgloss.Color(config.ArchivedTaskListColor)), taskSummaryWidth, defaultListHeight)
+		archivedTaskList = list.New(archivedTaskItems, newListDelegate(lipgloss.Color(config.ArchivedTaskListColor), true), taskSummaryWidth, defaultListHeight)
 	}
 	archivedTaskList.Title = "archived"
 	archivedTaskList.SetShowStatusBar(true)
@@ -68,7 +68,7 @@ func InitialModel(db *sql.DB, config Config) model {
 	taskInput.CharLimit = types.TaskSummaryMaxLen
 	taskInput.Width = taskSummaryWidth
 
-	contextBMList := list.New(nil, newContextURLListDel(contextBMColor), taskSummaryWidth, defaultListHeight)
+	contextBMList := list.New(nil, newListDelegate(lipgloss.Color(contextBMColor), false), taskSummaryWidth, defaultListHeight)
 
 	contextBMList.Title = "task bookmarks"
 	contextBMList.SetShowHelp(false)
