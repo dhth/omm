@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"sort"
 	"strings"
@@ -32,7 +31,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.activeView == taskListView || m.activeView == archivedTaskListView {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
-			log.Printf("msg: %#v\n", msg)
 			if m.taskList.FilterState() == list.Filtering {
 				m.taskList, cmd = m.taskList.Update(msg)
 				cmds = append(cmds, cmd)
@@ -152,7 +150,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.KeyMsg:
-		log.Printf("msg: %#v\n", msg)
 		switch keypress := msg.String(); keypress {
 
 		case "Q":
@@ -566,7 +563,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				t, ok := li.(types.Task)
 				if ok {
 					prefix, pOk := t.Prefix()
-					if pOk && prefix != "" {
+					if pOk {
 						taskPrefixes[prefix] = struct{}{}
 					}
 				}
