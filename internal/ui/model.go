@@ -9,6 +9,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
@@ -92,4 +93,5 @@ type model struct {
 	rtos                  string
 	urlRegex              *regexp.Regexp
 	shortenedListHt       int
+	glamourRenderer       *glamour.TermRenderer
 }

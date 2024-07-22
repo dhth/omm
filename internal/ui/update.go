@@ -18,8 +18,8 @@ import (
 
 const (
 	noSpaceAvailableMsg   = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
-	noContextMsg          = "∅"
-	viewPortMoveLineCount = 3
+	noContextMsg          = "  ∅"
+	viewPortMoveLineCount = 5
 )
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -1194,7 +1194,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if t.Context != nil {
-			m.contextVP.SetContent(*t.Context)
+			if m.glamourRenderer != nil {
+				contextGl, err := m.glamourRenderer.Render(*t.Context)
+				if err != nil {
+					m.contextVP.SetContent(*t.Context)
+				} else {
+					m.contextVP.SetContent(contextGl)
+				}
+			} else {
+				m.contextVP.SetContent(*t.Context)
+			}
 		} else {
 			m.contextVP.SetContent(noContextMsg)
 		}
@@ -1217,7 +1226,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if t.Context != nil {
-			m.contextVP.SetContent(*t.Context)
+			if m.glamourRenderer != nil {
+				contextGl, err := m.glamourRenderer.Render(*t.Context)
+				if err != nil {
+					m.contextVP.SetContent(*t.Context)
+				} else {
+					m.contextVP.SetContent(contextGl)
+				}
+			} else {
+				m.contextVP.SetContent(*t.Context)
+			}
 		} else {
 			m.contextVP.SetContent(noContextMsg)
 		}
@@ -1263,16 +1281,26 @@ func (m model) isSpaceAvailable() bool {
 func (m *model) setContextFSContent(task types.Task) {
 	var ctx string
 	if task.Context != nil {
-		ctx = fmt.Sprintf("\n===\n\n%s", *task.Context)
+		ctx = fmt.Sprintf("---\n%s", *task.Context)
 	}
 
-	details := fmt.Sprintf(`summary               %s
-created at            %s
-last updated at       %s
+	details := fmt.Sprintf(`- summary          :    %s
+- created at       :    %s
+- last updated at  :    %s
+
 %s
 `, task.Summary, task.CreatedAt.Format(timeFormat), task.UpdatedAt.Format(timeFormat), ctx)
 
-	m.taskDetailsVP.SetContent(details)
+	if m.glamourRenderer != nil {
+		detailsGl, err := m.glamourRenderer.Render(details)
+		if err != nil {
+			m.taskDetailsVP.SetContent(details)
+		} else {
+			m.taskDetailsVP.SetContent(detailsGl)
+		}
+	} else {
+		m.taskDetailsVP.SetContent(details)
+	}
 }
 
 func (m model) getTaskUrls() ([]string, bool) {

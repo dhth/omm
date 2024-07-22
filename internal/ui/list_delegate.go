@@ -11,6 +11,10 @@ func newListDelegate(color lipgloss.Color, showDesc bool, spacing int) list.Defa
 	d.ShowDescription = showDesc
 	d.SetSpacing(spacing)
 
+	d.Styles.NormalTitle = d.Styles.
+		NormalTitle.
+		Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#ffffff"})
+
 	d.Styles.SelectedTitle = d.Styles.
 		SelectedTitle.
 		Foreground(color).
