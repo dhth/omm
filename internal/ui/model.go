@@ -93,5 +93,6 @@ type model struct {
 	rtos                  string
 	urlRegex              *regexp.Regexp
 	shortenedListHt       int
-	glamourRenderer       *glamour.TermRenderer
+	contextMdRenderer     *glamour.TermRenderer
+	taskDetailsMdRenderer *glamour.TermRenderer
 }

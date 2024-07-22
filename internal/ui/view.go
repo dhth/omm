@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	TaskListDefaultTitle = "omm"
-	taskDetailsWordWrap  = 120
+	TaskListDefaultTitle      = "omm"
+	taskDetailsWordWrap       = 80
+	contextWordWrapUpperLimit = 160
 )
 
 func (m model) View() string {

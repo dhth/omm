@@ -6,10 +6,8 @@ import (
 
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dhth/omm/internal/types"
-	"github.com/muesli/termenv"
 	"mvdan.cc/xurls/v2"
 )
 
@@ -105,16 +103,7 @@ func InitialModel(db *sql.DB, config Config) model {
 	activeTasksPrefixes := make(map[types.TaskPrefix]struct{})
 	archivedTasksPrefixes := make(map[types.TaskPrefix]struct{})
 
-	var margin uint = 2
-	dracula := glamour.DraculaStyleConfig
-	dracula.Document.BlockPrefix = ""
-	dracula.Document.Margin = &margin
-
-	r, _ := glamour.NewTermRenderer(
-		glamour.WithColorProfile(termenv.TrueColor),
-		glamour.WithStyles(dracula),
-		glamour.WithWordWrap(taskDetailsWordWrap),
-	)
+	tr, _ := getMarkDownRenderer(taskDetailsWordWrap)
 
 	m := model{
 		db:                    db,
@@ -134,7 +123,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		contextVPTaskId:       0,
 		rtos:                  runtime.GOOS,
 		urlRegex:              xurls.Strict(),
-		glamourRenderer:       r,
+		taskDetailsMdRenderer: tr,
 	}
 
 	return m

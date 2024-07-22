@@ -19,7 +19,7 @@ import (
 const (
 	noSpaceAvailableMsg   = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
 	noContextMsg          = "  ∅"
-	viewPortMoveLineCount = 5
+	viewPortMoveLineCount = 3
 )
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -148,6 +148,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.helpVP.Width = msg.Width - 3
 			m.helpVP.Height = m.terminalHeight - 4
 		}
+
+		crWrap := (msg.Width - 4)
+		if crWrap > contextWordWrapUpperLimit {
+			crWrap = contextWordWrapUpperLimit
+		}
+		m.contextMdRenderer, _ = getMarkDownRenderer(crWrap)
 
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
@@ -1193,20 +1199,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
-		if t.Context != nil {
-			if m.glamourRenderer != nil {
-				contextGl, err := m.glamourRenderer.Render(*t.Context)
+		var detailsToRender string
+		switch t.Context {
+		case nil:
+			detailsToRender = noContextMsg
+		default:
+			detailsToRender = *t.Context
+			switch m.contextMdRenderer {
+			case nil:
+				break
+			default:
+				contextGl, err := m.contextMdRenderer.Render(*t.Context)
 				if err != nil {
-					m.contextVP.SetContent(*t.Context)
-				} else {
-					m.contextVP.SetContent(contextGl)
+					break
 				}
-			} else {
-				m.contextVP.SetContent(*t.Context)
+				detailsToRender = contextGl
 			}
-		} else {
-			m.contextVP.SetContent(noContextMsg)
 		}
+
+		m.contextVP.SetContent(detailsToRender)
 		m.contextVPTaskId = t.ID
 
 	case archivedTaskListView:
@@ -1226,8 +1237,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if t.Context != nil {
-			if m.glamourRenderer != nil {
-				contextGl, err := m.glamourRenderer.Render(*t.Context)
+			if m.contextMdRenderer != nil {
+				contextGl, err := m.contextMdRenderer.Render(*t.Context)
 				if err != nil {
 					m.contextVP.SetContent(*t.Context)
 				} else {
@@ -1291,16 +1302,14 @@ func (m *model) setContextFSContent(task types.Task) {
 %s
 `, task.Summary, task.CreatedAt.Format(timeFormat), task.UpdatedAt.Format(timeFormat), ctx)
 
-	if m.glamourRenderer != nil {
-		detailsGl, err := m.glamourRenderer.Render(details)
-		if err != nil {
-			m.taskDetailsVP.SetContent(details)
-		} else {
+	if m.taskDetailsMdRenderer != nil {
+		detailsGl, err := m.taskDetailsMdRenderer.Render(details)
+		if err == nil {
 			m.taskDetailsVP.SetContent(detailsGl)
+			return
 		}
-	} else {
-		m.taskDetailsVP.SetContent(details)
 	}
+	m.taskDetailsVP.SetContent(details)
 }
 
 func (m model) getTaskUrls() ([]string, bool) {
