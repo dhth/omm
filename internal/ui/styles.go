@@ -68,20 +68,10 @@ var (
 	formHelpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(formHelpColor))
 
-	helpViewStyle = lipgloss.NewStyle().
-			PaddingLeft(2)
-
 	helpStyle = lipgloss.NewStyle()
-
-	helpHeadingStyle = helpStyle.
-				Bold(true).
-				Foreground(lipgloss.Color(helpHeaderColor))
 
 	helpSectionStyle = helpStyle.
 				Foreground(lipgloss.Color(helpSectionColor))
-
-	helpSubHeadingStyle = helpSectionStyle.
-				Bold(true)
 
 	helpMsgStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(helpMsgColor))

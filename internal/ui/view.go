@@ -142,9 +142,9 @@ func (m model) View() string {
 
 `, helpTitleStyle.Render("help"), helpSectionStyle.Render("(scroll with j/k/↓/↑)"))
 		if !m.helpVPReady {
-			content = helpViewStyle.Render("Initializing...")
+			content = "Initializing..."
 		} else {
-			content = header + helpViewStyle.Render(m.helpVP.View())
+			content = header + m.helpVP.View()
 		}
 	}
 

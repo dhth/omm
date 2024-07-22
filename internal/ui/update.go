@@ -138,9 +138,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.taskDetailsVP.Height = m.terminalHeight - 4
 		}
 
+		crWrap := (msg.Width - 4)
+		if crWrap > contextWordWrapUpperLimit {
+			crWrap = contextWordWrapUpperLimit
+		}
+		m.contextMdRenderer, _ = getMarkDownRenderer(crWrap)
+
+		helpToRender := helpStr
+		switch m.contextMdRenderer {
+		case nil:
+			break
+		default:
+			helpStrGl, err := m.contextMdRenderer.Render(helpStr)
+			if err != nil {
+				break
+			}
+			helpToRender = helpStrGl
+		}
+
 		if !m.helpVPReady {
 			m.helpVP = viewport.New(msg.Width-3, m.terminalHeight-4)
-			m.helpVP.SetContent(helpStr)
+			m.helpVP.SetContent(helpToRender)
 			m.helpVP.KeyMap.Up.SetEnabled(false)
 			m.helpVP.KeyMap.Down.SetEnabled(false)
 			m.helpVPReady = true
@@ -148,12 +166,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.helpVP.Width = msg.Width - 3
 			m.helpVP.Height = m.terminalHeight - 4
 		}
-
-		crWrap := (msg.Width - 4)
-		if crWrap > contextWordWrapUpperLimit {
-			crWrap = contextWordWrapUpperLimit
-		}
-		m.contextMdRenderer, _ = getMarkDownRenderer(crWrap)
 
 	case tea.KeyMsg:
 		switch keypress := msg.String(); keypress {
