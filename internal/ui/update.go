@@ -18,7 +18,7 @@ import (
 
 const (
 	noSpaceAvailableMsg   = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
-	noContextMsg          = "∅"
+	noContextMsg          = "  ∅"
 	viewPortMoveLineCount = 3
 )
 
@@ -138,9 +138,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.taskDetailsVP.Height = m.terminalHeight - 4
 		}
 
+		crWrap := (msg.Width - 4)
+		if crWrap > contextWordWrapUpperLimit {
+			crWrap = contextWordWrapUpperLimit
+		}
+		m.contextMdRenderer, _ = getMarkDownRenderer(crWrap)
+
+		helpToRender := helpStr
+		switch m.contextMdRenderer {
+		case nil:
+			break
+		default:
+			helpStrGl, err := m.contextMdRenderer.Render(helpStr)
+			if err != nil {
+				break
+			}
+			helpToRender = helpStrGl
+		}
+
 		if !m.helpVPReady {
 			m.helpVP = viewport.New(msg.Width-3, m.terminalHeight-4)
-			m.helpVP.SetContent(helpStr)
+			m.helpVP.SetContent(helpToRender)
 			m.helpVP.KeyMap.Up.SetEnabled(false)
 			m.helpVP.KeyMap.Down.SetEnabled(false)
 			m.helpVPReady = true
@@ -1193,11 +1211,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
-		if t.Context != nil {
-			m.contextVP.SetContent(*t.Context)
-		} else {
-			m.contextVP.SetContent(noContextMsg)
+		var detailsToRender string
+		switch t.Context {
+		case nil:
+			detailsToRender = noContextMsg
+		default:
+			detailsToRender = *t.Context
+			switch m.contextMdRenderer {
+			case nil:
+				break
+			default:
+				contextGl, err := m.contextMdRenderer.Render(*t.Context)
+				if err != nil {
+					break
+				}
+				detailsToRender = contextGl
+			}
 		}
+
+		m.contextVP.SetContent(detailsToRender)
 		m.contextVPTaskId = t.ID
 
 	case archivedTaskListView:
@@ -1217,7 +1249,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if t.Context != nil {
-			m.contextVP.SetContent(*t.Context)
+			if m.contextMdRenderer != nil {
+				contextGl, err := m.contextMdRenderer.Render(*t.Context)
+				if err != nil {
+					m.contextVP.SetContent(*t.Context)
+				} else {
+					m.contextVP.SetContent(contextGl)
+				}
+			} else {
+				m.contextVP.SetContent(*t.Context)
+			}
 		} else {
 			m.contextVP.SetContent(noContextMsg)
 		}
@@ -1263,15 +1304,23 @@ func (m model) isSpaceAvailable() bool {
 func (m *model) setContextFSContent(task types.Task) {
 	var ctx string
 	if task.Context != nil {
-		ctx = fmt.Sprintf("\n===\n\n%s", *task.Context)
+		ctx = fmt.Sprintf("---\n%s", *task.Context)
 	}
 
-	details := fmt.Sprintf(`summary               %s
-created at            %s
-last updated at       %s
+	details := fmt.Sprintf(`- summary          :    %s
+- created at       :    %s
+- last updated at  :    %s
+
 %s
 `, task.Summary, task.CreatedAt.Format(timeFormat), task.UpdatedAt.Format(timeFormat), ctx)
 
+	if m.taskDetailsMdRenderer != nil {
+		detailsGl, err := m.taskDetailsMdRenderer.Render(details)
+		if err == nil {
+			m.taskDetailsVP.SetContent(detailsGl)
+			return
+		}
+	}
 	m.taskDetailsVP.SetContent(details)
 }
 

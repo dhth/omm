@@ -12,10 +12,8 @@ const (
 	prefixSearchColor      = "#d3896b"
 	contextTitleColor      = "#8ec07c"
 	taskEntryTitleColor    = "#b8bb26"
-	taskDetailsTitleColor  = "#d3869b"
+	taskDetailsTitleColor  = "#bd93f9"
 	taskListHeaderColor    = "#928374"
-	taskDetailsColor       = "#bdae93"
-	contextColor           = "#928374"
 	formHelpColor          = "#928374"
 	formColor              = "#928374"
 	helpMsgColor           = "#83a598"
@@ -64,33 +62,16 @@ var (
 	sBSuccessMsgStyle = statusBarMsgStyle.
 				Foreground(lipgloss.Color(sBSuccessMsgColor))
 
-	taskDetailsStyle = lipgloss.NewStyle().
-				PaddingLeft(2).
-				Foreground(lipgloss.Color(taskDetailsColor))
-
-	contextStyle = taskDetailsStyle.
-			Foreground(lipgloss.Color(contextColor))
-
 	formStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(formColor))
 
 	formHelpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(formHelpColor))
 
-	helpViewStyle = lipgloss.NewStyle().
-			PaddingLeft(2)
-
 	helpStyle = lipgloss.NewStyle()
-
-	helpHeadingStyle = helpStyle.
-				Bold(true).
-				Foreground(lipgloss.Color(helpHeaderColor))
 
 	helpSectionStyle = helpStyle.
 				Foreground(lipgloss.Color(helpSectionColor))
-
-	helpSubHeadingStyle = helpSectionStyle.
-				Bold(true)
 
 	helpMsgStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(helpMsgColor))

@@ -70,8 +70,8 @@ type TaskPrefix string
 func (t Task) Prefix() (TaskPrefix, bool) {
 	summEls := strings.Split(t.Summary, PrefixDelimiter)
 	if len(summEls) > 1 {
-        // This shouldn't happen, but it's still good to check this to ensure
-        // the quick filter list doesn't misbehave
+		// This shouldn't happen, but it's still good to check this to ensure
+		// the quick filter list doesn't misbehave
 		if strings.TrimSpace(summEls[0]) == "" {
 			return "", false
 		}

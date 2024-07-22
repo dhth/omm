@@ -103,6 +103,8 @@ func InitialModel(db *sql.DB, config Config) model {
 	activeTasksPrefixes := make(map[types.TaskPrefix]struct{})
 	archivedTasksPrefixes := make(map[types.TaskPrefix]struct{})
 
+	tr, _ := getMarkDownRenderer(taskDetailsWordWrap)
+
 	m := model{
 		db:                    db,
 		cfg:                   config,
@@ -121,6 +123,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		contextVPTaskId:       0,
 		rtos:                  runtime.GOOS,
 		urlRegex:              xurls.Strict(),
+		taskDetailsMdRenderer: tr,
 	}
 
 	return m

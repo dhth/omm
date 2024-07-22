@@ -8,7 +8,9 @@ import (
 )
 
 var (
-	TaskListDefaultTitle = "omm"
+	TaskListDefaultTitle      = "omm"
+	taskDetailsWordWrap       = 80
+	contextWordWrapUpperLimit = 160
 )
 
 func (m model) View() string {
@@ -123,9 +125,9 @@ func (m model) View() string {
 		}
 		header := fmt.Sprintf("%s%s", taskDetailsTitleStyle.Render("task details"), spVal)
 		if !m.taskDetailsVPReady {
-			content = headerStyle.Render(header) + "\n" + taskDetailsStyle.Render("Initializing...")
+			content = headerStyle.Render(header) + "\n" + "Initializing..."
 		} else {
-			content = headerStyle.Render(header) + "\n" + taskDetailsStyle.Render(m.taskDetailsVP.View())
+			content = headerStyle.Render(header) + "\n" + m.taskDetailsVP.View()
 		}
 
 	case contextBookmarksView:
@@ -140,9 +142,9 @@ func (m model) View() string {
 
 `, helpTitleStyle.Render("help"), helpSectionStyle.Render("(scroll with j/k/↓/↑)"))
 		if !m.helpVPReady {
-			content = helpViewStyle.Render("Initializing...")
+			content = "Initializing..."
 		} else {
-			content = header + helpViewStyle.Render(m.helpVP.View())
+			content = header + m.helpVP.View()
 		}
 	}
 
@@ -152,11 +154,11 @@ func (m model) View() string {
 	if !listEmpty && m.cfg.ShowContext && (m.activeView == taskListView || m.activeView == archivedTaskListView) {
 
 		if !m.contextVPReady {
-			context = contextStyle.Render("Initializing...")
+			context = "Initializing..."
 		} else {
 			context = fmt.Sprintf("  %s\n\n%s",
 				contextTitleStyle.Render("context"),
-				contextStyle.Render(m.contextVP.View()),
+				m.contextVP.View(),
 			)
 		}
 		components = append(components, context)
