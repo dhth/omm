@@ -25,16 +25,20 @@ var (
 
 %s
 %s
+
+%s
+%s
 `, helpHeadingStyle.Render("omm"),
 		helpSectionStyle.Render(` ("on-my-mind") is a keyboard-driven task manager for the command line.
 
 Tip: Run "omm guide" for a guided walkthrough of omm's features.`),
-		helpHeadingStyle.Render("omm has 5 components"),
+		helpHeadingStyle.Render("omm has 6 components"),
 		helpSectionStyle.Render(`1:    Active Tasks List
 2:    Archived Tasks List
 3:    Task creation/update Pane
 4:    Task Details Pane
-5:    Task Bookmarks List`),
+5:    Task Bookmarks List
+6:    Quick Filter List`),
 		helpHeadingStyle.Render("Keymaps"),
 		helpSubHeadingStyle.Render("General"),
 		helpSectionStyle.Render(`q/esc/ctrl+c       go back
@@ -55,6 +59,8 @@ c                  update context for a task
 ctrl+d             archive/unarchive task
 ctrl+x             delete task
 ctrl+r             reload task lists
+/                  filter list by task prefix
+ctrl+p             open the "Quick Filter List"
 y                  copy selected task's context to system clipboard
 v                  toggle between compact and spacious view`),
 		helpSubHeadingStyle.Render("Active Tasks List"),
@@ -73,5 +79,7 @@ y                  copy current task's context to system clipboard
 B                  open all bookmarks added to current task`),
 		helpSubHeadingStyle.Render("Task Bookmarks List"),
 		helpSectionStyle.Render(`⏎                  open URL in browser`),
+		helpSubHeadingStyle.Render("Quick Filter List"),
+		helpSectionStyle.Render(`⏎                  pre-populate task list's search prompt with chosen prefix`),
 	)
 )

@@ -9,6 +9,7 @@ const (
 	TaskListColor          = "#fe8019"
 	ArchivedTLColor        = "#fabd2f"
 	contextBMColor         = "#83a598"
+	prefixSearchColor      = "#d3896b"
 	contextTitleColor      = "#8ec07c"
 	taskEntryTitleColor    = "#b8bb26"
 	taskDetailsTitleColor  = "#d3869b"

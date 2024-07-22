@@ -22,7 +22,7 @@ func (m model) View() string {
 	var helpMsg string
 	var listEmpty bool
 
-	if m.showHelpIndicator && (m.activeView == taskListView || m.activeView == archivedTaskListView) {
+	if m.showHelpIndicator && (m.activeView != helpView) {
 		helpMsg = helpMsgStyle.Render("  Press ? for help")
 	}
 
@@ -92,10 +92,8 @@ func (m model) View() string {
 				formHelpStyle.Render("press <esc> to go back, ⏎ to submit"),
 			)
 
-			if m.cfg.ListDensity == Spacious {
-				for i := 0; i < m.terminalHeight-13; i++ {
-					content += "\n"
-				}
+			for i := 0; i < m.terminalHeight-12; i++ {
+				content += "\n"
 			}
 		} else if m.taskChange == taskUpdateSummary {
 			header := taskEntryTitleStyle.Render("update task")
@@ -112,10 +110,8 @@ func (m model) View() string {
 				m.taskInput.View(),
 				formHelpStyle.Render("press <esc> to go back, ⏎ to submit"),
 			)
-			if m.cfg.ListDensity == Spacious {
-				for i := 0; i < m.terminalHeight-11; i++ {
-					content += "\n"
-				}
+			for i := 0; i < m.terminalHeight-10; i++ {
+				content += "\n"
 			}
 		}
 
@@ -133,7 +129,10 @@ func (m model) View() string {
 		}
 
 	case contextBookmarksView:
-		content = listStyle.Render(m.contextBMList.View())
+		content = listStyle.Render(m.taskBMList.View())
+
+	case prefixSearchView:
+		content = listStyle.Render(m.prefixSearchList.View())
 
 	case helpView:
 		header := fmt.Sprintf(`

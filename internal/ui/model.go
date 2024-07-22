@@ -11,6 +11,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	pers "github.com/dhth/omm/internal/persistence"
+	"github.com/dhth/omm/internal/types"
 )
 
 const (
@@ -44,6 +45,7 @@ const (
 	taskEntryView
 	taskDetailsView
 	contextBookmarksView
+	prefixSearchView
 	helpView
 )
 
@@ -55,36 +57,39 @@ const (
 )
 
 type model struct {
-	db                 *sql.DB
-	cfg                Config
-	taskList           list.Model
-	archivedTaskList   list.Model
-	contextBMList      list.Model
-	taskIndex          int
-	taskId             uint64
-	taskChange         taskChangeType
-	contextVP          viewport.Model
-	contextVPReady     bool
-	taskDetailsVP      viewport.Model
-	taskDetailsVPReady bool
-	helpVP             viewport.Model
-	helpVPReady        bool
-	quitting           bool
-	showHelpIndicator  bool
-	successMsg         string
-	errorMsg           string
-	taskInput          textinput.Model
-	activeView         activeView
-	lastActiveView     activeView
-	activeTaskList     taskListType
-	tlTitleStyle       lipgloss.Style
-	atlTitleStyle      lipgloss.Style
-	tlSelStyle         lipgloss.Style
-	atlSelStyle        lipgloss.Style
-	terminalWidth      int
-	terminalHeight     int
-	contextVPTaskId    uint64
-	rtos               string
-	urlRegex           *regexp.Regexp
-	shortenedListHt    int
+	db                    *sql.DB
+	cfg                   Config
+	taskList              list.Model
+	archivedTaskList      list.Model
+	taskBMList            list.Model
+	prefixSearchList      list.Model
+	activeTasksPrefixes   map[types.TaskPrefix]struct{}
+	archivedTasksPrefixes map[types.TaskPrefix]struct{}
+	taskIndex             int
+	taskId                uint64
+	taskChange            taskChangeType
+	contextVP             viewport.Model
+	contextVPReady        bool
+	taskDetailsVP         viewport.Model
+	taskDetailsVPReady    bool
+	helpVP                viewport.Model
+	helpVPReady           bool
+	quitting              bool
+	showHelpIndicator     bool
+	successMsg            string
+	errorMsg              string
+	taskInput             textinput.Model
+	activeView            activeView
+	lastActiveView        activeView
+	activeTaskList        taskListType
+	tlTitleStyle          lipgloss.Style
+	atlTitleStyle         lipgloss.Style
+	tlSelStyle            lipgloss.Style
+	atlSelStyle           lipgloss.Style
+	terminalWidth         int
+	terminalHeight        int
+	contextVPTaskId       uint64
+	rtos                  string
+	urlRegex              *regexp.Regexp
+	shortenedListHt       int
 }

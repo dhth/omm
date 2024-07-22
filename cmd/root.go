@@ -15,7 +15,6 @@ import (
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
 	"github.com/dhth/omm/internal/ui"
-	"github.com/dhth/omm/internal/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -45,8 +44,6 @@ var (
 	nothingToImportErr        = errors.New("Nothing to import")
 
 	listDensityIncorrectErr = errors.New("List density is incorrect; valid values: compact/spacious")
-
-	taskSummaryTooLongErr = fmt.Errorf("Task summary is too long; max length allowed: %d", types.TaskSummaryMaxLen)
 )
 
 func Execute(version string) {
@@ -199,11 +196,12 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			if len(args) != 0 {
-				if len(args[0]) > types.TaskSummaryMaxLen {
-					return taskSummaryTooLongErr
+				summaryValid, err := types.CheckIfTaskSummaryValid(args[0])
+				if !summaryValid {
+					return err
 				}
 
-				err := importTask(db, args[0])
+				err = importTask(db, args[0])
 				if err != nil {
 					return err
 				}
@@ -265,11 +263,10 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 
 				line := scanner.Text()
 				line = strings.TrimSpace(line)
-				if len(line) > types.TaskSummaryMaxLen {
-					line = utils.Trim(line, types.TaskSummaryMaxLen)
-				}
 
-				if line != "" {
+				summaryValid, _ := types.CheckIfTaskSummaryValid(line)
+
+				if summaryValid {
 					tasks = append(tasks, line)
 				}
 				taskCounter++

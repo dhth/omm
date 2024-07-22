@@ -2,7 +2,9 @@ package ui
 
 import (
 	"fmt"
+	"log"
 	"os"
+	"sort"
 	"strings"
 	"time"
 
@@ -30,6 +32,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if m.activeView == taskListView || m.activeView == archivedTaskListView {
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
+			log.Printf("msg: %#v\n", msg)
 			if m.taskList.FilterState() == list.Filtering {
 				m.taskList, cmd = m.taskList.Update(msg)
 				cmds = append(cmds, cmd)
@@ -58,6 +61,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.activeView = taskListView
 					m.activeTaskList = activeTasks
 					break
+				}
+
+				summEls := strings.Split(taskSummary, types.PrefixDelimiter)
+				if len(summEls) > 1 {
+					if summEls[0] == "" {
+						m.errorMsg = "prefix cannot be empty"
+						break
+					}
 				}
 
 				switch m.taskChange {
@@ -91,8 +102,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.terminalHeight = msg.Height
 		m.taskList.SetWidth(msg.Width - w)
 		m.archivedTaskList.SetWidth(msg.Width - 2)
-		m.contextBMList.SetWidth(msg.Width - 2)
-		m.contextBMList.SetHeight(msg.Height - h - 4)
+		m.taskBMList.SetWidth(msg.Width - 2)
+		m.taskBMList.SetHeight(msg.Height - h - h3 - 1)
+		m.prefixSearchList.SetWidth(msg.Width - 2)
+		m.prefixSearchList.SetHeight(msg.Height - h - h3 - 1)
 
 		var listHeight int
 		contextHeight := (msg.Height - h - h3 - 5) / 2
@@ -139,6 +152,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.KeyMsg:
+		log.Printf("msg: %#v\n", msg)
 		switch keypress := msg.String(); keypress {
 
 		case "Q":
@@ -168,7 +182,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == helpView {
+			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == prefixSearchView || m.activeView == helpView {
 				m.activeView = m.lastActiveView
 				switch m.activeView {
 				case taskListView:
@@ -186,7 +200,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "?":
-			if m.activeView == taskDetailsView {
+			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == prefixSearchView {
 				break
 			}
 
@@ -198,14 +212,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.activeView = helpView
 
 		case "tab", "shift+tab":
-			m.lastActiveView = m.activeView
 			switch m.activeView {
 			case taskListView:
 				m.activeView = archivedTaskListView
 				m.activeTaskList = archivedTasks
+				m.lastActiveView = m.activeView
 			case archivedTaskListView:
 				m.activeView = taskListView
 				m.activeTaskList = activeTasks
+				m.lastActiveView = m.activeView
 			}
 
 		case "I":
@@ -418,6 +433,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
+			br := false
+			switch m.activeView {
+			case taskListView:
+				if m.taskList.IsFiltered() {
+					br = true
+				}
+
+			case archivedTaskListView:
+				if m.archivedTaskList.IsFiltered() {
+					br = true
+				}
+			}
+
+			if br {
+				break
+			}
+
 			cmds = append(cmds, fetchTasks(m.db, true, pers.TaskNumLimit))
 			cmds = append(cmds, fetchTasks(m.db, false, pers.TaskNumLimit))
 
@@ -425,6 +457,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch m.activeView {
 			case taskListView:
 				if len(m.taskList.Items()) == 0 {
+					break
+				}
+
+				if m.taskList.IsFiltered() {
+					m.errorMsg = "Cannot archive items when the task list is filtered"
 					break
 				}
 
@@ -441,6 +478,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case archivedTaskListView:
 				if len(m.archivedTaskList.Items()) == 0 {
+					break
+				}
+
+				if m.archivedTaskList.IsFiltered() {
+					m.errorMsg = "Cannot archive items when the task list is filtered"
 					break
 				}
 
@@ -463,6 +505,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 
+				if m.taskList.IsFiltered() {
+					m.errorMsg = "Cannot delete items when the task list is filtered"
+					break
+				}
+
 				index := m.taskList.Index()
 				t, ok := m.taskList.SelectedItem().(types.Task)
 				if !ok {
@@ -477,6 +524,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 
+				if m.archivedTaskList.IsFiltered() {
+					m.errorMsg = "Cannot delete items when the task list is filtered"
+					break
+				}
+
 				index := m.archivedTaskList.Index()
 				task, ok := m.archivedTaskList.SelectedItem().(types.Task)
 				if !ok {
@@ -488,13 +540,76 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 
+		case "ctrl+p":
+			if m.activeView != taskListView && m.activeView != archivedTaskListView {
+				break
+			}
+
+			var taskList list.Model
+			var taskPrefixes map[types.TaskPrefix]struct{}
+
+			switch m.activeView {
+			case taskListView:
+				taskList = m.taskList
+				taskPrefixes = m.activeTasksPrefixes
+			case archivedTaskListView:
+				taskList = m.archivedTaskList
+				taskPrefixes = m.archivedTasksPrefixes
+			}
+
+			if len(taskList.Items()) == 0 {
+				m.errorMsg = "No items in task list"
+				break
+			}
+
+			for _, li := range taskList.Items() {
+				t, ok := li.(types.Task)
+				if ok {
+					prefix, pOk := t.Prefix()
+					if pOk && prefix != "" {
+						taskPrefixes[prefix] = struct{}{}
+					}
+				}
+			}
+			var prefixes []types.TaskPrefix
+			for k := range taskPrefixes {
+				prefixes = append(prefixes, k)
+			}
+
+			if len(prefixes) == 0 {
+				m.errorMsg = "No prefixes in task list"
+				break
+			}
+
+			if len(prefixes) == 1 {
+				m.errorMsg = "Only 1 unique prefix in task list"
+				break
+			}
+
+			sort.Slice(prefixes, func(i, j int) bool {
+				return prefixes[i] < prefixes[j]
+			})
+
+			pi := make([]list.Item, len(prefixes))
+			for i, p := range prefixes {
+				pi[i] = list.Item(p)
+			}
+
+			m.prefixSearchList.SetItems(pi)
+			m.activeView = prefixSearchView
+
 		case "enter":
-			if m.activeView != taskListView && m.activeView != contextBookmarksView {
+			if m.activeView != taskListView && m.activeView != contextBookmarksView && m.activeView != prefixSearchView {
 				break
 			}
 			switch m.activeView {
 			case taskListView:
 				if len(m.taskList.Items()) == 0 {
+					break
+				}
+
+				if m.taskList.IsFiltered() {
+					m.errorMsg = "Cannot move items when the task list is filtered"
 					break
 				}
 
@@ -509,15 +624,53 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 				m.taskList.Select(0)
 
-				if m.taskList.IsFiltered() {
-					m.taskList.ResetFilter()
-				}
-
 				cmd = m.updateTaskSequence()
 				cmds = append(cmds, cmd)
 			case contextBookmarksView:
-				url := m.contextBMList.SelectedItem().FilterValue()
+				url := m.taskBMList.SelectedItem().FilterValue()
 				cmds = append(cmds, openURL(url))
+			case prefixSearchView:
+				prefix := m.prefixSearchList.SelectedItem().FilterValue()
+				var taskList list.Model
+
+				switch m.activeTaskList {
+				case activeTasks:
+					taskList = m.taskList
+				case archivedTasks:
+					taskList = m.archivedTaskList
+				}
+
+				taskList.ResetFilter()
+				var tlCmd tea.Cmd
+
+				runes := []rune(prefix)
+
+				if len(runes) > 1 {
+					taskList.FilterInput.SetValue(string(runes[:len(runes)-1]))
+				}
+
+				taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: -1, Runes: []int32{47}, Alt: false, Paste: false})
+				cmds = append(cmds, tlCmd)
+
+				taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: -1, Runes: []rune{runes[len(runes)-1]}, Alt: false, Paste: false})
+				cmds = append(cmds, tlCmd)
+
+				// TODO: Try sending ENTER programmatically too
+				// taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: 13, Runes: []int32(nil), Alt: false, Paste: false})
+				// or
+				// taskList, tlCmd = taskList.Update(tea.KeyEnter)
+				// this results in the list's paginator being broken, so requires another manual ENTER keypress
+
+				switch m.activeTaskList {
+				case activeTasks:
+					m.taskList = taskList
+					m.activeView = taskListView
+				case archivedTasks:
+					m.archivedTaskList = taskList
+					m.activeView = archivedTaskListView
+				}
+
+				return m, tea.Sequence(cmds...)
 			}
 
 		case "c":
@@ -577,14 +730,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			switch m.cfg.ListDensity {
 			case Compact:
-				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), true)
-				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), true)
+				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), true, 1)
+				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), true, 1)
 
 				m.cfg.ListDensity = Spacious
 
 			case Spacious:
-				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), false)
-				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), false)
+				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), false, 1)
+				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), false, 1)
 				m.cfg.ListDensity = Compact
 			}
 
@@ -737,7 +890,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			for i, url := range urls {
 				bmItems[i] = list.Item(types.ContextBookmark(url))
 			}
-			m.contextBMList.SetItems(bmItems)
+			m.taskBMList.SetItems(bmItems)
 			switch m.activeView {
 			case taskListView:
 				m.activeTaskList = activeTasks
@@ -969,6 +1122,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					taskItems[i] = t
 				}
 				m.taskList.SetItems(taskItems)
+				m.taskList.Select(0)
 			case false:
 				archivedTaskItems := make([]list.Item, len(msg.tasks))
 				for i, t := range msg.tasks {
@@ -976,6 +1130,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					archivedTaskItems[i] = t
 				}
 				m.archivedTaskList.SetItems(archivedTaskItems)
+				m.archivedTaskList.Select(0)
 			}
 		}
 	case textEditorClosed:
@@ -1078,7 +1233,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.taskDetailsVP, viewUpdateCmd = m.taskDetailsVP.Update(msg)
 
 	case contextBookmarksView:
-		m.contextBMList, viewUpdateCmd = m.contextBMList.Update(msg)
+		m.taskBMList, viewUpdateCmd = m.taskBMList.Update(msg)
+
+	case prefixSearchView:
+		m.prefixSearchList, viewUpdateCmd = m.prefixSearchList.Update(msg)
 
 	case helpView:
 		m.helpVP, viewUpdateCmd = m.helpVP.Update(msg)

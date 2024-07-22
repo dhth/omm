@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"strings"
@@ -13,7 +14,7 @@ import (
 
 const (
 	timeFormat            = "2006/01/02 15:04"
-	prefixDelimiter       = ":"
+	PrefixDelimiter       = ":"
 	compactPrefixPadding  = 20
 	spaciousPrefixPadding = 80
 	createdAtPadding      = 40
@@ -46,6 +47,10 @@ var (
 
 	hasContextStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(hasContextColor))
+
+	TaskPrefixEmptyErr      = errors.New("Task prefix cannot be empty")
+	TaskSummaryBodyEmptyErr = errors.New("Task summary body is empty")
+	TaskSummaryTooLongErr   = fmt.Errorf("Task summary is too long; max length allowed: %d", TaskSummaryMaxLen)
 )
 
 type Task struct {
@@ -60,14 +65,43 @@ type Task struct {
 
 type ContextBookmark string
 
+type TaskPrefix string
+
+func (t Task) Prefix() (TaskPrefix, bool) {
+	summEls := strings.Split(t.Summary, PrefixDelimiter)
+	if len(summEls) > 1 {
+		return TaskPrefix(strings.TrimSpace(summEls[0])), true
+	}
+	return "", false
+}
+
+func CheckIfTaskSummaryValid(summary string) (bool, error) {
+	if strings.TrimSpace(summary) == "" {
+		return false, TaskPrefixEmptyErr
+	}
+
+	summEls := strings.Split(summary, PrefixDelimiter)
+	if len(summEls) > 1 {
+		if strings.TrimSpace(summEls[0]) == "" {
+			return false, TaskPrefixEmptyErr
+		}
+
+		if strings.TrimSpace(strings.Join(summEls[1:], PrefixDelimiter)) == "" {
+			return false, TaskSummaryBodyEmptyErr
+		}
+	}
+
+	return true, nil
+}
+
 func (t *Task) SetTitle(compact bool) {
-	summEls := strings.Split(t.Summary, prefixDelimiter)
+	summEls := strings.Split(t.Summary, PrefixDelimiter)
 
 	if compact {
 		var summ string
 		if len(summEls) > 1 {
 			prefix := utils.RightPadTrim(summEls[0], compactPrefixPadding, true)
-			summ = prefix + strings.Join(summEls[1:], ":")
+			summ = prefix + strings.Join(summEls[1:], PrefixDelimiter)
 		} else {
 			summ = t.Summary
 		}
@@ -85,7 +119,7 @@ func (t *Task) SetTitle(compact bool) {
 		return
 	}
 
-	t.ItemTitle = utils.Trim(strings.TrimSpace(strings.Join(summEls[1:], prefixDelimiter)), taskSummaryWidth)
+	t.ItemTitle = utils.Trim(strings.TrimSpace(strings.Join(summEls[1:], PrefixDelimiter)), taskSummaryWidth)
 }
 
 func (t Task) Title() string {
@@ -97,7 +131,7 @@ func (t Task) Description() string {
 	var createdAt string
 	var hasContext string
 
-	summEls := strings.Split(t.Summary, prefixDelimiter)
+	summEls := strings.Split(t.Summary, PrefixDelimiter)
 	if len(summEls) > 1 {
 		prefix = getDynamicStyle(summEls[0]).Render(utils.RightPadTrim(summEls[0], spaciousPrefixPadding, true))
 	} else {
@@ -120,7 +154,13 @@ func (t Task) Description() string {
 	return fmt.Sprintf("%s%s%s", prefix, createdAt, hasContext)
 }
 
-func (t Task) FilterValue() string { return t.Summary }
+func (t Task) FilterValue() string {
+	p, ok := t.Prefix()
+	if ok {
+		return string(p)
+	}
+	return ""
+}
 
 func getDynamicStyle(str string) lipgloss.Style {
 	h := fnv.New32()
@@ -142,4 +182,16 @@ func (c ContextBookmark) Description() string {
 
 func (c ContextBookmark) FilterValue() string {
 	return string(c)
+}
+
+func (p TaskPrefix) Title() string {
+	return string(p)
+}
+
+func (p TaskPrefix) Description() string {
+	return ""
+}
+
+func (p TaskPrefix) FilterValue() string {
+	return string(p)
 }

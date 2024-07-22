@@ -176,13 +176,28 @@ Once saved, you can also copy a tasks's context to your system clipboard by pres
 		{
 			"actions: filtering tasks",
 			`You can filter tasks in a list by pressing "/". Doing this will open up a search
-prompt, which will match your query with task summaries.
+prompt, which will match your query with task prefixes.
 
-Try it out now.
+Try it out now. You get out of the filtered state by pressing "q/esc/ctrl+c".
 
 Note: You cannot add tasks or move them around in a filtered state. But, you can
 move a task to the top of the list (by pressing ⏎). Doing this will also get you
 out of the filtered state.
+`,
+			true,
+		},
+		{
+			"actions: quick filtering via a list",
+			`You can also choose the prefix you want to filter by with the means of a list,
+hereby called as the "Quick Filter List". Press "ctrl+p" to open up a set of
+task prefixes contained in the currently active task list. Press ⏎ to
+pre-populate the task list's search prompt with your selection.
+
+Try it out now.
+
+Note: Both the "Active Tasks List" and "Archived Tasks List" can be filtered
+separately, using either the manual filtering approach or via the "Quick Filter
+List".
 `,
 			true,
 		},
