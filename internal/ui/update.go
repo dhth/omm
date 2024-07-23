@@ -629,7 +629,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				var index int
 				if m.taskList.IsFiltered() {
-					m.errorMsg = "Cannot move items when the task list is filtered"
 					selected, ok := m.taskList.SelectedItem().(types.Task)
 					if !ok {
 						break
@@ -638,7 +637,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					if !ok {
 						m.errorMsg = "Something went wrong; cannot move item to the top"
 					}
-
 					index = listIndex
 				} else {
 					index = m.taskList.Index()
@@ -708,6 +706,51 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				return m, tea.Sequence(cmds...)
 			}
+
+		case "E":
+			if m.activeView != taskListView {
+				break
+			}
+
+			if len(m.taskList.Items()) == 0 {
+				break
+			}
+
+			var index int
+			if m.taskList.IsFiltered() {
+				selected, ok := m.taskList.SelectedItem().(types.Task)
+				if !ok {
+					break
+				}
+				listIndex, ok := m.tlIndexMap[selected.ID]
+				if !ok {
+					m.errorMsg = "Something went wrong; cannot move item to the end"
+				}
+				index = listIndex
+			} else {
+				index = m.taskList.Index()
+			}
+
+			lastIndex := len(m.taskList.Items()) - 1
+
+			if index == lastIndex {
+				m.errorMsg = "This item is already at the end of the list"
+				break
+			}
+
+			if m.taskList.IsFiltered() {
+				m.taskList.ResetFilter()
+				m.taskList.Select(index)
+			}
+
+			listItem := m.taskList.SelectedItem()
+			m.taskList.RemoveItem(index)
+			cmd = m.taskList.InsertItem(lastIndex, listItem)
+			cmds = append(cmds, cmd)
+			m.taskList.Select(lastIndex)
+
+			cmd = m.updateTaskSequence()
+			cmds = append(cmds, cmd)
 
 		case "c":
 			if m.activeView != taskListView && m.activeView != archivedTaskListView && m.activeView != taskDetailsView {

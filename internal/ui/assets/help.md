@@ -51,6 +51,7 @@ omm has 6 components:
     A                  add task at the end
     u                  update task summary
     ⏎                  move task to the top
+    E                  move task to the end
     J                  move task one position down
     K                  move task one position up
 

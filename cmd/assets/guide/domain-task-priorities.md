@@ -6,6 +6,7 @@ tasks on any given day. As such, omm allows you to move tasks around in the
 priority order. It has the following keymaps to achieve this:
 
     ⏎              move task to the top
+    E              move task to the end
     J              move task one position down
     K              move task one position up
 
