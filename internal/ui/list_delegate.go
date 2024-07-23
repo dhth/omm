@@ -5,8 +5,15 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func newTaskListDelegate(color lipgloss.Color) list.DefaultDelegate {
+func newListDelegate(color lipgloss.Color, showDesc bool, spacing int) list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
+
+	d.ShowDescription = showDesc
+	d.SetSpacing(spacing)
+
+	d.Styles.NormalTitle = d.Styles.
+		NormalTitle.
+		Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#ffffff"})
 
 	d.Styles.SelectedTitle = d.Styles.
 		SelectedTitle.
@@ -16,22 +23,7 @@ func newTaskListDelegate(color lipgloss.Color) list.DefaultDelegate {
 	d.Styles.SelectedDesc = d.Styles.
 		SelectedTitle
 
-	return d
-}
-
-func newContextURLListDel(color lipgloss.Color) list.DefaultDelegate {
-	d := list.NewDefaultDelegate()
-	d.SetSpacing(1)
-	d.ShowDescription = false
-	d.SetHeight(1)
-
-	d.Styles.SelectedTitle = d.Styles.
-		SelectedTitle.
-		Foreground(color).
-		BorderLeftForeground(color)
-
-	d.Styles.SelectedDesc = d.Styles.
-		SelectedTitle
+	d.Styles.FilterMatch = lipgloss.NewStyle()
 
 	return d
 }

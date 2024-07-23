@@ -15,7 +15,6 @@ import (
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
 	"github.com/dhth/omm/internal/ui"
-	"github.com/dhth/omm/internal/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -37,16 +36,14 @@ const (
 )
 
 var (
-	configFileExtIncorrectErr = errors.New("config file must be a TOML file")
-	configFileDoesntExistErr  = errors.New("config file does not exist")
-	dbFileExtIncorrectErr     = errors.New("db file needs to end with .db")
+	errConfigFileExtIncorrect = errors.New("config file must be a TOML file")
+	errConfigFileDoesntExist  = errors.New("config file does not exist")
+	errDBFileExtIncorrect     = errors.New("db file needs to end with .db")
 
-	maxImportLimitExceededErr = fmt.Errorf("Max number of tasks that can be imported at a time: %d", pers.TaskNumLimit)
-	nothingToImportErr        = errors.New("Nothing to import")
+	errMaxImportLimitExceeded = fmt.Errorf("Max number of tasks that can be imported at a time: %d", pers.TaskNumLimit)
+	errNothingToImport        = errors.New("Nothing to import")
 
-	listDensityIncorrectErr = errors.New("List density is incorrect; valid values: compact/spacious")
-
-	taskSummaryTooLongErr = fmt.Errorf("Task summary is too long; max length allowed: %d", types.TaskSummaryMaxLen)
+	errListDensityIncorrect = errors.New("List density is incorrect; valid values: compact/spacious")
 )
 
 func Execute(version string) {
@@ -159,7 +156,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			configPathFull = expandTilde(configPath)
 
 			if filepath.Ext(configPathFull) != ".toml" {
-				return configFileExtIncorrectErr
+				return errConfigFileExtIncorrect
 			}
 			_, err := os.Stat(configPathFull)
 
@@ -167,7 +164,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			if fl != nil {
 				cf := fl.Lookup("config-path")
 				if cf != nil && cf.Changed && errors.Is(err, fs.ErrNotExist) {
-					return configFileDoesntExistErr
+					return errConfigFileDoesntExist
 				}
 			}
 
@@ -186,7 +183,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 
 			dbPathFull = expandTilde(dbPath)
 			if filepath.Ext(dbPathFull) != ".db" {
-				return dbFileExtIncorrectErr
+				return errDBFileExtIncorrect
 			}
 
 			db, err = setupDB(dbPathFull)
@@ -199,11 +196,12 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 		RunE: func(cmd *cobra.Command, args []string) error {
 
 			if len(args) != 0 {
-				if len(args[0]) > types.TaskSummaryMaxLen {
-					return taskSummaryTooLongErr
+				summaryValid, err := types.CheckIfTaskSummaryValid(args[0])
+				if !summaryValid {
+					return err
 				}
 
-				err := importTask(db, args[0])
+				err = importTask(db, args[0])
 				if err != nil {
 					return err
 				}
@@ -224,7 +222,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			case ui.SpaciousDensityVal:
 				ld = ui.Spacious
 			default:
-				return listDensityIncorrectErr
+				return errListDensityIncorrect
 			}
 
 			if len(taskListTitle) > taskListTitleMaxLen {
@@ -260,23 +258,22 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			scanner := bufio.NewScanner(os.Stdin)
 			for scanner.Scan() {
 				if taskCounter > pers.TaskNumLimit {
-					return maxImportLimitExceededErr
+					return errMaxImportLimitExceeded
 				}
 
 				line := scanner.Text()
 				line = strings.TrimSpace(line)
-				if len(line) > types.TaskSummaryMaxLen {
-					line = utils.Trim(line, types.TaskSummaryMaxLen)
-				}
 
-				if line != "" {
+				summaryValid, _ := types.CheckIfTaskSummaryValid(line)
+
+				if summaryValid {
 					tasks = append(tasks, line)
 				}
 				taskCounter++
 			}
 
 			if len(tasks) == 0 {
-				return nothingToImportErr
+				return errNothingToImport
 			}
 
 			err := importTasks(db, tasks)
@@ -320,7 +317,7 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 			}
 			config := ui.Config{
 				DBPath:                dbPathFull,
-				ListDensity:           ui.Compact,
+				ListDensity:           ui.Spacious,
 				TaskListColor:         taskListColor,
 				ArchivedTaskListColor: archivedTaskListColor,
 				TaskListTitle:         taskListTitle,
@@ -377,9 +374,9 @@ Error: %s`, author, repoIssuesUrl, err)
 	rootCmd.Flags().StringVar(&taskListColor, "tl-color", ui.TaskListColor, "hex color used for the task list")
 	rootCmd.Flags().StringVar(&archivedTaskListColor, "atl-color", ui.ArchivedTLColor, "hex color used for the archived tasks list")
 	rootCmd.Flags().StringVar(&taskListTitle, "title", ui.TaskListDefaultTitle, fmt.Sprintf("title of the task list, will trim till %d chars", taskListTitleMaxLen))
-	rootCmd.Flags().StringVar(&listDensityFlagInp, "list-density", ui.CompactDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]", ui.CompactDensityVal, ui.SpaciousDensityVal))
+	rootCmd.Flags().StringVar(&listDensityFlagInp, "list-density", ui.SpaciousDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]", ui.CompactDensityVal, ui.SpaciousDensityVal))
 	rootCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
-	rootCmd.Flags().BoolVar(&showContextFlagInp, "show-context", true, "whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI")
+	rootCmd.Flags().BoolVar(&showContextFlagInp, "show-context", false, "whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI")
 
 	tasksCmd.Flags().Uint8VarP(&printTasksNum, "num", "n", printTasksDefault, "number of tasks to print")
 	tasksCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))

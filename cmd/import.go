@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	importWillExceedTaskLimitErr = fmt.Errorf("Import will exceed maximum number of tasks allowed, which is %d. Archive/Delete tasks that are not active using ctrl+d/ctrl+x.", pers.TaskNumLimit)
+	errImportWillExceedTaskLimit = fmt.Errorf("Import will exceed maximum number of tasks allowed, which is %d. Archive/Delete tasks that are not active using ctrl+d/ctrl+x.", pers.TaskNumLimit)
 )
 
 func importTask(db *sql.DB, taskSummary string) error {
@@ -18,7 +18,7 @@ func importTask(db *sql.DB, taskSummary string) error {
 		return err
 	}
 	if numTasks+1 > pers.TaskNumLimit {
-		return importWillExceedTaskLimitErr
+		return errImportWillExceedTaskLimit
 	}
 
 	now := time.Now()
@@ -31,7 +31,7 @@ func importTasks(db *sql.DB, taskSummaries []string) error {
 		return err
 	}
 	if numTasks+len(taskSummaries) > pers.TaskNumLimit {
-		return importWillExceedTaskLimitErr
+		return errImportWillExceedTaskLimit
 	}
 
 	now := time.Now()

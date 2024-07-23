@@ -1,6 +1,7 @@
 package types
 
 import (
+	"errors"
 	"fmt"
 	"hash/fnv"
 	"strings"
@@ -12,13 +13,14 @@ import (
 )
 
 const (
-	timeFormat        = "2006/01/02 15:04"
-	prefixDelimiter   = ":"
-	prefixPadding     = 80
-	createdAtPadding  = 40
-	GOOSDarwin        = "darwin"
-	taskSummaryWidth  = 100
-	TaskSummaryMaxLen = 300
+	timeFormat            = "2006/01/02 15:04"
+	PrefixDelimiter       = ":"
+	compactPrefixPadding  = 24
+	spaciousPrefixPadding = 80
+	createdAtPadding      = 40
+	GOOSDarwin            = "darwin"
+	taskSummaryWidth      = 120
+	TaskSummaryMaxLen     = 300
 )
 
 var (
@@ -45,9 +47,14 @@ var (
 
 	hasContextStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(hasContextColor))
+
+	ErrTaskPrefixEmpty      = errors.New("Task prefix cannot be empty")
+	ErrTaskSummaryBodyEmpty = errors.New("Task summary body is empty")
+	ErrTaskSummaryTooLong   = fmt.Errorf("Task summary is too long; max length allowed: %d", TaskSummaryMaxLen)
 )
 
 type Task struct {
+	ItemTitle string
 	ID        uint64
 	Summary   string
 	Context   *string
@@ -58,12 +65,70 @@ type Task struct {
 
 type ContextBookmark string
 
-func (t Task) Title() string {
-	summEls := strings.Split(t.Summary, prefixDelimiter)
-	if len(summEls) == 1 {
-		return t.Summary
+type TaskPrefix string
+
+func (t Task) Prefix() (TaskPrefix, bool) {
+	summEls := strings.Split(t.Summary, PrefixDelimiter)
+	if len(summEls) > 1 {
+		// This shouldn't happen, but it's still good to check this to ensure
+		// the quick filter list doesn't misbehave
+		if strings.TrimSpace(summEls[0]) == "" {
+			return "", false
+		}
+		return TaskPrefix(strings.TrimSpace(summEls[0])), true
 	}
-	return utils.Trim(strings.TrimSpace(strings.Join(summEls[1:], prefixDelimiter)), taskSummaryWidth)
+	return "", false
+}
+
+func CheckIfTaskSummaryValid(summary string) (bool, error) {
+	if strings.TrimSpace(summary) == "" {
+		return false, ErrTaskPrefixEmpty
+	}
+
+	summEls := strings.Split(summary, PrefixDelimiter)
+	if len(summEls) > 1 {
+		if strings.TrimSpace(summEls[0]) == "" {
+			return false, ErrTaskPrefixEmpty
+		}
+
+		if strings.TrimSpace(strings.Join(summEls[1:], PrefixDelimiter)) == "" {
+			return false, ErrTaskSummaryBodyEmpty
+		}
+	}
+
+	return true, nil
+}
+
+func (t *Task) SetTitle(compact bool) {
+	summEls := strings.Split(t.Summary, PrefixDelimiter)
+
+	if compact {
+		var summ string
+		if len(summEls) > 1 {
+			prefix := utils.RightPadTrim(summEls[0], compactPrefixPadding, true)
+			summ = prefix + strings.Join(summEls[1:], PrefixDelimiter)
+		} else {
+			summ = t.Summary
+		}
+
+		var hasContext string
+		if t.Context != nil {
+			hasContext = "(c)"
+		}
+		t.ItemTitle = fmt.Sprintf("%s%s", utils.RightPadTrim(summ, taskSummaryWidth, true), hasContext)
+		return
+	}
+
+	if len(summEls) == 1 {
+		t.ItemTitle = t.Summary
+		return
+	}
+
+	t.ItemTitle = utils.Trim(strings.TrimSpace(strings.Join(summEls[1:], PrefixDelimiter)), taskSummaryWidth)
+}
+
+func (t Task) Title() string {
+	return t.ItemTitle
 }
 
 func (t Task) Description() string {
@@ -71,11 +136,11 @@ func (t Task) Description() string {
 	var createdAt string
 	var hasContext string
 
-	summEls := strings.Split(t.Summary, prefixDelimiter)
+	summEls := strings.Split(t.Summary, PrefixDelimiter)
 	if len(summEls) > 1 {
-		prefix = getDynamicStyle(summEls[0]).Render(utils.RightPadTrim(summEls[0], prefixPadding, true))
+		prefix = getDynamicStyle(summEls[0]).Render(utils.RightPadTrim(summEls[0], spaciousPrefixPadding, true))
 	} else {
-		prefix = strings.Repeat(" ", prefixPadding)
+		prefix = strings.Repeat(" ", spaciousPrefixPadding)
 	}
 	now := time.Now()
 
@@ -94,7 +159,13 @@ func (t Task) Description() string {
 	return fmt.Sprintf("%s%s%s", prefix, createdAt, hasContext)
 }
 
-func (t Task) FilterValue() string { return t.Summary }
+func (t Task) FilterValue() string {
+	p, ok := t.Prefix()
+	if ok {
+		return string(p)
+	}
+	return ""
+}
 
 func getDynamicStyle(str string) lipgloss.Style {
 	h := fnv.New32()
@@ -116,4 +187,16 @@ func (c ContextBookmark) Description() string {
 
 func (c ContextBookmark) FilterValue() string {
 	return string(c)
+}
+
+func (p TaskPrefix) Title() string {
+	return string(p)
+}
+
+func (p TaskPrefix) Description() string {
+	return ""
+}
+
+func (p TaskPrefix) FilterValue() string {
+	return string(p)
 }

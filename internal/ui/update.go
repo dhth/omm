@@ -1,9 +1,10 @@
 package ui
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
-	"strconv"
+	"sort"
 	"strings"
 	"time"
 
@@ -18,15 +19,34 @@ import (
 
 const (
 	noSpaceAvailableMsg   = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
-	noContextMsg          = "∅"
+	noContextMsg          = "  ∅"
 	viewPortMoveLineCount = 3
 )
+
+//go:embed assets/help.md
+var helpStr string
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	m.successMsg = ""
 	m.errorMsg = ""
+
+	if m.activeView == taskListView || m.activeView == archivedTaskListView {
+		switch msg := msg.(type) {
+		case tea.KeyMsg:
+			if m.taskList.FilterState() == list.Filtering {
+				m.taskList, cmd = m.taskList.Update(msg)
+				cmds = append(cmds, cmd)
+				return m, tea.Batch(cmds...)
+			}
+			if m.archivedTaskList.FilterState() == list.Filtering {
+				m.archivedTaskList, cmd = m.archivedTaskList.Update(msg)
+				cmds = append(cmds, cmd)
+				return m, tea.Batch(cmds...)
+			}
+		}
+	}
 
 	if m.activeView == taskEntryView {
 		switch msg := msg.(type) {
@@ -43,6 +63,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.activeView = taskListView
 					m.activeTaskList = activeTasks
 					break
+				}
+
+				summEls := strings.Split(taskSummary, types.PrefixDelimiter)
+				if len(summEls) > 1 {
+					if summEls[0] == "" {
+						m.errorMsg = "prefix cannot be empty"
+						break
+					}
 				}
 
 				switch m.taskChange {
@@ -71,33 +99,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		w, h := listStyle.GetFrameSize()
-		_, h2 := headerStyle.GetFrameSize()
 		_, h3 := statusBarMsgStyle.GetFrameSize()
 		m.terminalWidth = msg.Width
 		m.terminalHeight = msg.Height
 		m.taskList.SetWidth(msg.Width - w)
 		m.archivedTaskList.SetWidth(msg.Width - 2)
-		m.contextBMList.SetWidth(msg.Width - 2)
-		m.contextBMList.SetHeight(msg.Height - h - 4)
+		m.taskBMList.SetWidth(msg.Width - 2)
+		m.taskBMList.SetHeight(msg.Height - h - h3 - 1)
+		m.prefixSearchList.SetWidth(msg.Width - 2)
+		m.prefixSearchList.SetHeight(msg.Height - h - h3 - 1)
 
 		var listHeight int
+		contextHeight := (msg.Height - h - h3 - 5) / 2
+
+		m.shortenedListHt = msg.Height - contextHeight - 5
+
 		if m.cfg.ShowContext {
-			listHeight = msg.Height/2 - h
+			listHeight = m.shortenedListHt
 		} else {
-			listHeight = msg.Height - h - 4
+			listHeight = msg.Height - h - h3 - 1
 		}
 
-		if m.cfg.ListDensity == Spacious {
-			m.taskList.SetHeight(listHeight)
-			m.archivedTaskList.SetHeight(listHeight)
-		}
-
-		var contextHeight int
-		if m.cfg.ListDensity == Compact {
-			contextHeight = m.terminalHeight - m.taskList.Height() - h2 - h3 - 6
-		} else {
-			contextHeight = m.terminalHeight - m.taskList.Height() - h2 - h3 - 5
-		}
+		m.taskList.SetHeight(listHeight)
+		m.archivedTaskList.SetHeight(listHeight)
 
 		if !m.contextVPReady {
 			m.contextVP = viewport.New(msg.Width-3, contextHeight)
@@ -118,9 +142,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.taskDetailsVP.Height = m.terminalHeight - 4
 		}
 
+		crWrap := (msg.Width - 4)
+		if crWrap > contextWordWrapUpperLimit {
+			crWrap = contextWordWrapUpperLimit
+		}
+		m.contextMdRenderer, _ = getMarkDownRenderer(crWrap)
+
+		helpToRender := helpStr
+		switch m.contextMdRenderer {
+		case nil:
+			break
+		default:
+			helpStrGl, err := m.contextMdRenderer.Render(helpStr)
+			if err != nil {
+				break
+			}
+			helpToRender = helpStrGl
+		}
+
 		if !m.helpVPReady {
 			m.helpVP = viewport.New(msg.Width-3, m.terminalHeight-4)
-			m.helpVP.SetContent(helpStr)
+			m.helpVP.SetContent(helpToRender)
 			m.helpVP.KeyMap.Up.SetEnabled(false)
 			m.helpVP.KeyMap.Down.SetEnabled(false)
 			m.helpVPReady = true
@@ -142,6 +184,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "esc", "q", "ctrl+c":
 			av := m.activeView
 
+			if m.activeView == taskListView && m.taskList.IsFiltered() {
+				m.taskList.ResetFilter()
+				break
+			}
+
+			if m.activeView == archivedTaskListView && m.archivedTaskList.IsFiltered() {
+				m.archivedTaskList.ResetFilter()
+				break
+			}
+
 			if m.activeView == archivedTaskListView {
 				m.activeView = taskListView
 				m.activeTaskList = activeTasks
@@ -149,7 +201,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == helpView {
+			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == prefixSearchView || m.activeView == helpView {
 				m.activeView = m.lastActiveView
 				switch m.activeView {
 				case taskListView:
@@ -167,7 +219,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "?":
-			if m.activeView == taskDetailsView {
+			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == prefixSearchView {
 				break
 			}
 
@@ -179,50 +231,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.activeView = helpView
 
 		case "tab", "shift+tab":
-			m.lastActiveView = m.activeView
 			switch m.activeView {
 			case taskListView:
 				m.activeView = archivedTaskListView
 				m.activeTaskList = archivedTasks
+				m.lastActiveView = m.activeView
 			case archivedTaskListView:
 				m.activeView = taskListView
 				m.activeTaskList = activeTasks
+				m.lastActiveView = m.activeView
 			}
-
-		case "2", "3", "4", "5", "6", "7", "8", "9":
-			if m.cfg.ListDensity != Compact {
-				break
-			}
-
-			if m.activeView != taskListView {
-				break
-			}
-
-			keyNum, err := strconv.Atoi(keypress)
-			if err != nil {
-				m.errorMsg = "Something went horribly wrong"
-				break
-			}
-
-			if m.taskList.Index() == 0 && keyNum == 1 {
-				break
-			}
-
-			index := (m.taskList.Paginator.Page * m.taskList.Paginator.PerPage) + (keyNum - 1)
-
-			if index >= len(m.taskList.Items()) {
-				m.errorMsg = "There is no item for this index"
-				break
-			}
-			listItem := m.taskList.Items()[index]
-
-			m.taskList.RemoveItem(index)
-			cmd = m.taskList.InsertItem(0, listItem)
-			cmds = append(cmds, cmd)
-			m.taskList.Select(0)
-
-			cmd = m.updateTaskSequence()
-			cmds = append(cmds, cmd)
 
 		case "I":
 			if m.activeView != taskListView {
@@ -231,6 +249,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if !m.isSpaceAvailable() {
 				m.errorMsg = noSpaceAvailableMsg
+				break
+			}
+
+			if m.taskList.IsFiltered() {
+				m.errorMsg = "Cannot add items when the task list is filtered"
 				break
 			}
 
@@ -251,6 +274,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
+			if m.taskList.IsFiltered() {
+				m.errorMsg = "Cannot add items when the task list is filtered"
+				break
+			}
+
 			m.taskIndex = m.taskList.Index()
 			m.taskInput.Reset()
 			m.taskInput.Focus()
@@ -265,6 +293,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if !m.isSpaceAvailable() {
 				m.errorMsg = noSpaceAvailableMsg
+				break
+			}
+
+			if m.taskList.IsFiltered() {
+				m.errorMsg = "Cannot add items when the task list is filtered"
 				break
 			}
 
@@ -286,6 +319,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if !m.isSpaceAvailable() {
 				m.errorMsg = noSpaceAvailableMsg
+				break
+			}
+
+			if m.taskList.IsFiltered() {
+				m.errorMsg = "Cannot add items when the task list is filtered"
 				break
 			}
 
@@ -338,6 +376,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.taskList.IsFiltered() {
+				m.errorMsg = "Cannot move items when the task list is filtered"
 				break
 			}
 
@@ -365,6 +404,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.taskList.IsFiltered() {
+				m.errorMsg = "Cannot move items when the task list is filtered"
 				break
 			}
 
@@ -412,6 +452,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
+			br := false
+			switch m.activeView {
+			case taskListView:
+				if m.taskList.IsFiltered() {
+					br = true
+				}
+
+			case archivedTaskListView:
+				if m.archivedTaskList.IsFiltered() {
+					br = true
+				}
+			}
+
+			if br {
+				break
+			}
+
 			cmds = append(cmds, fetchTasks(m.db, true, pers.TaskNumLimit))
 			cmds = append(cmds, fetchTasks(m.db, false, pers.TaskNumLimit))
 
@@ -419,6 +476,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch m.activeView {
 			case taskListView:
 				if len(m.taskList.Items()) == 0 {
+					break
+				}
+
+				if m.taskList.IsFiltered() {
+					m.errorMsg = "Cannot archive items when the task list is filtered"
 					break
 				}
 
@@ -435,6 +497,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			case archivedTaskListView:
 				if len(m.archivedTaskList.Items()) == 0 {
+					break
+				}
+
+				if m.archivedTaskList.IsFiltered() {
+					m.errorMsg = "Cannot archive items when the task list is filtered"
 					break
 				}
 
@@ -457,6 +524,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 
+				if m.taskList.IsFiltered() {
+					m.errorMsg = "Cannot delete items when the task list is filtered"
+					break
+				}
+
 				index := m.taskList.Index()
 				t, ok := m.taskList.SelectedItem().(types.Task)
 				if !ok {
@@ -471,6 +543,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 
+				if m.archivedTaskList.IsFiltered() {
+					m.errorMsg = "Cannot delete items when the task list is filtered"
+					break
+				}
+
 				index := m.archivedTaskList.Index()
 				task, ok := m.archivedTaskList.SelectedItem().(types.Task)
 				if !ok {
@@ -482,8 +559,66 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 
+		case "ctrl+p":
+			if m.activeView != taskListView && m.activeView != archivedTaskListView {
+				break
+			}
+
+			var taskList list.Model
+			var taskPrefixes map[types.TaskPrefix]struct{}
+
+			switch m.activeView {
+			case taskListView:
+				taskList = m.taskList
+				taskPrefixes = m.activeTasksPrefixes
+			case archivedTaskListView:
+				taskList = m.archivedTaskList
+				taskPrefixes = m.archivedTasksPrefixes
+			}
+
+			if len(taskList.Items()) == 0 {
+				m.errorMsg = "No items in task list"
+				break
+			}
+
+			for _, li := range taskList.Items() {
+				t, ok := li.(types.Task)
+				if ok {
+					prefix, pOk := t.Prefix()
+					if pOk {
+						taskPrefixes[prefix] = struct{}{}
+					}
+				}
+			}
+			var prefixes []types.TaskPrefix
+			for k := range taskPrefixes {
+				prefixes = append(prefixes, k)
+			}
+
+			if len(prefixes) == 0 {
+				m.errorMsg = "No prefixes in task list"
+				break
+			}
+
+			if len(prefixes) == 1 {
+				m.errorMsg = "Only 1 unique prefix in task list"
+				break
+			}
+
+			sort.Slice(prefixes, func(i, j int) bool {
+				return prefixes[i] < prefixes[j]
+			})
+
+			pi := make([]list.Item, len(prefixes))
+			for i, p := range prefixes {
+				pi[i] = list.Item(p)
+			}
+
+			m.prefixSearchList.SetItems(pi)
+			m.activeView = prefixSearchView
+
 		case "enter":
-			if m.activeView != taskListView && m.activeView != contextBookmarksView {
+			if m.activeView != taskListView && m.activeView != contextBookmarksView && m.activeView != prefixSearchView {
 				break
 			}
 			switch m.activeView {
@@ -492,11 +627,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 
-				if m.taskList.Index() == 0 {
+				var index int
+				if m.taskList.IsFiltered() {
+					m.errorMsg = "Cannot move items when the task list is filtered"
+					selected, ok := m.taskList.SelectedItem().(types.Task)
+					if !ok {
+						break
+					}
+					listIndex, ok := m.tlIndexMap[selected.ID]
+					if !ok {
+						m.errorMsg = "Something went wrong; cannot move item to the top"
+					}
+
+					index = listIndex
+				} else {
+					index = m.taskList.Index()
+				}
+
+				if index == 0 {
+					m.errorMsg = "This item is already at the top of the list"
 					break
 				}
 
-				index := m.taskList.Index()
+				if m.taskList.IsFiltered() {
+					m.taskList.ResetFilter()
+					m.taskList.Select(index)
+				}
+
 				listItem := m.taskList.SelectedItem()
 				m.taskList.RemoveItem(index)
 				cmd = m.taskList.InsertItem(0, listItem)
@@ -506,8 +663,50 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmd = m.updateTaskSequence()
 				cmds = append(cmds, cmd)
 			case contextBookmarksView:
-				url := m.contextBMList.SelectedItem().FilterValue()
+				url := m.taskBMList.SelectedItem().FilterValue()
 				cmds = append(cmds, openURL(url))
+			case prefixSearchView:
+				prefix := m.prefixSearchList.SelectedItem().FilterValue()
+				var taskList list.Model
+
+				switch m.activeTaskList {
+				case activeTasks:
+					taskList = m.taskList
+				case archivedTasks:
+					taskList = m.archivedTaskList
+				}
+
+				taskList.ResetFilter()
+				var tlCmd tea.Cmd
+
+				runes := []rune(prefix)
+
+				if len(runes) > 1 {
+					taskList.FilterInput.SetValue(string(runes[:len(runes)-1]))
+				}
+
+				taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: -1, Runes: []int32{47}, Alt: false, Paste: false})
+				cmds = append(cmds, tlCmd)
+
+				taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: -1, Runes: []rune{runes[len(runes)-1]}, Alt: false, Paste: false})
+				cmds = append(cmds, tlCmd)
+
+				// TODO: Try sending ENTER programmatically too
+				// taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: 13, Runes: []int32(nil), Alt: false, Paste: false})
+				// or
+				// taskList, tlCmd = taskList.Update(tea.KeyEnter)
+				// this results in the list's paginator being broken, so requires another manual ENTER keypress
+
+				switch m.activeTaskList {
+				case activeTasks:
+					m.taskList = taskList
+					m.activeView = taskListView
+				case archivedTasks:
+					m.archivedTaskList = taskList
+					m.activeView = archivedTaskListView
+				}
+
+				return m, tea.Sequence(cmds...)
 			}
 
 		case "c":
@@ -562,85 +761,44 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			w, h := listStyle.GetFrameSize()
-			var taskList list.Model
-			var archivedTaskList list.Model
-			_, h2 := headerStyle.GetFrameSize()
-			_, h3 := statusBarMsgStyle.GetFrameSize()
-
-			tlIndex := m.taskList.Index()
-			atlIndex := m.archivedTaskList.Index()
-
-			var listHeight int
-			if m.cfg.ShowContext {
-				listHeight = m.terminalHeight/2 - h
-			} else {
-				listHeight = m.terminalHeight - h - 4
-			}
+			var tlDel list.DefaultDelegate
+			var atlDel list.DefaultDelegate
 
 			switch m.cfg.ListDensity {
 			case Compact:
-				taskList = list.New(m.taskList.Items(),
-					newTaskListDelegate(lipgloss.Color(m.cfg.TaskListColor)),
-					m.terminalWidth-w,
-					listHeight,
-				)
-				taskList.SetShowStatusBar(true)
-
-				archivedTaskList = list.New(m.archivedTaskList.Items(),
-					newTaskListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor)),
-					m.terminalWidth-w,
-					listHeight,
-				)
-				archivedTaskList.SetShowStatusBar(true)
+				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), true, 1)
+				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), true, 1)
 
 				m.cfg.ListDensity = Spacious
 
 			case Spacious:
-				taskList = list.New(m.taskList.Items(),
-					itemDelegate{selStyle: m.tlSelStyle},
-					m.terminalWidth-w,
-					compactListHeight,
-				)
-				taskList.SetShowStatusBar(false)
-
-				archivedTaskList = list.New(m.archivedTaskList.Items(),
-					itemDelegate{selStyle: m.tlSelStyle},
-					m.terminalWidth-w,
-					compactListHeight,
-				)
+				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), false, 1)
+				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), false, 1)
 				m.cfg.ListDensity = Compact
-				archivedTaskList.SetShowStatusBar(false)
 			}
 
-			taskList.SetShowTitle(false)
-			taskList.SetFilteringEnabled(false)
-			taskList.SetShowHelp(false)
-			taskList.DisableQuitKeybindings()
-			taskList.Styles.Title = m.taskList.Styles.Title
-			taskList.KeyMap.PrevPage.SetKeys("left", "h", "pgup")
-			taskList.KeyMap.NextPage.SetKeys("right", "l", "pgdown")
-
-			m.taskList = taskList
-			m.taskList.Select(tlIndex)
-
-			archivedTaskList.SetShowTitle(false)
-			archivedTaskList.SetFilteringEnabled(false)
-			archivedTaskList.SetShowHelp(false)
-			archivedTaskList.DisableQuitKeybindings()
-			archivedTaskList.KeyMap.PrevPage.SetKeys("left", "h", "pgup")
-			archivedTaskList.KeyMap.NextPage.SetKeys("right", "l", "pgdown")
-
-			m.archivedTaskList = archivedTaskList
-			m.archivedTaskList.Select(atlIndex)
-
-			var contextHeight int
-			if m.cfg.ListDensity == Compact {
-				contextHeight = m.terminalHeight - m.taskList.Height() - h2 - h3 - 6
-			} else {
-				contextHeight = m.terminalHeight - m.taskList.Height() - h2 - h3 - 5
+			m.taskList.SetDelegate(tlDel)
+			m.archivedTaskList.SetDelegate(atlDel)
+			for i, li := range m.taskList.Items() {
+				t, ok := li.(types.Task)
+				if ok {
+					t.SetTitle(m.cfg.ListDensity == Compact)
+				}
+				m.taskList.SetItem(i, list.Item(t))
 			}
-			m.contextVP.Height = contextHeight
+
+			for i, li := range m.archivedTaskList.Items() {
+				t, ok := li.(types.Task)
+				if ok {
+					t.SetTitle(m.cfg.ListDensity == Compact)
+				}
+				m.archivedTaskList.SetItem(i, list.Item(t))
+			}
+
+			if m.cfg.ShowContext {
+				m.taskList.SetHeight(m.shortenedListHt)
+				m.archivedTaskList.SetHeight(m.shortenedListHt)
+			}
 
 		case "C":
 			if m.activeView != taskListView && m.activeView != archivedTaskListView {
@@ -650,28 +808,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.cfg.ShowContext = !m.cfg.ShowContext
 
 			_, h := listStyle.GetFrameSize()
-			var listHeight int
-			if m.cfg.ListDensity == Spacious {
-				switch m.cfg.ShowContext {
-				case true:
-					listHeight = m.terminalHeight/2 - h
-				case false:
-					listHeight = m.terminalHeight - h - 4
-				}
-				m.taskList.SetHeight(listHeight)
-				m.archivedTaskList.SetHeight(listHeight)
-			}
-
-			_, h2 := headerStyle.GetFrameSize()
 			_, h3 := statusBarMsgStyle.GetFrameSize()
+			var listHeight int
 
-			var contextHeight int
-			if m.cfg.ListDensity == Compact {
-				contextHeight = m.terminalHeight - m.taskList.Height() - h2 - h3 - 6
+			if m.cfg.ShowContext {
+				listHeight = m.shortenedListHt
 			} else {
-				contextHeight = m.terminalHeight - m.taskList.Height() - h2 - h3 - 5
+				listHeight = m.terminalHeight - h - h3 - 1
 			}
-			m.contextVP.Height = contextHeight
+
+			m.taskList.SetHeight(listHeight)
+			m.archivedTaskList.SetHeight(listHeight)
 
 		case "d":
 			if m.activeView == taskDetailsView {
@@ -779,7 +926,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			for i, url := range urls {
 				bmItems[i] = list.Item(types.ContextBookmark(url))
 			}
-			m.contextBMList.SetItems(bmItems)
+			m.taskBMList.SetItems(bmItems)
 			switch m.activeView {
 			case taskListView:
 				m.activeTaskList = activeTasks
@@ -861,13 +1008,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
-		entry := list.Item(types.Task{
+		t := types.Task{
 			ID:        msg.id,
 			Summary:   msg.taskSummary,
 			Active:    true,
 			CreatedAt: msg.createdAt,
 			UpdatedAt: msg.updatedAt,
-		})
+		}
+		t.SetTitle(m.cfg.ListDensity == Compact)
+		entry := list.Item(t)
 		cmd = m.taskList.InsertItem(m.taskIndex, entry)
 		cmds = append(cmds, cmd)
 		m.taskList.Select(m.taskIndex)
@@ -907,6 +1056,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			t.Summary = msg.taskSummary
 			t.UpdatedAt = msg.updatedAt
+			t.SetTitle(m.cfg.ListDensity == Compact)
 			cmd = m.taskList.SetItem(msg.listIndex, list.Item(t))
 			cmds = append(cmds, cmd)
 		}
@@ -932,6 +1082,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					t.Context = &msg.context
 				}
 				t.UpdatedAt = msg.updatedAt
+				t.SetTitle(m.cfg.ListDensity == Compact)
 				cmd = m.taskList.SetItem(msg.listIndex, list.Item(t))
 				cmds = append(cmds, cmd)
 			case archivedTasks:
@@ -947,6 +1098,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					t.Context = &msg.context
 				}
 				t.UpdatedAt = msg.updatedAt
+				t.SetTitle(m.cfg.ListDensity == Compact)
 				cmd = m.archivedTaskList.SetItem(msg.listIndex, list.Item(t))
 				cmds = append(cmds, cmd)
 			}
@@ -973,6 +1125,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 				t.UpdatedAt = msg.updatedAt
+				t.SetTitle(m.cfg.ListDensity == Compact)
 				m.taskList.InsertItem(0, list.Item(t))
 				m.taskList.Select(oldIndex + 1)
 				m.archivedTaskList.RemoveItem(msg.listIndex)
@@ -1001,15 +1154,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case true:
 				taskItems := make([]list.Item, len(msg.tasks))
 				for i, t := range msg.tasks {
+					t.SetTitle(m.cfg.ListDensity == Compact)
 					taskItems[i] = t
 				}
 				m.taskList.SetItems(taskItems)
+				m.taskList.Select(0)
+
+				tlIndexMap := make(map[uint64]int)
+				for i, ti := range m.taskList.Items() {
+					t, ok := ti.(types.Task)
+					if ok {
+						tlIndexMap[t.ID] = i
+					}
+				}
+				m.tlIndexMap = tlIndexMap
+
 			case false:
 				archivedTaskItems := make([]list.Item, len(msg.tasks))
 				for i, t := range msg.tasks {
+					t.SetTitle(m.cfg.ListDensity == Compact)
 					archivedTaskItems[i] = t
 				}
 				m.archivedTaskList.SetItems(archivedTaskItems)
+				m.archivedTaskList.Select(0)
 			}
 		}
 	case textEditorClosed:
@@ -1057,19 +1224,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
-	if m.cfg.ListDensity == Compact {
-		if len(m.taskList.Items()) > 9 {
-			m.taskList.SetHeight(compactListHeight + 1)
-		} else {
-			m.taskList.SetHeight(compactListHeight)
-		}
-		if len(m.archivedTaskList.Items()) > 9 {
-			m.archivedTaskList.SetHeight(compactListHeight + 1)
-		} else {
-			m.archivedTaskList.SetHeight(compactListHeight)
-		}
-	}
-
 	var viewUpdateCmd tea.Cmd
 	switch m.activeView {
 	case taskListView:
@@ -1088,11 +1242,25 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
-		if t.Context != nil {
-			m.contextVP.SetContent(*t.Context)
-		} else {
-			m.contextVP.SetContent(noContextMsg)
+		var detailsToRender string
+		switch t.Context {
+		case nil:
+			detailsToRender = noContextMsg
+		default:
+			detailsToRender = *t.Context
+			switch m.contextMdRenderer {
+			case nil:
+				break
+			default:
+				contextGl, err := m.contextMdRenderer.Render(*t.Context)
+				if err != nil {
+					break
+				}
+				detailsToRender = contextGl
+			}
 		}
+
+		m.contextVP.SetContent(detailsToRender)
 		m.contextVPTaskId = t.ID
 
 	case archivedTaskListView:
@@ -1112,7 +1280,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if t.Context != nil {
-			m.contextVP.SetContent(*t.Context)
+			if m.contextMdRenderer != nil {
+				contextGl, err := m.contextMdRenderer.Render(*t.Context)
+				if err != nil {
+					m.contextVP.SetContent(*t.Context)
+				} else {
+					m.contextVP.SetContent(contextGl)
+				}
+			} else {
+				m.contextVP.SetContent(*t.Context)
+			}
 		} else {
 			m.contextVP.SetContent(noContextMsg)
 		}
@@ -1125,7 +1302,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.taskDetailsVP, viewUpdateCmd = m.taskDetailsVP.Update(msg)
 
 	case contextBookmarksView:
-		m.contextBMList, viewUpdateCmd = m.contextBMList.Update(msg)
+		m.taskBMList, viewUpdateCmd = m.taskBMList.Update(msg)
+
+	case prefixSearchView:
+		m.prefixSearchList, viewUpdateCmd = m.prefixSearchList.Update(msg)
 
 	case helpView:
 		m.helpVP, viewUpdateCmd = m.helpVP.Update(msg)
@@ -1136,14 +1316,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m model) updateTaskSequence() tea.Cmd {
+func (m *model) updateTaskSequence() tea.Cmd {
 	sequence := make([]uint64, len(m.taskList.Items()))
+	tlIndexMap := make(map[uint64]int)
+
 	for i, ti := range m.taskList.Items() {
 		t, ok := ti.(types.Task)
 		if ok {
 			sequence[i] = t.ID
+			tlIndexMap[t.ID] = i
 		}
 	}
+
+	m.tlIndexMap = tlIndexMap
 
 	return updateTaskSequence(m.db, sequence)
 }
@@ -1155,15 +1340,23 @@ func (m model) isSpaceAvailable() bool {
 func (m *model) setContextFSContent(task types.Task) {
 	var ctx string
 	if task.Context != nil {
-		ctx = fmt.Sprintf("\n===\n\n%s", *task.Context)
+		ctx = fmt.Sprintf("---\n%s", *task.Context)
 	}
 
-	details := fmt.Sprintf(`summary               %s
-created at            %s
-last updated at       %s
+	details := fmt.Sprintf(`- summary          :    %s
+- created at       :    %s
+- last updated at  :    %s
+
 %s
 `, task.Summary, task.CreatedAt.Format(timeFormat), task.UpdatedAt.Format(timeFormat), ctx)
 
+	if m.taskDetailsMdRenderer != nil {
+		detailsGl, err := m.taskDetailsMdRenderer.Render(details)
+		if err == nil {
+			m.taskDetailsVP.SetContent(detailsGl)
+			return
+		}
+	}
 	m.taskDetailsVP.SetContent(details)
 }
 
