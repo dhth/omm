@@ -66,6 +66,7 @@ type model struct {
 	prefixSearchList      list.Model
 	activeTasksPrefixes   map[types.TaskPrefix]struct{}
 	archivedTasksPrefixes map[types.TaskPrefix]struct{}
+	tlIndexMap            map[uint64]int
 	taskIndex             int
 	taskId                uint64
 	taskChange            taskChangeType

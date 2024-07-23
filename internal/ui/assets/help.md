@@ -54,6 +54,9 @@ omm has 6 components:
     J                  move task one position down
     K                  move task one position up
 
+**Note**: Moving tasks around is not allowed when the active tasks list is in a
+filtered state, however, you can still use `⏎` to move a task to the top.
+
 ### Task Details Pane
 
     h/←/→/l            move backwards/forwards when in the task details view

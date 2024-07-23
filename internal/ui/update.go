@@ -627,16 +627,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 
+				var index int
 				if m.taskList.IsFiltered() {
 					m.errorMsg = "Cannot move items when the task list is filtered"
+					selected, ok := m.taskList.SelectedItem().(types.Task)
+					if !ok {
+						break
+					}
+					listIndex, ok := m.tlIndexMap[selected.ID]
+					if !ok {
+						m.errorMsg = "Something went wrong; cannot move item to the top"
+					}
+
+					index = listIndex
+				} else {
+					index = m.taskList.Index()
+				}
+
+				if index == 0 {
+					m.errorMsg = "This item is already at the top of the list"
 					break
 				}
 
-				if m.taskList.Index() == 0 {
-					break
+				if m.taskList.IsFiltered() {
+					m.taskList.ResetFilter()
+					m.taskList.Select(index)
 				}
 
-				index := m.taskList.Index()
 				listItem := m.taskList.SelectedItem()
 				m.taskList.RemoveItem(index)
 				cmd = m.taskList.InsertItem(0, listItem)
@@ -1142,6 +1159,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.taskList.SetItems(taskItems)
 				m.taskList.Select(0)
+
+				tlIndexMap := make(map[uint64]int)
+				for i, ti := range m.taskList.Items() {
+					t, ok := ti.(types.Task)
+					if ok {
+						tlIndexMap[t.ID] = i
+					}
+				}
+				m.tlIndexMap = tlIndexMap
+
 			case false:
 				archivedTaskItems := make([]list.Item, len(msg.tasks))
 				for i, t := range msg.tasks {
@@ -1289,14 +1316,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m model) updateTaskSequence() tea.Cmd {
+func (m *model) updateTaskSequence() tea.Cmd {
 	sequence := make([]uint64, len(m.taskList.Items()))
+	tlIndexMap := make(map[uint64]int)
+
 	for i, ti := range m.taskList.Items() {
 		t, ok := ti.(types.Task)
 		if ok {
 			sequence[i] = t.ID
+			tlIndexMap[t.ID] = i
 		}
 	}
+
+	m.tlIndexMap = tlIndexMap
 
 	return updateTaskSequence(m.db, sequence)
 }
