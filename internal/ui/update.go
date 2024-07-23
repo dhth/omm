@@ -1,6 +1,7 @@
 package ui
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 	"sort"
@@ -21,6 +22,9 @@ const (
 	noContextMsg          = "  ∅"
 	viewPortMoveLineCount = 3
 )
+
+//go:embed assets/help.md
+var helpStr string
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd

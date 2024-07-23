@@ -1,13 +1,8 @@
-package ui
-
-import "fmt"
-
-var (
-	helpStr = fmt.Sprintf(`## Overview
+## Overview
 
 **omm** ("on-my-mind") is a keyboard-driven task manager for the command line.
 
-Tip: Run %s for a guided walkthrough of omm's features.
+Tip: Run `omm guide` for a guided walkthrough of omm's features.
 
 omm has 6 components:
 
@@ -72,5 +67,3 @@ omm has 6 components:
 ### Quick Filter List
 
     ⏎                  pre-populate task list's search prompt with chosen prefix
-`, "`omm guide`")
-)

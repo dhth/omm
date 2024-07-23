@@ -121,7 +121,7 @@ func (m model) View() string {
 		var spVal string
 		sp := int(m.taskDetailsVP.ScrollPercent() * 100)
 		if sp < 100 {
-			spVal = helpSectionStyle.Render(fmt.Sprintf("  %d%% ↓", sp))
+			spVal = helpMsgStyle.Render(fmt.Sprintf("  %d%% ↓", sp))
 		}
 		header := fmt.Sprintf("%s%s", taskDetailsTitleStyle.Render("task details"), spVal)
 		if !m.taskDetailsVPReady {
@@ -140,7 +140,7 @@ func (m model) View() string {
 		header := fmt.Sprintf(`
   %s  %s
 
-`, helpTitleStyle.Render("help"), helpSectionStyle.Render("(scroll with j/k/↓/↑)"))
+`, helpTitleStyle.Render("help"), helpMsgStyle.Render("(scroll with j/k/↓/↑)"))
 		if !m.helpVPReady {
 			content = "Initializing..."
 		} else {

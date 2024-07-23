@@ -36,14 +36,14 @@ const (
 )
 
 var (
-	configFileExtIncorrectErr = errors.New("config file must be a TOML file")
-	configFileDoesntExistErr  = errors.New("config file does not exist")
-	dbFileExtIncorrectErr     = errors.New("db file needs to end with .db")
+	errConfigFileExtIncorrect = errors.New("config file must be a TOML file")
+	errConfigFileDoesntExist  = errors.New("config file does not exist")
+	errDBFileExtIncorrect     = errors.New("db file needs to end with .db")
 
-	maxImportLimitExceededErr = fmt.Errorf("Max number of tasks that can be imported at a time: %d", pers.TaskNumLimit)
-	nothingToImportErr        = errors.New("Nothing to import")
+	errMaxImportLimitExceeded = fmt.Errorf("Max number of tasks that can be imported at a time: %d", pers.TaskNumLimit)
+	errNothingToImport        = errors.New("Nothing to import")
 
-	listDensityIncorrectErr = errors.New("List density is incorrect; valid values: compact/spacious")
+	errListDensityIncorrect = errors.New("List density is incorrect; valid values: compact/spacious")
 )
 
 func Execute(version string) {
@@ -156,7 +156,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			configPathFull = expandTilde(configPath)
 
 			if filepath.Ext(configPathFull) != ".toml" {
-				return configFileExtIncorrectErr
+				return errConfigFileExtIncorrect
 			}
 			_, err := os.Stat(configPathFull)
 
@@ -164,7 +164,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			if fl != nil {
 				cf := fl.Lookup("config-path")
 				if cf != nil && cf.Changed && errors.Is(err, fs.ErrNotExist) {
-					return configFileDoesntExistErr
+					return errConfigFileDoesntExist
 				}
 			}
 
@@ -183,7 +183,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 
 			dbPathFull = expandTilde(dbPath)
 			if filepath.Ext(dbPathFull) != ".db" {
-				return dbFileExtIncorrectErr
+				return errDBFileExtIncorrect
 			}
 
 			db, err = setupDB(dbPathFull)
@@ -222,7 +222,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			case ui.SpaciousDensityVal:
 				ld = ui.Spacious
 			default:
-				return listDensityIncorrectErr
+				return errListDensityIncorrect
 			}
 
 			if len(taskListTitle) > taskListTitleMaxLen {
@@ -258,7 +258,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			scanner := bufio.NewScanner(os.Stdin)
 			for scanner.Scan() {
 				if taskCounter > pers.TaskNumLimit {
-					return maxImportLimitExceededErr
+					return errMaxImportLimitExceeded
 				}
 
 				line := scanner.Text()
@@ -273,7 +273,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			}
 
 			if len(tasks) == 0 {
-				return nothingToImportErr
+				return errNothingToImport
 			}
 
 			err := importTasks(db, tasks)
@@ -317,7 +317,7 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 			}
 			config := ui.Config{
 				DBPath:                dbPathFull,
-				ListDensity:           ui.Compact,
+				ListDensity:           ui.Spacious,
 				TaskListColor:         taskListColor,
 				ArchivedTaskListColor: archivedTaskListColor,
 				TaskListTitle:         taskListTitle,

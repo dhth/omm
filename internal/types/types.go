@@ -15,7 +15,7 @@ import (
 const (
 	timeFormat            = "2006/01/02 15:04"
 	PrefixDelimiter       = ":"
-	compactPrefixPadding  = 20
+	compactPrefixPadding  = 24
 	spaciousPrefixPadding = 80
 	createdAtPadding      = 40
 	GOOSDarwin            = "darwin"
@@ -48,9 +48,9 @@ var (
 	hasContextStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(hasContextColor))
 
-	TaskPrefixEmptyErr      = errors.New("Task prefix cannot be empty")
-	TaskSummaryBodyEmptyErr = errors.New("Task summary body is empty")
-	TaskSummaryTooLongErr   = fmt.Errorf("Task summary is too long; max length allowed: %d", TaskSummaryMaxLen)
+	ErrTaskPrefixEmpty      = errors.New("Task prefix cannot be empty")
+	ErrTaskSummaryBodyEmpty = errors.New("Task summary body is empty")
+	ErrTaskSummaryTooLong   = fmt.Errorf("Task summary is too long; max length allowed: %d", TaskSummaryMaxLen)
 )
 
 type Task struct {
@@ -82,17 +82,17 @@ func (t Task) Prefix() (TaskPrefix, bool) {
 
 func CheckIfTaskSummaryValid(summary string) (bool, error) {
 	if strings.TrimSpace(summary) == "" {
-		return false, TaskPrefixEmptyErr
+		return false, ErrTaskPrefixEmpty
 	}
 
 	summEls := strings.Split(summary, PrefixDelimiter)
 	if len(summEls) > 1 {
 		if strings.TrimSpace(summEls[0]) == "" {
-			return false, TaskPrefixEmptyErr
+			return false, ErrTaskPrefixEmpty
 		}
 
 		if strings.TrimSpace(strings.Join(summEls[1:], PrefixDelimiter)) == "" {
-			return false, TaskSummaryBodyEmptyErr
+			return false, ErrTaskSummaryBodyEmpty
 		}
 	}
 

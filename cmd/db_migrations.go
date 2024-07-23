@@ -12,7 +12,7 @@ const (
 )
 
 var (
-	dbDowngradedErr = errors.New(`Looks like you downgraded omm. You should either delete omm's
+	errDBDowngraded = errors.New(`Looks like you downgraded omm. You should either delete omm's
 database file (you will lose data by doing that), or upgrade omm to
 the latest version.`)
 )
@@ -67,7 +67,7 @@ Error: %s`,
 	}
 
 	if latestVersionInDB.version > latestDBVersion {
-		return dbDowngradedErr
+		return errDBDowngraded
 	}
 
 	if latestVersionInDB.version < latestDBVersion {

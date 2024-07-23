@@ -16,11 +16,9 @@ const (
 	taskListHeaderColor    = "#928374"
 	formHelpColor          = "#928374"
 	formColor              = "#928374"
-	helpMsgColor           = "#83a598"
+	helpMsgColor           = "#928374"
 	helpViewTitleColor     = "#83a598"
-	helpTitleColor         = "#83a598"
-	helpHeaderColor        = "#83a598"
-	helpSectionColor       = "#bdae93"
+	helpTitleColor         = "#bd93f9"
 	sBSuccessMsgColor      = "#d3869b"
 	sBErrMsgColor          = "#fb4934"
 	footerColor            = "#928374"
@@ -67,11 +65,6 @@ var (
 
 	formHelpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(formHelpColor))
-
-	helpStyle = lipgloss.NewStyle()
-
-	helpSectionStyle = helpStyle.
-				Foreground(lipgloss.Color(helpSectionColor))
 
 	helpMsgStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(helpMsgColor))
