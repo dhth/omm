@@ -1,6 +1,6 @@
 ## Overview
 
-**omm** ("on-my-mind") is a keyboard-driven task manager for the command line.
+omm ("on-my-mind") is a keyboard-driven task manager for the command line.
 
 Tip: Run `omm guide` for a guided walkthrough of omm's features.
 

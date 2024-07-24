@@ -9,7 +9,7 @@ import (
 
 var (
 	TaskListDefaultTitle      = "omm"
-	taskDetailsWordWrap       = 80
+	taskDetailsWordWrap       = 120
 	contextWordWrapUpperLimit = 160
 )
 
