@@ -76,7 +76,7 @@
     "underline": true
   },
   "link_text": {
-    "color": "#458588",
+    "color": "#fabd2f",
     "bold": true
   },
   "image": {
@@ -95,10 +95,9 @@
   },
   "code_block": {
     "color": "244",
-    "margin": 2,
     "chroma": {
       "text": {
-        "color": "#bdae93"
+        "color": "#fbf1c7"
       },
       "error": {
         "color": "#282828",

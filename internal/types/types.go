@@ -99,36 +99,19 @@ func CheckIfTaskSummaryValid(summary string) (bool, error) {
 	return true, nil
 }
 
-func (t *Task) SetTitle(compact bool) {
+func (t Task) GetPrefixAndSummaryContent() (string, string, bool) {
 	summEls := strings.Split(t.Summary, PrefixDelimiter)
 
-	if compact {
-		var summ string
-		if len(summEls) > 1 {
-			prefix := utils.RightPadTrim(summEls[0], compactPrefixPadding, true)
-			summ = prefix + strings.Join(summEls[1:], PrefixDelimiter)
-		} else {
-			summ = t.Summary
-		}
-
-		var hasContext string
-		if t.Context != nil {
-			hasContext = "(c)"
-		}
-		t.ItemTitle = fmt.Sprintf("%s%s", utils.RightPadTrim(summ, taskSummaryWidth, true), hasContext)
-		return
-	}
-
 	if len(summEls) == 1 {
-		t.ItemTitle = t.Summary
-		return
+		return "", t.Summary, false
 	}
 
-	t.ItemTitle = utils.Trim(strings.TrimSpace(strings.Join(summEls[1:], PrefixDelimiter)), taskSummaryWidth)
+	return strings.TrimSpace(summEls[0]), strings.TrimSpace(strings.Join(summEls[1:], PrefixDelimiter)), true
 }
 
 func (t Task) Title() string {
-	return t.ItemTitle
+	_, sc, _ := t.GetPrefixAndSummaryContent()
+	return sc
 }
 
 func (t Task) Description() string {
@@ -138,7 +121,7 @@ func (t Task) Description() string {
 
 	summEls := strings.Split(t.Summary, PrefixDelimiter)
 	if len(summEls) > 1 {
-		prefix = getDynamicStyle(summEls[0]).Render(utils.RightPadTrim(summEls[0], spaciousPrefixPadding, true))
+		prefix = GetDynamicStyle(summEls[0]).Render(utils.RightPadTrim(summEls[0], spaciousPrefixPadding, true))
 	} else {
 		prefix = strings.Repeat(" ", spaciousPrefixPadding)
 	}
@@ -167,7 +150,7 @@ func (t Task) FilterValue() string {
 	return ""
 }
 
-func getDynamicStyle(str string) lipgloss.Style {
+func GetDynamicStyle(str string) lipgloss.Style {
 	h := fnv.New32()
 	h.Write([]byte(str))
 	hash := h.Sum32()

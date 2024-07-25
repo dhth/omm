@@ -1,4 +1,4 @@
-The context pane can be toggled on/off by pressing `C`.
+The context pane can be toggled on/off by pressing `C` (capital c).
 
 You can choose to display it or not based on your preference. For convenience,
 the lists will always highlight tasks that have a context associated with them

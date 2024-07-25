@@ -804,24 +804,19 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			var tlDel list.DefaultDelegate
-			var atlDel list.DefaultDelegate
-
-			var spacing int
-			if m.cfg.ShowContext {
-				spacing = 1
-			}
+			var tlDel list.ItemDelegate
+			var atlDel list.ItemDelegate
 
 			switch m.cfg.ListDensity {
 			case Compact:
-				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), true, 1)
-				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), true, 1)
+				tlDel = newSpaciousListDelegate(lipgloss.Color(m.cfg.TaskListColor), true, 1)
+				atlDel = newSpaciousListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), true, 1)
 
 				m.cfg.ListDensity = Spacious
 
 			case Spacious:
-				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), false, spacing)
-				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), false, spacing)
+				tlDel = compactItemDelegate{m.tlSelStyle}
+				atlDel = compactItemDelegate{m.atlSelStyle}
 				m.cfg.ListDensity = Compact
 			}
 
@@ -829,19 +824,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.archivedTaskList.SetDelegate(atlDel)
 
 			for i, li := range m.taskList.Items() {
-				t, ok := li.(types.Task)
-				if ok {
-					t.SetTitle(m.cfg.ListDensity == Compact)
-				}
-				m.taskList.SetItem(i, list.Item(t))
+				m.taskList.SetItem(i, li)
 			}
 
 			for i, li := range m.archivedTaskList.Items() {
-				t, ok := li.(types.Task)
-				if ok {
-					t.SetTitle(m.cfg.ListDensity == Compact)
-				}
-				m.archivedTaskList.SetItem(i, list.Item(t))
+				m.archivedTaskList.SetItem(i, li)
 			}
 
 			if m.cfg.ShowContext {
@@ -867,12 +854,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.cfg.ListDensity == Compact {
-				var spacing int
-				if m.cfg.ShowContext {
-					spacing = 1
-				}
-				tlDel := newListDelegate(lipgloss.Color(m.cfg.TaskListColor), false, spacing)
-				atlDel := newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), false, spacing)
+				tlDel := compactItemDelegate{m.tlSelStyle}
+				atlDel := compactItemDelegate{m.atlSelStyle}
 				m.taskList.SetDelegate(tlDel)
 				m.archivedTaskList.SetDelegate(atlDel)
 			}
@@ -1075,7 +1058,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			CreatedAt: msg.createdAt,
 			UpdatedAt: msg.updatedAt,
 		}
-		t.SetTitle(m.cfg.ListDensity == Compact)
 		entry := list.Item(t)
 		cmd = m.taskList.InsertItem(m.taskIndex, entry)
 		cmds = append(cmds, cmd)
@@ -1116,7 +1098,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			t.Summary = msg.taskSummary
 			t.UpdatedAt = msg.updatedAt
-			t.SetTitle(m.cfg.ListDensity == Compact)
 			cmd = m.taskList.SetItem(msg.listIndex, list.Item(t))
 			cmds = append(cmds, cmd)
 		}
@@ -1142,7 +1123,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					t.Context = &msg.context
 				}
 				t.UpdatedAt = msg.updatedAt
-				t.SetTitle(m.cfg.ListDensity == Compact)
 				cmd = m.taskList.SetItem(msg.listIndex, list.Item(t))
 				cmds = append(cmds, cmd)
 			case archivedTasks:
@@ -1158,7 +1138,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					t.Context = &msg.context
 				}
 				t.UpdatedAt = msg.updatedAt
-				t.SetTitle(m.cfg.ListDensity == Compact)
 				cmd = m.archivedTaskList.SetItem(msg.listIndex, list.Item(t))
 				cmds = append(cmds, cmd)
 			}
@@ -1185,7 +1164,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 				t.UpdatedAt = msg.updatedAt
-				t.SetTitle(m.cfg.ListDensity == Compact)
 				m.taskList.InsertItem(0, list.Item(t))
 				m.taskList.Select(oldIndex + 1)
 				m.archivedTaskList.RemoveItem(msg.listIndex)
@@ -1214,7 +1192,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case true:
 				taskItems := make([]list.Item, len(msg.tasks))
 				for i, t := range msg.tasks {
-					t.SetTitle(m.cfg.ListDensity == Compact)
 					taskItems[i] = t
 				}
 				m.taskList.SetItems(taskItems)
@@ -1232,7 +1209,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case false:
 				archivedTaskItems := make([]list.Item, len(msg.tasks))
 				for i, t := range msg.tasks {
-					t.SetTitle(m.cfg.ListDensity == Compact)
 					archivedTaskItems[i] = t
 				}
 				m.archivedTaskList.SetItems(archivedTaskItems)

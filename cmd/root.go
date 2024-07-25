@@ -317,7 +317,7 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 			}
 			config := ui.Config{
 				DBPath:                dbPathFull,
-				ListDensity:           ui.Spacious,
+				ListDensity:           ui.Compact,
 				TaskListColor:         taskListColor,
 				ArchivedTaskListColor: archivedTaskListColor,
 				TaskListTitle:         taskListTitle,
@@ -374,7 +374,7 @@ Error: %s`, author, repoIssuesUrl, err)
 	rootCmd.Flags().StringVar(&taskListColor, "tl-color", ui.TaskListColor, "hex color used for the task list")
 	rootCmd.Flags().StringVar(&archivedTaskListColor, "atl-color", ui.ArchivedTLColor, "hex color used for the archived tasks list")
 	rootCmd.Flags().StringVar(&taskListTitle, "title", ui.TaskListDefaultTitle, fmt.Sprintf("title of the task list, will trim till %d chars", taskListTitleMaxLen))
-	rootCmd.Flags().StringVar(&listDensityFlagInp, "list-density", ui.SpaciousDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]", ui.CompactDensityVal, ui.SpaciousDensityVal))
+	rootCmd.Flags().StringVar(&listDensityFlagInp, "list-density", ui.CompactDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]", ui.CompactDensityVal, ui.SpaciousDensityVal))
 	rootCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
 	rootCmd.Flags().BoolVar(&showContextFlagInp, "show-context", false, "whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI")
 

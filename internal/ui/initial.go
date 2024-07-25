@@ -17,15 +17,20 @@ func InitialModel(db *sql.DB, config Config) model {
 	tlSelItemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(config.TaskListColor))
 
 	var taskList list.Model
-	var spacing int
-	if config.ShowContext {
-		spacing = 1
-	}
+
 	switch config.ListDensity {
 	case Compact:
-		taskList = list.New(taskItems, newListDelegate(lipgloss.Color(config.TaskListColor), false, spacing), taskSummaryWidth, defaultListHeight)
+		taskList = list.New(taskItems,
+			compactItemDelegate{tlSelItemStyle},
+			taskSummaryWidth,
+			defaultListHeight,
+		)
 	case Spacious:
-		taskList = list.New(taskItems, newListDelegate(lipgloss.Color(config.TaskListColor), true, 1), taskSummaryWidth, defaultListHeight)
+		taskList = list.New(taskItems,
+			newSpaciousListDelegate(lipgloss.Color(config.TaskListColor), true, 1),
+			taskSummaryWidth,
+			defaultListHeight,
+		)
 	}
 	taskList.Title = config.TaskListTitle
 	taskList.SetFilteringEnabled(true)
@@ -49,9 +54,17 @@ func InitialModel(db *sql.DB, config Config) model {
 	var archivedTaskList list.Model
 	switch config.ListDensity {
 	case Compact:
-		archivedTaskList = list.New(archivedTaskItems, newListDelegate(lipgloss.Color(config.ArchivedTaskListColor), false, spacing), taskSummaryWidth, defaultListHeight)
+		archivedTaskList = list.New(archivedTaskItems,
+			compactItemDelegate{atlSelItemStyle},
+			taskSummaryWidth,
+			defaultListHeight,
+		)
 	case Spacious:
-		archivedTaskList = list.New(archivedTaskItems, newListDelegate(lipgloss.Color(config.ArchivedTaskListColor), true, 1), taskSummaryWidth, defaultListHeight)
+		archivedTaskList = list.New(archivedTaskItems,
+			newSpaciousListDelegate(lipgloss.Color(config.ArchivedTaskListColor), true, 1),
+			taskSummaryWidth,
+			defaultListHeight,
+		)
 	}
 	archivedTaskList.Title = "archived"
 	archivedTaskList.SetShowStatusBar(true)
@@ -74,7 +87,7 @@ func InitialModel(db *sql.DB, config Config) model {
 	taskInput.CharLimit = types.TaskSummaryMaxLen
 	taskInput.Width = taskSummaryWidth
 
-	contextBMList := list.New(nil, newListDelegate(lipgloss.Color(contextBMColor), false, 1), taskSummaryWidth, defaultListHeight)
+	contextBMList := list.New(nil, newSpaciousListDelegate(lipgloss.Color(contextBMColor), false, 1), taskSummaryWidth, defaultListHeight)
 
 	contextBMList.Title = "task bookmarks"
 	contextBMList.SetShowHelp(false)
@@ -89,7 +102,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		Background(lipgloss.Color(contextBMColor)).
 		Bold(true)
 
-	prefixSearchList := list.New(nil, newListDelegate(lipgloss.Color(prefixSearchColor), false, 0), taskSummaryWidth, defaultListHeight)
+	prefixSearchList := list.New(nil, newSpaciousListDelegate(lipgloss.Color(prefixSearchColor), false, 0), taskSummaryWidth, defaultListHeight)
 
 	prefixSearchList.Title = "filter by prefix"
 	prefixSearchList.SetShowHelp(false)

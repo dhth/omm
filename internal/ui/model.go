@@ -17,7 +17,7 @@ import (
 
 const (
 	defaultListHeight = 10
-	prefixPadding     = 20
+	prefixPadding     = 24
 	timeFormat        = "2006/01/02 15:04"
 	taskSummaryWidth  = 120
 )

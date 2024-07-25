@@ -34,6 +34,7 @@ var (
 		{summary: "cli: adding a task via the CLI"},
 		{summary: "cli: importing several tasks via the CLI"},
 		{summary: "actions: adding context"},
+		{summary: "actions: markdown in context"},
 		{summary: "actions: filtering tasks"},
 		{summary: "actions: quick filtering via a list"},
 		{summary: "domain: task bookmarks"},
