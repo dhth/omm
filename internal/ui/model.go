@@ -12,7 +12,6 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 	pers "github.com/dhth/omm/internal/persistence"
-	"github.com/dhth/omm/internal/types"
 )
 
 const (
@@ -46,7 +45,7 @@ const (
 	taskEntryView
 	taskDetailsView
 	contextBookmarksView
-	prefixSearchView
+	prefixSelectionView
 	helpView
 )
 
@@ -57,6 +56,13 @@ const (
 	archivedTasks
 )
 
+type prefixUse uint
+
+const (
+	prefixFilter prefixUse = iota
+	prefixChoose
+)
+
 type model struct {
 	db                    *sql.DB
 	cfg                   Config
@@ -64,8 +70,6 @@ type model struct {
 	archivedTaskList      list.Model
 	taskBMList            list.Model
 	prefixSearchList      list.Model
-	activeTasksPrefixes   map[types.TaskPrefix]struct{}
-	archivedTasksPrefixes map[types.TaskPrefix]struct{}
 	tlIndexMap            map[uint64]int
 	taskIndex             int
 	taskId                uint64
@@ -96,4 +100,5 @@ type model struct {
 	shortenedListHt       int
 	contextMdRenderer     *glamour.TermRenderer
 	taskDetailsMdRenderer *glamour.TermRenderer
+	prefixSearchUse       prefixUse
 }

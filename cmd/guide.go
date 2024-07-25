@@ -31,6 +31,7 @@ var (
 		{summary: "visuals: list density"},
 		{summary: "visuals: toggling context pane"},
 		{summary: "actions: adding tasks"},
+		{summary: "actions: choosing a prefix"},
 		{summary: "cli: adding a task via the CLI"},
 		{summary: "cli: importing several tasks via the CLI"},
 		{summary: "actions: adding context"},

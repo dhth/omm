@@ -8,10 +8,10 @@ omm has 6 components:
 
 - Active Tasks List
 - Archived Tasks List
-- Task creation/update Pane
+- Task Creation/Update Pane
 - Task Details Pane
 - Task Bookmarks List
-- Quick Filter List
+- Prefix Selection List
 
 ## Keymaps
 
@@ -38,7 +38,7 @@ omm has 6 components:
     ctrl+x             delete task
     ctrl+r             reload task lists
     /                  filter list by task prefix
-    ctrl+p             open the "Quick Filter List"
+    ctrl+p             filter by prefix via the prefix selection list
     y                  copy selected task's context to system clipboard
     v                  toggle between compact and spacious view
 
@@ -58,6 +58,11 @@ omm has 6 components:
 **Note**: Moving tasks around is not allowed when the active tasks list is in a
 filtered state, however, you can still use `⏎` to move a task to the top.
 
+### Task Creation/Update Pane
+
+    ⏎                  submit task summary
+    ctrl+p             choose/change prefix via the prefix selection list
+
 ### Task Details Pane
 
     h/←/→/l            move backwards/forwards when in the task details view
@@ -68,6 +73,6 @@ filtered state, however, you can still use `⏎` to move a task to the top.
 
     ⏎                  open URL in browser
 
-### Quick Filter List
+### Prefix Selection List
 
     ⏎                  pre-populate task list's search prompt with chosen prefix

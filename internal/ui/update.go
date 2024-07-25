@@ -88,6 +88,73 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.activeView = taskListView
 					m.activeTaskList = activeTasks
 				}
+
+			case "ctrl+p":
+				if len(m.taskList.Items()) == 0 {
+					m.errorMsg = "No items in task list"
+					break
+				}
+
+				tasksPrefixes := make(map[types.TaskPrefix]struct{})
+
+				summary := m.taskInput.Value()
+
+				currentPrefix, prefixPresent := getPrefix(summary)
+
+				for _, li := range m.taskList.Items() {
+					t, ok := li.(types.Task)
+					if !ok {
+						continue
+					}
+
+					prefix, pOk := t.Prefix()
+					if !pOk {
+						continue
+					}
+
+					if prefixPresent && prefix.FilterValue() == currentPrefix {
+						continue
+					}
+
+					tasksPrefixes[prefix] = struct{}{}
+				}
+
+				var prefixes []types.TaskPrefix
+				for k := range tasksPrefixes {
+					prefixes = append(prefixes, k)
+				}
+
+				if len(prefixes) == 0 {
+					m.errorMsg = "No prefixes in task list"
+					break
+				}
+
+				if len(prefixes) == 1 {
+					m.errorMsg = "Only 1 unique prefix in task list"
+					break
+				}
+
+				sort.Slice(prefixes, func(i, j int) bool {
+					return prefixes[i] < prefixes[j]
+				})
+
+				pi := make([]list.Item, len(prefixes))
+				for i, p := range prefixes {
+					pi[i] = list.Item(p)
+				}
+
+				m.prefixSearchList.SetItems(pi)
+				m.lastActiveView = m.activeView
+				m.activeView = prefixSelectionView
+				switch prefixPresent {
+				case true:
+					m.prefixSearchList.Title = "change prefix"
+				case false:
+					m.prefixSearchList.Title = "choose prefix"
+				}
+				m.prefixSearchUse = prefixChoose
+
+				return m, tea.Batch(cmds...)
 			}
 		}
 
@@ -201,13 +268,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == prefixSearchView || m.activeView == helpView {
+			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == helpView {
 				m.activeView = m.lastActiveView
 				switch m.activeView {
 				case taskListView:
 					m.activeTaskList = activeTasks
 				case archivedTaskListView:
 					m.activeTaskList = archivedTasks
+				}
+				break
+			}
+
+			if m.activeView == prefixSelectionView {
+				m.activeView = m.lastActiveView
+				if m.prefixSearchUse == prefixChoose {
+					return m, tea.Batch(cmds...)
 				}
 				break
 			}
@@ -219,7 +294,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "?":
-			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == prefixSearchView {
+			if m.activeView == taskDetailsView || m.activeView == contextBookmarksView || m.activeView == prefixSelectionView {
 				break
 			}
 
@@ -565,15 +640,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			var taskList list.Model
-			var taskPrefixes map[types.TaskPrefix]struct{}
+			taskPrefixes := make(map[types.TaskPrefix]struct{})
 
 			switch m.activeView {
 			case taskListView:
 				taskList = m.taskList
-				taskPrefixes = m.activeTasksPrefixes
 			case archivedTaskListView:
 				taskList = m.archivedTaskList
-				taskPrefixes = m.archivedTasksPrefixes
 			}
 
 			if len(taskList.Items()) == 0 {
@@ -615,10 +688,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			m.prefixSearchList.SetItems(pi)
-			m.activeView = prefixSearchView
+			m.lastActiveView = m.activeView
+			m.activeView = prefixSelectionView
+			m.prefixSearchList.Title = "filter by prefix"
+			m.prefixSearchUse = prefixFilter
 
 		case "enter":
-			if m.activeView != taskListView && m.activeView != contextBookmarksView && m.activeView != prefixSearchView {
+			if m.activeView != taskListView && m.activeView != contextBookmarksView && m.activeView != prefixSelectionView {
 				break
 			}
 			switch m.activeView {
@@ -663,48 +739,57 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case contextBookmarksView:
 				url := m.taskBMList.SelectedItem().FilterValue()
 				cmds = append(cmds, openURL(url))
-			case prefixSearchView:
+			case prefixSelectionView:
 				prefix := m.prefixSearchList.SelectedItem().FilterValue()
-				var taskList list.Model
 
-				switch m.activeTaskList {
-				case activeTasks:
-					taskList = m.taskList
-				case archivedTasks:
-					taskList = m.archivedTaskList
+				switch m.prefixSearchUse {
+				case prefixFilter:
+					var taskList list.Model
+
+					switch m.activeTaskList {
+					case activeTasks:
+						taskList = m.taskList
+					case archivedTasks:
+						taskList = m.archivedTaskList
+					}
+
+					taskList.ResetFilter()
+					var tlCmd tea.Cmd
+
+					runes := []rune(prefix)
+
+					if len(runes) > 1 {
+						taskList.FilterInput.SetValue(string(runes[:len(runes)-1]))
+					}
+
+					taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: -1, Runes: []int32{47}, Alt: false, Paste: false})
+					cmds = append(cmds, tlCmd)
+
+					taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: -1, Runes: []rune{runes[len(runes)-1]}, Alt: false, Paste: false})
+					cmds = append(cmds, tlCmd)
+
+					// TODO: Try sending ENTER programmatically too
+					// taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: 13, Runes: []int32(nil), Alt: false, Paste: false})
+					// or
+					// taskList, tlCmd = taskList.Update(tea.KeyEnter)
+					// this results in the list's paginator being broken, so requires another manual ENTER keypress
+
+					switch m.activeTaskList {
+					case activeTasks:
+						m.taskList = taskList
+						m.activeView = taskListView
+					case archivedTasks:
+						m.archivedTaskList = taskList
+						m.activeView = archivedTaskListView
+					}
+
+					return m, tea.Sequence(cmds...)
+
+				case prefixChoose:
+					m.taskInput.SetValue(getSummaryWithNewPrefix(m.taskInput.Value(), prefix))
+					m.activeView = taskEntryView
 				}
 
-				taskList.ResetFilter()
-				var tlCmd tea.Cmd
-
-				runes := []rune(prefix)
-
-				if len(runes) > 1 {
-					taskList.FilterInput.SetValue(string(runes[:len(runes)-1]))
-				}
-
-				taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: -1, Runes: []int32{47}, Alt: false, Paste: false})
-				cmds = append(cmds, tlCmd)
-
-				taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: -1, Runes: []rune{runes[len(runes)-1]}, Alt: false, Paste: false})
-				cmds = append(cmds, tlCmd)
-
-				// TODO: Try sending ENTER programmatically too
-				// taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: 13, Runes: []int32(nil), Alt: false, Paste: false})
-				// or
-				// taskList, tlCmd = taskList.Update(tea.KeyEnter)
-				// this results in the list's paginator being broken, so requires another manual ENTER keypress
-
-				switch m.activeTaskList {
-				case activeTasks:
-					m.taskList = taskList
-					m.activeView = taskListView
-				case archivedTasks:
-					m.archivedTaskList = taskList
-					m.activeView = archivedTaskListView
-				}
-
-				return m, tea.Sequence(cmds...)
 			}
 
 		case "E":
@@ -1340,7 +1425,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case contextBookmarksView:
 		m.taskBMList, viewUpdateCmd = m.taskBMList.Update(msg)
 
-	case prefixSearchView:
+	case prefixSelectionView:
 		m.prefixSearchList, viewUpdateCmd = m.prefixSearchList.Update(msg)
 
 	case helpView:

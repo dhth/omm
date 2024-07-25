@@ -133,7 +133,7 @@ func (m model) View() string {
 	case contextBookmarksView:
 		content = listStyle.Render(m.taskBMList.View())
 
-	case prefixSearchView:
+	case prefixSelectionView:
 		content = listStyle.Render(m.prefixSearchList.View())
 
 	case helpView:

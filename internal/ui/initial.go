@@ -117,9 +117,6 @@ func InitialModel(db *sql.DB, config Config) model {
 		Background(lipgloss.Color(prefixSearchColor)).
 		Bold(true)
 
-	activeTasksPrefixes := make(map[types.TaskPrefix]struct{})
-	archivedTasksPrefixes := make(map[types.TaskPrefix]struct{})
-
 	tr, _ := getMarkDownRenderer(taskDetailsWordWrap)
 
 	m := model{
@@ -129,8 +126,6 @@ func InitialModel(db *sql.DB, config Config) model {
 		archivedTaskList:      archivedTaskList,
 		taskBMList:            contextBMList,
 		prefixSearchList:      prefixSearchList,
-		activeTasksPrefixes:   activeTasksPrefixes,
-		archivedTasksPrefixes: archivedTasksPrefixes,
 		taskInput:             taskInput,
 		showHelpIndicator:     true,
 		tlTitleStyle:          taskListTitleStyle,
