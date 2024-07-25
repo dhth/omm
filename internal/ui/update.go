@@ -807,6 +807,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			var tlDel list.DefaultDelegate
 			var atlDel list.DefaultDelegate
 
+			var spacing int
+			if m.cfg.ShowContext {
+				spacing = 1
+			}
+
 			switch m.cfg.ListDensity {
 			case Compact:
 				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), true, 1)
@@ -815,13 +820,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cfg.ListDensity = Spacious
 
 			case Spacious:
-				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), false, 1)
-				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), false, 1)
+				tlDel = newListDelegate(lipgloss.Color(m.cfg.TaskListColor), false, spacing)
+				atlDel = newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), false, spacing)
 				m.cfg.ListDensity = Compact
 			}
 
 			m.taskList.SetDelegate(tlDel)
 			m.archivedTaskList.SetDelegate(atlDel)
+
 			for i, li := range m.taskList.Items() {
 				t, ok := li.(types.Task)
 				if ok {
@@ -858,6 +864,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				listHeight = m.shortenedListHt
 			} else {
 				listHeight = m.terminalHeight - h - h3 - 1
+			}
+
+			if m.cfg.ListDensity == Compact {
+				var spacing int
+				if m.cfg.ShowContext {
+					spacing = 1
+				}
+				tlDel := newListDelegate(lipgloss.Color(m.cfg.TaskListColor), false, spacing)
+				atlDel := newListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), false, spacing)
+				m.taskList.SetDelegate(tlDel)
+				m.archivedTaskList.SetDelegate(atlDel)
 			}
 
 			m.taskList.SetHeight(listHeight)

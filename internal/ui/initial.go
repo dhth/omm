@@ -17,9 +17,13 @@ func InitialModel(db *sql.DB, config Config) model {
 	tlSelItemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(config.TaskListColor))
 
 	var taskList list.Model
+	var spacing int
+	if config.ShowContext {
+		spacing = 1
+	}
 	switch config.ListDensity {
 	case Compact:
-		taskList = list.New(taskItems, newListDelegate(lipgloss.Color(config.TaskListColor), false, 1), taskSummaryWidth, defaultListHeight)
+		taskList = list.New(taskItems, newListDelegate(lipgloss.Color(config.TaskListColor), false, spacing), taskSummaryWidth, defaultListHeight)
 	case Spacious:
 		taskList = list.New(taskItems, newListDelegate(lipgloss.Color(config.TaskListColor), true, 1), taskSummaryWidth, defaultListHeight)
 	}
@@ -45,7 +49,7 @@ func InitialModel(db *sql.DB, config Config) model {
 	var archivedTaskList list.Model
 	switch config.ListDensity {
 	case Compact:
-		archivedTaskList = list.New(archivedTaskItems, newListDelegate(lipgloss.Color(config.ArchivedTaskListColor), false, 1), taskSummaryWidth, defaultListHeight)
+		archivedTaskList = list.New(archivedTaskItems, newListDelegate(lipgloss.Color(config.ArchivedTaskListColor), false, spacing), taskSummaryWidth, defaultListHeight)
 	case Spacious:
 		archivedTaskList = list.New(archivedTaskItems, newListDelegate(lipgloss.Color(config.ArchivedTaskListColor), true, 1), taskSummaryWidth, defaultListHeight)
 	}
