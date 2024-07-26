@@ -409,7 +409,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.activeView = taskEntryView
 			return m, tea.Batch(cmds...)
 
-		case "j":
+		case "down", "j":
 			if m.activeView != taskDetailsView && m.activeView != helpView {
 				break
 			}
@@ -427,7 +427,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.helpVP.LineDown(viewPortMoveLineCount)
 			}
 
-		case "k":
+		case "up", "k":
 			if m.activeView != taskDetailsView && m.activeView != helpView {
 				break
 			}
