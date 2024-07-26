@@ -6,14 +6,10 @@
 `omm` (stands for "on-my-mind") is a keyboard-driven task manager for the
 command line.
 
-`omm` is intended for those who need to frequently rearrange tasks in their
-to-do list. It lets you move any item to the top of the list, add tasks at
-specific positions, and adjust task priorities up or down, all via one or two
-keypresses.
 
 ![Usage](https://tools.dhruvs.space/images/omm/omm.gif)
 
-[source video](https://www.youtube.com/watch?v=_VnvgqVdU20)
+[source video](https://www.youtube.com/watch?v=iB_PHc92wgY)
 
 🤔 Motivation
 ---
@@ -59,9 +55,9 @@ omm guide
 
 ### TUI
 
-`omm`'s TUI is comprised of several panes: 3 lists (for active and archived
-tasks, and one for task bookmarks), a context pane, and a task entry/update
-pane.
+`omm`'s TUI is comprised of several views: 4 lists (for active and archived
+tasks, one for task bookmarks, and one for prefix selection), a context pane, a
+task details pane, and a task entry/update pane.
 
 #### Active Tasks List
 
@@ -85,8 +81,6 @@ tasks list. It's more for historical reference, but you can also unarchive a
 task and put it back in the active list, if you need to. You can also
 permanently delete tasks from here.
 
-![active-tasks](https://tools.dhruvs.space/images/omm/omm-archived-tasks-1.png)
-
 #### Context Pane
 
 For tasks that need more details that you can fit in a one line summary, there
@@ -99,7 +93,10 @@ is chosen based on the following look ups:
 - $EDITOR/$VISUAL
 - `vi` (fallback)
 
-![active-tasks](https://tools.dhruvs.space/images/omm/omm-context-1.png)
+#### Task Details Pane
+
+The Task Details pane lets you see all details for a task in a single scrollable
+pane.
 
 **[`^ back to top ^`](#omm)**
 
@@ -201,50 +198,60 @@ omm tasks
 ⌨️ Keymaps
 ---
 
-```text
-General
-q/esc/ctrl+c       go back
-Q                  quit from anywhere
+### General
 
-Active/Archived Tasks List
-j/↓                move cursor down
-k/↑                move cursor up
-h                  go to previous page
-l                  go to next page
-g                  go to the top
-G                  go to the end
-tab                move between lists
-C                  toggle showing context
-d                  toggle Task Details pane
-b                  open task bookmarks list
-B                  open all bookmarks added to current task
-c                  update context for a task
-ctrl+d             archive/unarchive task
-ctrl+x             delete task
-ctrl+r             reload task lists
-y                  copy selected task's context to system clipboard
-v                  toggle between compact and spacious view
+    q/esc/ctrl+c       go back
+    Q                  quit from anywhere
 
-Active Tasks List
-q/esc/ctrl+c       quit
-o/a                add task below cursor
-O                  add task above cursor
-I                  add task at the top
-A                  add task at the end
-u                  update task summary
-⏎                  move task to the top
-[2-9]              move task at index [x] to top (only in compact view)
-J                  move task one position down
-K                  move task one position up
+### Active/Archived Tasks List
 
-Task Details Pane
-h/l                move backwards/forwards when in the task details view
-y                  copy selected task's context to system clipboard
-B                  open all bookmarks added to current task
+    j/↓                move cursor down
+    k/↑                move cursor up
+    h                  go to previous page
+    l                  go to next page
+    g                  go to the top
+    G                  go to the end
+    tab                move between lists
+    C                  toggle showing context
+    d                  toggle Task Details pane
+    b                  open Task Bookmarks list
+    B                  open all bookmarks added to current task
+    c                  update context for a task
+    ctrl+d             archive/unarchive task
+    ctrl+x             delete task
+    ctrl+r             reload task lists
+    /                  filter list by task prefix
+    ctrl+p             filter by prefix via the prefix selection list
+    y                  copy selected task's context to system clipboard
+    v                  toggle between compact and spacious view
 
-Task Bookmarks List
-⏎                  open URL in browser
-```
+### Active Tasks List
+
+    q/esc/ctrl+c       quit
+    o/a                add task below cursor
+    O                  add task above cursor
+    I                  add task at the top
+    A                  add task at the end
+    u                  update task summary
+    ⏎                  move task to the top
+    E                  move task to the end
+    J                  move task one position down
+    K                  move task one position up
+
+### Task Creation/Update Pane
+
+    ⏎                  submit task summary
+    ctrl+p             choose/change prefix via the prefix selection list
+
+### Task Details Pane
+
+    h/←/→/l            move backwards/forwards when in the task details view
+    y                  copy current task's context to system clipboard
+    B                  open all bookmarks added to current task
+
+### Task Bookmarks List
+
+    ⏎                  open URL in browser
 
 Acknowledgements
 ---

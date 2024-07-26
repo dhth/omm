@@ -2,6 +2,8 @@
 • 🆕 Markdown in task context is rendered with syntax highlighting
 • 🔄 Task Lists in "compact" mode show more than 9 tasks at a time, when
     maximised
+• ❌ Keymaps ([2-9]) for the Active Tasks list to move task at a specific index
+    to the top
 • 🆕 Task Lists in "compact" mode highlight prefixes
 • 🆕 Tasks Lists can be filtered using "/" 🄶
 • 🆕 A quick filter based on task prefixes can be applied using "ctrl+p" 🄶

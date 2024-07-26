@@ -328,7 +328,7 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 				ListDensity:           ui.Compact,
 				TaskListColor:         taskListColor,
 				ArchivedTaskListColor: archivedTaskListColor,
-				TaskListTitle:         taskListTitle,
+				TaskListTitle:         "omm guide",
 				TextEditorCmd:         strings.Fields(editorCmd),
 				ShowContext:           true,
 				Guide:                 true,
