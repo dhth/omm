@@ -1,7 +1,6 @@
 omm
 .quickrun
 cosign.key
-cosign.pub
 justfile
 .notes
 debug.log

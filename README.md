@@ -50,6 +50,15 @@ omm guide
 
 ![Guide](https://tools.dhruvs.space/images/omm/omm-guide-1.png)
 
+📋 Updates
+---
+
+Check out the latest features added to `omm` using:
+
+```bash
+omm updates
+```
+
 ⚡️ Usage
 ---
 

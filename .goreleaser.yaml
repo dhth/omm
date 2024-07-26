@@ -2,6 +2,8 @@ version: 2
 
 release:
   draft: true
+  extra_files:
+  - glob: ./cosign.pub
 
 before:
   hooks:
