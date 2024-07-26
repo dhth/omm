@@ -3,6 +3,7 @@ package cmd
 import (
 	"bufio"
 	"database/sql"
+	_ "embed"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -44,6 +45,9 @@ var (
 	errNothingToImport        = errors.New("Nothing to import")
 
 	errListDensityIncorrect = errors.New("List density is incorrect; valid values: compact/spacious")
+
+	//go:embed assets/updates.txt
+	updateContents string
 )
 
 func Execute(version string) {
@@ -153,6 +157,10 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 		Args:         cobra.MaximumNArgs(1),
 		SilenceUsage: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			if cmd.CalledAs() == "updates" {
+				return nil
+			}
+
 			configPathFull = expandTilde(configPath)
 
 			if filepath.Ext(configPathFull) != ".toml" {
@@ -332,6 +340,14 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 		},
 	}
 
+	updatesCmd := &cobra.Command{
+		Use:   "updates",
+		Short: "List updates recently added to omm",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Print(updateContents)
+		},
+	}
+
 	ros := runtime.GOOS
 	var defaultConfigPath, defaultDBPath string
 	var configPathAdditionalCxt, dbPathAdditionalCxt string
@@ -390,6 +406,7 @@ Error: %s`, author, repoIssuesUrl, err)
 	rootCmd.AddCommand(importCmd)
 	rootCmd.AddCommand(tasksCmd)
 	rootCmd.AddCommand(guideCmd)
+	rootCmd.AddCommand(updatesCmd)
 
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
 

@@ -1,0 +1,27 @@
+👉 0.4.0
+• 🆕 Markdown in task context is rendered with syntax highlighting
+• 🔄 Task Lists in "compact" mode show more than 9 tasks at a time, when
+    maximised
+• 🆕 Task Lists in "compact" mode highlight prefixes
+• 🆕 Tasks Lists can be filtered using "/" 🄶
+• 🆕 A quick filter based on task prefixes can be applied using "ctrl+p" 🄶
+• 🆕 Prefix during task creation/update can be chosen using "ctrl+p" 🄶
+• 🆕 Move an active task to the end of the list using "E" 🄶
+• 🆕 The "updates" subcommand
+
+
+👉 0.3.1
+• 🔄 URLs in a task's summary are also considered as bookmarks
+
+
+👉 0.3.0
+• 🆕 The ability to quickly open URLs present in a task's context (called task
+    bookmarks) using "b"/"B"
+• 🆕 Support for providing configuration via a TOML file
+
+
+👉 Legend
+• 🆕 - a new feature
+• 🔄 - change in behavior
+• ❌ - removal of a functionality
+• 🄶  - check guide for more details

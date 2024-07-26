@@ -213,7 +213,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if crWrap > contextWordWrapUpperLimit {
 			crWrap = contextWordWrapUpperLimit
 		}
-		m.contextMdRenderer, _ = getMarkDownRenderer(crWrap)
+		m.contextMdRenderer, _ = utils.GetMarkDownRenderer(crWrap)
 
 		helpToRender := helpStr
 		switch m.contextMdRenderer {

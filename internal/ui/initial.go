@@ -8,6 +8,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dhth/omm/internal/types"
+	"github.com/dhth/omm/internal/utils"
 	"mvdan.cc/xurls/v2"
 )
 
@@ -117,7 +118,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		Background(lipgloss.Color(prefixSearchColor)).
 		Bold(true)
 
-	tr, _ := getMarkDownRenderer(taskDetailsWordWrap)
+	tr, _ := utils.GetMarkDownRenderer(taskDetailsWordWrap)
 
 	m := model{
 		db:                    db,

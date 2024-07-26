@@ -1,4 +1,4 @@
-package ui
+package utils
 
 import (
 	_ "embed"
@@ -12,7 +12,7 @@ var (
 	glamourJsonBytes []byte
 )
 
-func getMarkDownRenderer(wrap int) (*glamour.TermRenderer, error) {
+func GetMarkDownRenderer(wrap int) (*glamour.TermRenderer, error) {
 	return glamour.NewTermRenderer(
 		glamour.WithStylesFromJSONBytes(glamourJsonBytes),
 		glamour.WithColorProfile(termenv.TrueColor),
