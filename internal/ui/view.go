@@ -21,14 +21,15 @@ func (m model) View() string {
 	var content string
 	var context string
 	var statusBar string
-	var helpMsg string
 	var listEmpty bool
 
 	if m.showHelpIndicator && (m.activeView != helpView) {
-		helpMsg = helpMsgStyle.Render("  Press ? for help")
+		statusBar += helpMsgStyle.Render("Press ? for help")
 	}
 
-	statusBar = helpMsg
+	if m.showDeletePrompt {
+		statusBar += promptStyle.Render("press ctrl+x again to delete, any other key to cancel")
+	}
 
 	if m.errorMsg != "" && m.successMsg != "" {
 		statusBar += fmt.Sprintf("%s%s",

@@ -17,6 +17,7 @@ const (
 	formHelpColor          = "#928374"
 	formColor              = "#928374"
 	helpMsgColor           = "#928374"
+	promptColor            = "#fb4934"
 	helpViewTitleColor     = "#83a598"
 	helpTitleColor         = "#83a598"
 	sBSuccessMsgColor      = "#d3869b"
@@ -60,12 +61,15 @@ var (
 	sBSuccessMsgStyle = statusBarMsgStyle.
 				Foreground(lipgloss.Color(sBSuccessMsgColor))
 
+	helpMsgStyle = statusBarMsgStyle.
+			Foreground(lipgloss.Color(helpMsgColor))
+
+	promptStyle = statusBarMsgStyle.
+			Foreground(lipgloss.Color(promptColor))
+
 	formStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(formColor))
 
 	formHelpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(formHelpColor))
-
-	helpMsgStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color(helpMsgColor))
 )

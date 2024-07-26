@@ -94,6 +94,7 @@ type model struct {
 	contextMdRenderer     *glamour.TermRenderer
 	taskDetailsMdRenderer *glamour.TermRenderer
 	prefixSearchUse       prefixUse
+	showDeletePrompt      bool
 }
 
 func (m model) Init() tea.Cmd {

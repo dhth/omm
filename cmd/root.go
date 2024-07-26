@@ -141,6 +141,7 @@ func NewRootCommand() (*cobra.Command, error) {
 		editorFlagInp         string
 		editorCmd             string
 		showContextFlagInp    bool
+		confirmBeforeDeletion bool
 	)
 
 	rootCmd := &cobra.Command{
@@ -245,6 +246,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 				TaskListTitle:         taskListTitle,
 				TextEditorCmd:         strings.Fields(editorCmd),
 				ShowContext:           showContextFlagInp,
+				ConfirmBeforeDeletion: confirmBeforeDeletion,
 			}
 
 			ui.RenderUI(db, config)
@@ -332,6 +334,7 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 				TextEditorCmd:         strings.Fields(editorCmd),
 				ShowContext:           true,
 				Guide:                 true,
+				ConfirmBeforeDeletion: true,
 			}
 
 			ui.RenderUI(db, config)
@@ -393,6 +396,7 @@ Error: %s`, author, repoIssuesUrl, err)
 	rootCmd.Flags().StringVar(&listDensityFlagInp, "list-density", ui.CompactDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]", ui.CompactDensityVal, ui.SpaciousDensityVal))
 	rootCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
 	rootCmd.Flags().BoolVar(&showContextFlagInp, "show-context", false, "whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI")
+	rootCmd.Flags().BoolVar(&confirmBeforeDeletion, "confirm-before-deletion", true, "whether to ask for confirmation before deleting a task")
 
 	tasksCmd.Flags().Uint8VarP(&printTasksNum, "num", "n", printTasksDefault, "number of tasks to print")
 	tasksCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))

@@ -22,4 +22,5 @@ type Config struct {
 	Guide                 bool
 	DBPath                string
 	ShowContext           bool
+	ConfirmBeforeDeletion bool
 }

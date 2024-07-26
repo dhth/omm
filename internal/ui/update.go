@@ -239,6 +239,20 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	case tea.KeyMsg:
+		if m.cfg.ConfirmBeforeDeletion && m.showDeletePrompt && msg.String() != "ctrl+x" {
+			m.showDeletePrompt = false
+
+			switch m.activeView {
+			case taskListView:
+				m.taskList.Title = m.cfg.TaskListTitle
+				m.taskList.Styles.Title = m.taskList.Styles.Title.Background(lipgloss.Color(m.cfg.TaskListColor))
+			case archivedTaskListView:
+				m.archivedTaskList.Title = "archived"
+				m.archivedTaskList.Styles.Title = m.archivedTaskList.Styles.Title.Background(lipgloss.Color(m.cfg.ArchivedTaskListColor))
+			}
+			return m, tea.Batch(cmds...)
+		}
+
 		switch keypress := msg.String(); keypress {
 
 		case "Q":
@@ -593,17 +607,57 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "ctrl+x":
+			if m.activeView != taskListView && m.activeView != archivedTaskListView {
+				break
+			}
+
+			quit := false
 			switch m.activeView {
 			case taskListView:
 				if len(m.taskList.Items()) == 0 {
+					quit = true
 					break
 				}
 
 				if m.taskList.IsFiltered() {
 					m.errorMsg = "Cannot delete items when the task list is filtered"
+					quit = true
+					break
+				}
+			case archivedTaskListView:
+				if len(m.archivedTaskList.Items()) == 0 {
+					quit = true
 					break
 				}
 
+				if m.archivedTaskList.IsFiltered() {
+					m.errorMsg = "Cannot delete items when the task list is filtered"
+					quit = true
+					break
+				}
+			}
+
+			if quit {
+				break
+			}
+
+			if m.cfg.ConfirmBeforeDeletion && !m.showDeletePrompt {
+				m.showDeletePrompt = true
+
+				switch m.activeView {
+				case taskListView:
+					m.taskList.Title = "delete ?"
+					m.taskList.Styles.Title = m.taskList.Styles.Title.Background(lipgloss.Color(promptColor))
+				case archivedTaskListView:
+					m.archivedTaskList.Title = "delete ?"
+					m.archivedTaskList.Styles.Title = m.archivedTaskList.Styles.Title.Background(lipgloss.Color(promptColor))
+				}
+
+				break
+			}
+
+			switch m.activeView {
+			case taskListView:
 				index := m.taskList.Index()
 				t, ok := m.taskList.SelectedItem().(types.Task)
 				if !ok {
@@ -612,17 +666,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				cmd = deleteTask(m.db, t.ID, index, true)
 				cmds = append(cmds, cmd)
+				if m.cfg.ConfirmBeforeDeletion {
+					m.showDeletePrompt = false
+					m.taskList.Title = m.cfg.TaskListTitle
+					m.taskList.Styles.Title = m.taskList.Styles.Title.Background(lipgloss.Color(m.cfg.TaskListColor))
+				}
 
 			case archivedTaskListView:
-				if len(m.archivedTaskList.Items()) == 0 {
-					break
-				}
-
-				if m.archivedTaskList.IsFiltered() {
-					m.errorMsg = "Cannot delete items when the task list is filtered"
-					break
-				}
-
 				index := m.archivedTaskList.Index()
 				task, ok := m.archivedTaskList.SelectedItem().(types.Task)
 				if !ok {
@@ -632,6 +682,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				cmd = deleteTask(m.db, task.ID, index, false)
 				cmds = append(cmds, cmd)
+				if m.cfg.ConfirmBeforeDeletion {
+					m.showDeletePrompt = false
+					m.archivedTaskList.Title = "archived"
+					m.archivedTaskList.Styles.Title = m.archivedTaskList.Styles.Title.Background(lipgloss.Color(m.cfg.ArchivedTaskListColor))
+				}
 			}
 
 		case "ctrl+p":

@@ -38,6 +38,7 @@ var (
 		{summary: "actions: markdown in context"},
 		{summary: "actions: filtering tasks"},
 		{summary: "actions: quick filtering via a list"},
+		{summary: "actions: deleting a task"},
 		{summary: "domain: task bookmarks"},
 		{summary: "domain: task priorities"},
 		{summary: "actions: updating task details"},
