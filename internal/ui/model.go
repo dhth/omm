@@ -21,14 +21,6 @@ const (
 	taskSummaryWidth  = 120
 )
 
-func (m model) Init() tea.Cmd {
-	return tea.Batch(
-		fetchTasks(m.db, true, pers.TaskNumLimit),
-		fetchTasks(m.db, false, pers.TaskNumLimit),
-		hideHelp(time.Minute*1),
-	)
-}
-
 type taskChangeType uint
 
 const (
@@ -71,6 +63,7 @@ type model struct {
 	taskBMList            list.Model
 	prefixSearchList      list.Model
 	tlIndexMap            map[uint64]int
+	atlIndexMap           map[uint64]int
 	taskIndex             int
 	taskId                uint64
 	taskChange            taskChangeType
@@ -101,4 +94,12 @@ type model struct {
 	contextMdRenderer     *glamour.TermRenderer
 	taskDetailsMdRenderer *glamour.TermRenderer
 	prefixSearchUse       prefixUse
+}
+
+func (m model) Init() tea.Cmd {
+	return tea.Batch(
+		fetchTasks(m.db, true, pers.TaskNumLimit),
+		fetchTasks(m.db, false, pers.TaskNumLimit),
+		hideHelp(time.Minute*1),
+	)
 }

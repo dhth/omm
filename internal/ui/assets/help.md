@@ -55,8 +55,10 @@ omm has 6 components:
     J                  move task one position down
     K                  move task one position up
 
-**Note**: Moving tasks around is not allowed when the active tasks list is in a
-filtered state, however, you can still use `⏎` to move a task to the top.
+**Note**: Most actions on tasks are not allowed when the tasks list is in a
+filtered state. You can press `⏎` to go back to the main list and have the
+cursor be moved to the task you had selected in the filtered state, and run the
+action from there.
 
 ### Task Creation/Update Pane
 
@@ -72,7 +74,3 @@ filtered state, however, you can still use `⏎` to move a task to the top.
 ### Task Bookmarks List
 
     ⏎                  open URL in browser
-
-### Prefix Selection List
-
-    ⏎                  pre-populate task list's search prompt with chosen prefix

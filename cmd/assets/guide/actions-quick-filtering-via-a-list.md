@@ -1,7 +1,6 @@
-You can also choose the prefix you want to filter by with the means of a list,
-hereby called as the **Quick Filter List**. Press `ctrl+p` to open up a set of
-task prefixes contained in the currently active task list. Press `⏎` to
-pre-populate the task list's search prompt with your selection.
+You can also choose the prefix you want to filter by using the **Prefix
+Selection List**. Press `ctrl+p` to open up this list. Press `⏎` to pre-populate
+the task list's search prompt with your selection.
 
 Try it out now.
 

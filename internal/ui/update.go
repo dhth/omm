@@ -470,7 +470,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.taskList.SetItem(ci+1, currentItem)
 			m.taskList.Select(ci + 1)
 
-			cmd = m.updateTaskSequence()
+			cmd = m.updateActiveTasksSequence()
 			cmds = append(cmds, cmd)
 
 		case "K":
@@ -494,7 +494,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.taskList.SetItem(ci-1, currentItem)
 			m.taskList.Select(ci - 1)
 
-			cmd = m.updateTaskSequence()
+			cmd = m.updateActiveTasksSequence()
 			cmds = append(cmds, cmd)
 
 		case "u":
@@ -563,7 +563,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				index := m.taskList.Index()
 				t, ok := listItem.(types.Task)
 				if !ok {
-					m.errorMsg = "Something went wrong"
+					m.errorMsg = "Something went wrong; cannot archive item"
 					break
 				}
 
@@ -576,7 +576,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				if m.archivedTaskList.IsFiltered() {
-					m.errorMsg = "Cannot archive items when the task list is filtered"
+					m.errorMsg = "Cannot unarchive items when the task list is filtered"
 					break
 				}
 
@@ -694,7 +694,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.prefixSearchUse = prefixFilter
 
 		case "enter":
-			if m.activeView != taskListView && m.activeView != contextBookmarksView && m.activeView != prefixSelectionView {
+			if m.activeView != taskListView && m.activeView != archivedTaskListView && m.activeView != contextBookmarksView && m.activeView != prefixSelectionView {
 				break
 			}
 			switch m.activeView {
@@ -703,29 +703,29 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 
-				var index int
 				if m.taskList.IsFiltered() {
 					selected, ok := m.taskList.SelectedItem().(types.Task)
 					if !ok {
+						m.errorMsg = "Something went wrong"
 						break
 					}
+
 					listIndex, ok := m.tlIndexMap[selected.ID]
 					if !ok {
-						m.errorMsg = "Something went wrong; cannot move item to the top"
+						m.errorMsg = "Something went wrong"
+						break
 					}
-					index = listIndex
-				} else {
-					index = m.taskList.Index()
+
+					m.taskList.ResetFilter()
+					m.taskList.Select(listIndex)
+					break
 				}
+
+				index := m.taskList.Index()
 
 				if index == 0 {
 					m.errorMsg = "This item is already at the top of the list"
 					break
-				}
-
-				if m.taskList.IsFiltered() {
-					m.taskList.ResetFilter()
-					m.taskList.Select(index)
 				}
 
 				listItem := m.taskList.SelectedItem()
@@ -734,8 +734,33 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 				m.taskList.Select(0)
 
-				cmd = m.updateTaskSequence()
+				cmd = m.updateActiveTasksSequence()
 				cmds = append(cmds, cmd)
+
+			case archivedTaskListView:
+				if len(m.archivedTaskList.Items()) == 0 {
+					break
+				}
+
+				if !m.archivedTaskList.IsFiltered() {
+					break
+				}
+
+				selected, ok := m.archivedTaskList.SelectedItem().(types.Task)
+				if !ok {
+					m.errorMsg = "Something went wrong"
+					break
+				}
+
+				listIndex, ok := m.atlIndexMap[selected.ID]
+				if !ok {
+					m.errorMsg = "Something went wrong"
+					break
+				}
+
+				m.archivedTaskList.ResetFilter()
+				m.archivedTaskList.Select(listIndex)
+
 			case contextBookmarksView:
 				url := m.taskBMList.SelectedItem().FilterValue()
 				cmds = append(cmds, openURL(url))
@@ -801,20 +826,12 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			var index int
 			if m.taskList.IsFiltered() {
-				selected, ok := m.taskList.SelectedItem().(types.Task)
-				if !ok {
-					break
-				}
-				listIndex, ok := m.tlIndexMap[selected.ID]
-				if !ok {
-					m.errorMsg = "Something went wrong; cannot move item to the end"
-				}
-				index = listIndex
-			} else {
-				index = m.taskList.Index()
+				m.errorMsg = "Cannot move items when the task list is filtered"
+				break
 			}
+
+			index := m.taskList.Index()
 
 			lastIndex := len(m.taskList.Items()) - 1
 
@@ -834,7 +851,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			cmds = append(cmds, cmd)
 			m.taskList.Select(lastIndex)
 
-			cmd = m.updateTaskSequence()
+			cmd = m.updateActiveTasksSequence()
 			cmds = append(cmds, cmd)
 
 		case "c":
@@ -907,14 +924,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.taskList.SetDelegate(tlDel)
 			m.archivedTaskList.SetDelegate(atlDel)
-
-			for i, li := range m.taskList.Items() {
-				m.taskList.SetItem(i, li)
-			}
-
-			for i, li := range m.archivedTaskList.Items() {
-				m.archivedTaskList.SetItem(i, li)
-			}
 
 			if m.cfg.ShowContext {
 				m.taskList.SetHeight(m.shortenedListHt)
@@ -1148,7 +1157,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		cmds = append(cmds, cmd)
 		m.taskList.Select(m.taskIndex)
 
-		cmd = m.updateTaskSequence()
+		cmd = m.updateActiveTasksSequence()
 		cmds = append(cmds, cmd)
 
 	case taskDeletedMsg:
@@ -1160,10 +1169,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.active {
 		case true:
 			m.taskList.RemoveItem(msg.listIndex)
-			cmd = m.updateTaskSequence()
+			cmd = m.updateActiveTasksSequence()
 			cmds = append(cmds, cmd)
 		case false:
 			m.archivedTaskList.RemoveItem(msg.listIndex)
+			m.updateArchivedTasksIndex()
 		}
 
 	case taskSequenceUpdatedMsg:
@@ -1264,7 +1274,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.archivedTaskList.InsertItem(0, list.Item(t))
 				m.taskList.RemoveItem(msg.listIndex)
 			}
-			cmd = m.updateTaskSequence()
+			cmd = m.updateActiveTasksSequence()
+			m.updateArchivedTasksIndex()
 			cmds = append(cmds, cmd)
 		}
 
@@ -1298,6 +1309,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 				m.archivedTaskList.SetItems(archivedTaskItems)
 				m.archivedTaskList.Select(0)
+				m.updateArchivedTasksIndex()
 			}
 		}
 	case textEditorClosed:
@@ -1437,7 +1449,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *model) updateTaskSequence() tea.Cmd {
+func (m *model) updateActiveTasksSequence() tea.Cmd {
 	sequence := make([]uint64, len(m.taskList.Items()))
 	tlIndexMap := make(map[uint64]int)
 
@@ -1452,6 +1464,21 @@ func (m *model) updateTaskSequence() tea.Cmd {
 	m.tlIndexMap = tlIndexMap
 
 	return updateTaskSequence(m.db, sequence)
+}
+
+func (m *model) updateArchivedTasksIndex() {
+	sequence := make([]uint64, len(m.archivedTaskList.Items()))
+	tlIndexMap := make(map[uint64]int)
+
+	for i, ti := range m.archivedTaskList.Items() {
+		t, ok := ti.(types.Task)
+		if ok {
+			sequence[i] = t.ID
+			tlIndexMap[t.ID] = i
+		}
+	}
+
+	m.atlIndexMap = tlIndexMap
 }
 
 func (m model) isSpaceAvailable() bool {
