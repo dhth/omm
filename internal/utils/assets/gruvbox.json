@@ -7,7 +7,7 @@
   },
   "block_quote": {
     "indent": 1,
-    "indent_token": "│ "
+    "indent_token": "┃ "
   },
   "paragraph": {},
   "list": {
@@ -50,12 +50,12 @@
     "crossed_out": true
   },
   "emph": {
-    "italic": true,
-    "color": "#83a598"
+    "color": "#83a598",
+    "italic": true
   },
   "strong": {
-    "bold": true,
-    "color": "#fe8019"
+    "color": "#fe8019",
+    "bold": true
   },
   "hr": {
     "color": "#928374",
@@ -140,10 +140,11 @@
         "color": "#b8bb26"
       },
       "name_class": {
-        "color": "#fe8019",
-        "bold": true
+        "color": "#fe8019"
       },
-      "name_constant": {},
+      "name_constant": {
+        "color": "#d3869b"
+      },
       "name_decorator": {
         "color": "#d3869b"
       },
@@ -166,26 +167,24 @@
         "color": "#83a598"
       },
       "generic_deleted": {
-        "color": "#fb4934",
-        "background_color": "#282828"
+        "color": "#fb4934"
       },
       "generic_emph": {
-        "italic": true,
-        "color": "#83a598"
+        "color": "#83a598",
+        "italic": true
       },
       "generic_inserted": {
-        "color": "#b8bb26",
-        "background_color": "#282828"
+        "color": "#b8bb26"
       },
       "generic_strong": {
-        "bold": true,
-        "color": "#ebdbb2"
+        "color": "#ebdbb2",
+        "bold": true
       },
       "generic_subheading": {
         "color": "#b8bb26"
       },
       "background": {
-        "background_color": "#3c3836"
+        "background_color": "#282828"
       }
     }
   },

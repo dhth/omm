@@ -204,6 +204,18 @@ Tasks can be outputted to `stdout` using the `tasks` subcommand.
 omm tasks
 ```
 
+🤔 Tips
+---
+
+These are some tips to improve your experience of using `omm`:
+
+- Set up discrete instances of `omm` if you need to. You can do so by
+  referencing a different config file (which points to a unique database) for
+  each instance, or by directly using `--db-path` flag. Eg. an omm instance for
+  personal tasks, and another for work. Set up as many `omm` instances as you
+  need.
+- Use `omm updates` to stay up to date with omm's latest features/changes.
+
 ⌨️ Keymaps
 ---
 
