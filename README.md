@@ -38,6 +38,11 @@ go install github.com/dhth/omm@latest
 Or get the binaries directly from a
 [release](https://github.com/dhth/omm/releases).
 
+```sh
+% tar -zxvf omm_[filename].tar.gz
+% omm/omm
+```
+
 💡 Guide
 ---
 
