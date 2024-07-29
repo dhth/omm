@@ -36,7 +36,8 @@ go install github.com/dhth/omm@latest
 ```
 
 Or get the binaries directly from a
-[release](https://github.com/dhth/omm/releases).
+[release](https://github.com/dhth/omm/releases). Refer to [this][1] guide for
+instructions on downloading and verifying the integrity of binaries.
 
 💡 Guide
 ---
@@ -284,3 +285,5 @@ Acknowledgements
 - [goreleaser](https://github.com/goreleaser/goreleaser) for releasing binaries
 
 **[`^ back to top ^`](#omm)**
+
+[1]: https://github.com/dhth/binhelpers#downloading-and-validating-the-integrity-of-binaries
