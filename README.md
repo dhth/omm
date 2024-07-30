@@ -1,5 +1,11 @@
 # omm
 
+[![Latest Release](https://img.shields.io/github/release/dhth/omm.svg?style=for-the-badge)](https://github.com/dhth/omm/releases/latest)
+![Commits Since Latest Release](https://img.shields.io/github/commits-since/dhth/omm/latest?style=for-the-badge)
+[![Build Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/build.yml?style=for-the-badge)](https://github.com/dhth/omm/actions/workflows/build.yml)
+[![Vulncheck Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/vulncheck.yml?style=for-the-badge&label=vulncheck)](https://github.com/dhth/omm/actions/workflows/vulncheck.yml)
+[![GitHub Discussions](https://img.shields.io/badge/GITHUB_DISCUSSION-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/dhth/omm/discussions)
+
 ✨ Overview
 ---
 
