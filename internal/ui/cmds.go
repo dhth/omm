@@ -92,7 +92,7 @@ func openTextEditor(fPath string, editorCmd []string, taskIndex int, taskId uint
 	})
 }
 
-func openURL(url string) tea.Cmd {
+func openURI(uri string) tea.Cmd {
 	var cmd string
 	var args []string
 	switch runtime.GOOS {
@@ -104,16 +104,16 @@ func openURL(url string) tea.Cmd {
 	default:
 		cmd = "xdg-open"
 	}
-	c := exec.Command(cmd, append(args, url)...)
+	c := exec.Command(cmd, append(args, uri)...)
 	return tea.ExecProcess(c, func(err error) tea.Msg {
-		return urlOpenedMsg{url, err}
+		return uriOpenedMsg{uri, err}
 	})
 }
 
-func openURLsDarwin(urls []string) tea.Cmd {
-	c := exec.Command("open", urls...)
+func openURIsDarwin(uris []string) tea.Cmd {
+	c := exec.Command("open", uris...)
 	return tea.ExecProcess(c, func(err error) tea.Msg {
-		return urlsOpenedDarwinMsg{urls, err}
+		return urisOpenedDarwinMsg{uris, err}
 	})
 }
 

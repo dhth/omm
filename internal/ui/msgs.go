@@ -66,12 +66,12 @@ type textEditorClosed struct {
 	err        error
 }
 
-type urlOpenedMsg struct {
+type uriOpenedMsg struct {
 	url string
 	err error
 }
 
-type urlsOpenedDarwinMsg struct {
+type urisOpenedDarwinMsg struct {
 	urls []string
 	err  error
 }

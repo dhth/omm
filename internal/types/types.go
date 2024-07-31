@@ -26,23 +26,7 @@ const (
 var (
 	createdAtColor  = "#928374"
 	hasContextColor = "#928374"
-	taskColors      = []string{
-		"#d3869b",
-		"#b5e48c",
-		"#90e0ef",
-		"#ca7df9",
-		"#ada7ff",
-		"#bbd0ff",
-		"#48cae4",
-		"#8187dc",
-		"#ffb4a2",
-		"#b8bb26",
-		"#ffc6ff",
-		"#4895ef",
-		"#83a598",
-		"#fabd2f",
-	}
-	createdAtStyle = lipgloss.NewStyle().
+	createdAtStyle  = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(createdAtColor))
 
 	hasContextStyle = lipgloss.NewStyle().
@@ -155,7 +139,7 @@ func GetDynamicStyle(str string) lipgloss.Style {
 	h.Write([]byte(str))
 	hash := h.Sum32()
 
-	color := taskColors[int(hash)%len(taskColors)]
+	color := colors[int(hash)%len(colors)]
 	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color(color))
 }

@@ -873,8 +873,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.archivedTaskList.Select(listIndex)
 
 			case contextBookmarksView:
-				url := m.taskBMList.SelectedItem().FilterValue()
-				cmds = append(cmds, openURL(url))
+				uri := m.taskBMList.SelectedItem().FilterValue()
+				cmds = append(cmds, openURI(uri))
 			case prefixSelectionView:
 				prefix := m.prefixSearchList.SelectedItem().FilterValue()
 
@@ -1155,24 +1155,24 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			urls, ok := m.getTaskUrls()
+			uris, ok := m.getTaskURIs()
 			if !ok {
 				break
 			}
 
-			if len(urls) == 0 {
+			if len(uris) == 0 {
 				m.errorMsg = "No bookmarks for this task"
 				break
 			}
 
-			if len(urls) == 1 {
-				cmds = append(cmds, openURL(urls[0]))
+			if len(uris) == 1 {
+				cmds = append(cmds, openURI(uris[0]))
 				break
 			}
 
-			bmItems := make([]list.Item, len(urls))
-			for i, url := range urls {
-				bmItems[i] = list.Item(types.ContextBookmark(url))
+			bmItems := make([]list.Item, len(uris))
+			for i, uri := range uris {
+				bmItems[i] = list.Item(types.ContextBookmark(uri))
 			}
 			m.taskBMList.SetItems(bmItems)
 			switch m.activeView {
@@ -1189,28 +1189,28 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			urls, ok := m.getTaskUrls()
+			uris, ok := m.getTaskURIs()
 			if !ok {
 				break
 			}
 
-			if len(urls) == 0 {
+			if len(uris) == 0 {
 				m.errorMsg = "No bookmarks for this task"
 				break
 			}
 
-			if len(urls) == 1 {
-				cmds = append(cmds, openURL(urls[0]))
+			if len(uris) == 1 {
+				cmds = append(cmds, openURI(uris[0]))
 				break
 			}
 
 			if m.rtos == types.GOOSDarwin {
-				cmds = append(cmds, openURLsDarwin(urls))
+				cmds = append(cmds, openURIsDarwin(uris))
 				break
 			}
 
-			for _, url := range urls {
-				cmds = append(cmds, openURL(url))
+			for _, uri := range uris {
+				cmds = append(cmds, openURI(uri))
 			}
 
 		case "y":
@@ -1451,13 +1451,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		cmds = append(cmds, updateTaskContext(m.db, msg.taskIndex, msg.taskId, string(context), m.activeTaskList))
-	case urlOpenedMsg:
+	case uriOpenedMsg:
 		if msg.err != nil {
-			m.errorMsg = fmt.Sprintf("Error opening url: %s", msg.err)
+			m.errorMsg = fmt.Sprintf("Error opening uri: %s", msg.err)
 		}
-	case urlsOpenedDarwinMsg:
+	case urisOpenedDarwinMsg:
 		if msg.err != nil {
-			m.errorMsg = fmt.Sprintf("Error opening urls: %s", msg.err)
+			m.errorMsg = fmt.Sprintf("Error opening uris: %s", msg.err)
 		}
 
 	case contextWrittenToCBMsg:
@@ -1627,7 +1627,7 @@ func (m *model) setContextFSContent(task types.Task) {
 	m.taskDetailsVP.SetContent(details)
 }
 
-func (m model) getTaskUrls() ([]string, bool) {
+func (m model) getTaskURIs() ([]string, bool) {
 	var t types.Task
 	var ok bool
 
@@ -1648,11 +1648,11 @@ func (m model) getTaskUrls() ([]string, bool) {
 		return nil, false
 	}
 
-	var urls []string
-	urls = append(urls, utils.ExtractURLs(m.urlRegex, t.Summary)...)
+	var uris []string
+	uris = append(uris, utils.ExtractURIs(m.uriRegex, t.Summary)...)
 	if t.Context != nil {
-		urls = append(urls, utils.ExtractURLs(m.urlRegex, *t.Context)...)
+		uris = append(uris, utils.ExtractURIs(m.uriRegex, *t.Context)...)
 	}
 
-	return urls, true
+	return uris, true
 }
