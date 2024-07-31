@@ -163,6 +163,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(cmds...)
 	}
 
+	skipListUpdate := false
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		w, h := listStyle.GetFrameSize()
@@ -424,16 +426,43 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Batch(cmds...)
 
 		case "down", "j":
-			if m.activeView != taskDetailsView && m.activeView != helpView {
-				break
-			}
-
 			switch m.activeView {
+			case taskListView, archivedTaskListView, contextBookmarksView, prefixSelectionView:
+				// cycle back to top
+				var list *list.Model
+				switch m.activeView {
+				case taskListView:
+					list = &m.taskList
+				case archivedTaskListView:
+					list = &m.archivedTaskList
+				case contextBookmarksView:
+					list = &m.taskBMList
+				case prefixSelectionView:
+					list = &m.prefixSearchList
+				default:
+					break
+				}
+
+				if list.IsFiltered() {
+					break
+				}
+
+				numItems := len(list.Items())
+				if numItems <= 1 {
+					break
+				}
+
+				if list.Index() == numItems-1 {
+					list.Select(0)
+					skipListUpdate = true
+				}
+
 			case taskDetailsView:
 				if m.taskDetailsVP.AtBottom() {
 					break
 				}
 				m.taskDetailsVP.LineDown(viewPortMoveLineCount)
+
 			case helpView:
 				if m.helpVP.AtBottom() {
 					break
@@ -442,16 +471,43 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 		case "up", "k":
-			if m.activeView != taskDetailsView && m.activeView != helpView {
-				break
-			}
-
 			switch m.activeView {
+			case taskListView, archivedTaskListView, contextBookmarksView, prefixSelectionView:
+				// cycle to the end
+				var list *list.Model
+				switch m.activeView {
+				case taskListView:
+					list = &m.taskList
+				case archivedTaskListView:
+					list = &m.archivedTaskList
+				case contextBookmarksView:
+					list = &m.taskBMList
+				case prefixSelectionView:
+					list = &m.prefixSearchList
+				default:
+					break
+				}
+
+				if list.IsFiltered() {
+					break
+				}
+
+				numItems := len(list.Items())
+				if numItems <= 1 {
+					break
+				}
+
+				if list.Index() == 0 {
+					list.Select(numItems - 1)
+					skipListUpdate = true
+				}
+
 			case taskDetailsView:
 				if m.taskDetailsVP.AtTop() {
 					break
 				}
 				m.taskDetailsVP.LineUp(viewPortMoveLineCount)
+
 			case helpView:
 				if m.helpVP.AtTop() {
 					break
@@ -1415,7 +1471,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var viewUpdateCmd tea.Cmd
 	switch m.activeView {
 	case taskListView:
-		m.taskList, viewUpdateCmd = m.taskList.Update(msg)
+		if !skipListUpdate {
+			m.taskList, viewUpdateCmd = m.taskList.Update(msg)
+		}
 
 		if !m.cfg.ShowContext {
 			break
@@ -1452,7 +1510,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.contextVPTaskId = t.ID
 
 	case archivedTaskListView:
-		m.archivedTaskList, viewUpdateCmd = m.archivedTaskList.Update(msg)
+		if !skipListUpdate {
+			m.archivedTaskList, viewUpdateCmd = m.archivedTaskList.Update(msg)
+		}
 
 		if !m.cfg.ShowContext {
 			break
@@ -1490,10 +1550,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.taskDetailsVP, viewUpdateCmd = m.taskDetailsVP.Update(msg)
 
 	case contextBookmarksView:
-		m.taskBMList, viewUpdateCmd = m.taskBMList.Update(msg)
+		if !skipListUpdate {
+			m.taskBMList, viewUpdateCmd = m.taskBMList.Update(msg)
+		}
 
 	case prefixSelectionView:
-		m.prefixSearchList, viewUpdateCmd = m.prefixSearchList.Update(msg)
+		if !skipListUpdate {
+			m.prefixSearchList, viewUpdateCmd = m.prefixSearchList.Update(msg)
+		}
 
 	case helpView:
 		m.helpVP, viewUpdateCmd = m.helpVP.Update(msg)
