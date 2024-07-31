@@ -89,7 +89,7 @@ type model struct {
 	terminalHeight        int
 	contextVPTaskId       uint64
 	rtos                  string
-	urlRegex              *regexp.Regexp
+	uriRegex              *regexp.Regexp
 	shortenedListHt       int
 	contextMdRenderer     *glamour.TermRenderer
 	taskDetailsMdRenderer *glamour.TermRenderer

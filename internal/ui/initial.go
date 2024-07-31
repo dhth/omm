@@ -9,7 +9,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/dhth/omm/internal/types"
 	"github.com/dhth/omm/internal/utils"
-	"mvdan.cc/xurls/v2"
 )
 
 func InitialModel(db *sql.DB, config Config) model {
@@ -135,7 +134,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		atlSelStyle:           atlSelItemStyle,
 		contextVPTaskId:       0,
 		rtos:                  runtime.GOOS,
-		urlRegex:              xurls.Strict(),
+		uriRegex:              utils.GetURIRegex(),
 		taskDetailsMdRenderer: tr,
 	}
 

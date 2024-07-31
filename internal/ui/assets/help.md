@@ -84,5 +84,5 @@ B                  open all bookmarks added to current task
 ### Task Bookmarks List
 
 ```text
-⏎                  open URL in browser
+⏎                  open URI in browser
 ```
