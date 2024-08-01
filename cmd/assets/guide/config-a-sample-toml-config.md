@@ -9,4 +9,5 @@ list_density            = "spacious"
 show_context            = false
 editor                  = "vi -u NONE"
 confirm_before_deletion = false
+circular_nav            = true
 ```

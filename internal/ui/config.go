@@ -23,4 +23,5 @@ type Config struct {
 	DBPath                string
 	ShowContext           bool
 	ConfirmBeforeDeletion bool
+	CircularNav           bool
 }

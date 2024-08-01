@@ -428,6 +428,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "j":
 			switch m.activeView {
 			case taskListView, archivedTaskListView, contextBookmarksView, prefixSelectionView:
+				if !m.cfg.CircularNav {
+					break
+				}
+
 				// cycle back to top
 				var list *list.Model
 				switch m.activeView {
@@ -473,6 +477,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "up", "k":
 			switch m.activeView {
 			case taskListView, archivedTaskListView, contextBookmarksView, prefixSelectionView:
+				if !m.cfg.CircularNav {
+					break
+				}
+
 				// cycle to the end
 				var list *list.Model
 				switch m.activeView {

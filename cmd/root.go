@@ -142,6 +142,7 @@ func NewRootCommand() (*cobra.Command, error) {
 		editorCmd             string
 		showContextFlagInp    bool
 		confirmBeforeDeletion bool
+		circularNav           bool
 	)
 
 	rootCmd := &cobra.Command{
@@ -247,6 +248,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 				TextEditorCmd:         strings.Fields(editorCmd),
 				ShowContext:           showContextFlagInp,
 				ConfirmBeforeDeletion: confirmBeforeDeletion,
+				CircularNav:           circularNav,
 			}
 
 			ui.RenderUI(db, config)
@@ -397,6 +399,7 @@ Error: %s`, author, repoIssuesUrl, err)
 	rootCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
 	rootCmd.Flags().BoolVar(&showContextFlagInp, "show-context", false, "whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI")
 	rootCmd.Flags().BoolVar(&confirmBeforeDeletion, "confirm-before-deletion", true, "whether to ask for confirmation before deleting a task")
+	rootCmd.Flags().BoolVar(&circularNav, "circular-nav", false, "whether to enable circular navigation for lists (cycle back to the first entry from the last, and vice versa)")
 
 	tasksCmd.Flags().Uint8VarP(&printTasksNum, "num", "n", printTasksDefault, "number of tasks to print")
 	tasksCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))

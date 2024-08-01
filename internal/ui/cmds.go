@@ -105,16 +105,18 @@ func openURI(uri string) tea.Cmd {
 		cmd = "xdg-open"
 	}
 	c := exec.Command(cmd, append(args, uri)...)
-	return tea.ExecProcess(c, func(err error) tea.Msg {
+	err := c.Run()
+	return func() tea.Msg {
 		return uriOpenedMsg{uri, err}
-	})
+	}
 }
 
 func openURIsDarwin(uris []string) tea.Cmd {
 	c := exec.Command("open", uris...)
-	return tea.ExecProcess(c, func(err error) tea.Msg {
+	err := c.Run()
+	return func() tea.Msg {
 		return urisOpenedDarwinMsg{uris, err}
-	})
+	}
 }
 
 func copyContextToClipboard(context string) tea.Cmd {

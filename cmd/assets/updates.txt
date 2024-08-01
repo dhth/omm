@@ -1,3 +1,9 @@
+👉 upcoming
+• 🔄 URIs with custom schemes are considered as task bookmarks. For example:
+    • spotify:track:4fVBFyglBhMf0erfF7pBJp
+    • obsidian://open?vault=VAULT&file=FILE
+• 🆕 Circular navigation for lists via "--circular-nav=true"
+
 👉 0.4.3
 • 🔄 omm asks for confirmation before deleting a task. Change this behavior with
     "--confirm-before-deletion=false"
