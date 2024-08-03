@@ -59,7 +59,10 @@ func Execute(version string) {
 		os.Exit(1)
 	}
 
-	_ = rootCmd.Execute()
+	err = rootCmd.Execute()
+	if err != nil {
+		os.Exit(1)
+	}
 }
 
 func setupDB(dbPathFull string) (*sql.DB, error) {
