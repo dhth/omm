@@ -39,7 +39,7 @@ ADD COLUMN context TEXT;
 func fetchLatestDBVersion(db *sql.DB) (dbVersionInfo, error) {
 	row := db.QueryRow(`
 SELECT id, version, created_at
-FROM dbversions
+FROM db_versions
 ORDER BY created_at DESC
 LIMIT 1;
 `)
