@@ -1,8 +1,10 @@
 package main
 
 import (
-	"github.com/dhth/omm/cmd"
+	"os"
 	"runtime/debug"
+
+	"github.com/dhth/omm/cmd"
 )
 
 var (
@@ -17,5 +19,8 @@ func main() {
 			v = info.Main.Version
 		}
 	}
-	cmd.Execute(v)
+	err := cmd.Execute(v)
+	if err != nil {
+		os.Exit(1)
+	}
 }

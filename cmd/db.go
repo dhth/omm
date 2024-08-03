@@ -17,7 +17,7 @@ func initDB(db *sql.DB) error {
 	// migrations can be added, which are run when omm sees a difference between
 	// the values in the db_versions table and latestDBVersion
 	_, err := db.Exec(`
-CREATE TABLE IF NOT EXISTS db_versions (
+CREAT TABLE IF NOT EXISTS db_versions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     version INTEGER NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP

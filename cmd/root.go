@@ -50,7 +50,7 @@ var (
 	updateContents string
 )
 
-func Execute(version string) {
+func Execute(version string) error {
 	rootCmd, err := NewRootCommand()
 
 	rootCmd.Version = version
@@ -59,10 +59,7 @@ func Execute(version string) {
 		os.Exit(1)
 	}
 
-	err = rootCmd.Execute()
-	if err != nil {
-		os.Exit(1)
-	}
+	return rootCmd.Execute()
 }
 
 func setupDB(dbPathFull string) (*sql.DB, error) {
