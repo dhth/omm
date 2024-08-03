@@ -41,9 +41,8 @@ brew install dhth/tap/omm
 go install github.com/dhth/omm@latest
 ```
 
-Or get the binaries directly from a
-[release](https://github.com/dhth/omm/releases). Refer to [this][1] guide for
-instructions on downloading and verifying the integrity of binaries.
+Or get the binaries directly from a [release][2]. Read more about verifying the
+authenticity of released artifacts [here](#-verifying-release-artifacts).
 
 💡 Guide
 ---
@@ -281,6 +280,48 @@ These are some tips to improve your experience of using `omm`:
 
     ⏎                  open URL in browser
 
+🔐 Verifying release artifacts
+---
+
+In case you get the `omm` binary directly from a [release][2], you may want to
+verify its authenticity. Checksums are applied to all released artifacts, and
+the resulting checksum file is signed using
+[cosign](https://docs.sigstore.dev/cosign/installation/).
+
+Steps to verify (replace the version in the commands listed with the one you
+want):
+
+1. Download the following files from the release:
+
+   - omm_0.5.0_checksums.txt
+   - omm_0.5.0_checksums.txt.pem
+   - omm_0.5.0_checksums.txt.sig
+
+2. Verify the signature:
+
+   ```shell
+   cosign verify-blob omm_0.5.0_checksums.txt \
+       --certificate omm_0.5.0_checksums.txt.pem \
+       --signature omm_0.5.0_checksums.txt.sig \
+       --certificate-identity-regexp 'https://github\.com/dhth/omm/\.github/workflows/.+' \
+       --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
+   ```
+
+3. Download the compressed archive you want, and validate its checksum:
+
+   ```shell
+   curl -sSLO https://github.com/dhth/omm/releases/download/v0.5.0/omm_0.5.0_linux_amd64.tar.gz
+   sha256sum --ignore-missing -c omm_0.5.0_checksums.txt
+   ```
+
+3. If checksum validation goes through, uncompress the archive:
+
+   ```shell
+   tar -xzf omm_0.5.0_linux_amd64.tar.gz
+   ./omm
+   # profit!
+   ```
+
 Acknowledgements
 ---
 
@@ -293,3 +334,4 @@ Acknowledgements
 **[`^ back to top ^`](#omm)**
 
 [1]: https://github.com/dhth/binhelpers#downloading-and-validating-the-integrity-of-binaries
+[2]: https://github.com/dhth/omm/releases

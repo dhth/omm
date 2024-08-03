@@ -1,4 +1,4 @@
-👉 upcoming
+👉 0.5.0
 • 🔄 URIs with custom schemes are considered as task bookmarks. For example:
     • spotify:track:4fVBFyglBhMf0erfF7pBJp
     • obsidian://open?vault=VAULT&file=FILE
