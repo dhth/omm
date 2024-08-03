@@ -35,5 +35,6 @@ jobs:
         version: v1.58
     - name: run omm
       run: |
+        go build .
         ./omm 'test: a task'
         ./omm tasks
