@@ -33,3 +33,7 @@ jobs:
       uses: golangci/golangci-lint-action@v6
       with:
         version: v1.58
+    - name: run omm
+      run: |
+        ./omm 'test: a task'
+        ./omm tasks
