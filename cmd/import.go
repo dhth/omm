@@ -8,9 +8,7 @@ import (
 	pers "github.com/dhth/omm/internal/persistence"
 )
 
-var (
-	errImportWillExceedTaskLimit = fmt.Errorf("Import will exceed maximum number of tasks allowed, which is %d. Archive/Delete tasks that are not active using ctrl+d/ctrl+x.", pers.TaskNumLimit)
-)
+var errImportWillExceedTaskLimit = fmt.Errorf("import will exceed maximum number of tasks allowed, which is %d. Archive/Delete tasks that are not active using ctrl+d/ctrl+x", pers.TaskNumLimit)
 
 func importTask(db *sql.DB, taskSummary string) error {
 	numTasks, err := pers.FetchNumActiveTasksFromDB(db)

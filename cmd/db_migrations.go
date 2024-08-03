@@ -12,9 +12,9 @@ const (
 )
 
 var (
-	errDBDowngraded = errors.New(`Looks like you downgraded omm. You should either delete omm's
-database file (you will lose data by doing that), or upgrade omm to
-the latest version.`)
+	errDBDowngraded          = errors.New("database downgraded")
+	errDBMigrationFailed     = errors.New("database migration failed")
+	errCouldntFetchDBVersion = errors.New("couldn't fetch version")
 )
 
 type dbVersionInfo struct {
@@ -57,13 +57,7 @@ LIMIT 1;
 func upgradeDBIfNeeded(db *sql.DB) error {
 	latestVersionInDB, versionErr := fetchLatestDBVersion(db)
 	if versionErr != nil {
-		return fmt.Errorf(`Couldn't get omm's latest database version. This is a fatal error; let %s
-know about this via %s.
-
-Error: %s`,
-			author,
-			repoIssuesUrl,
-			versionErr)
+		return fmt.Errorf("%w: %w", errCouldntFetchDBVersion, versionErr)
 	}
 
 	if latestVersionInDB.version > latestDBVersion {
@@ -86,19 +80,7 @@ func upgradeDB(db *sql.DB, currentVersion int) error {
 		migrateQuery := migrations[i]
 		migrateErr := runMigration(db, migrateQuery, i)
 		if migrateErr != nil {
-			return fmt.Errorf(`Something went wrong migrating omm's database to version %d. This is not
-supposed to happen. You can try running omm by passing it a custom database
-file path (using --dbpath; this will create a new database) to see if that fixes
-things. If that works, you can either delete the previous database, or keep
-using this new database (both are not ideal).
-
-If you can, let %s know about this error via %s.
-Sorry for breaking the upgrade step!
-
----
-
-DB Error: %s
-`, i, author, repoIssuesUrl, migrateErr)
+			return fmt.Errorf("%w (version %d): %w", errDBMigrationFailed, i, migrateErr)
 		}
 	}
 	return nil

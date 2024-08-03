@@ -14,7 +14,6 @@ const (
 )
 
 func FetchNumActiveTasksFromDB(db *sql.DB) (int, error) {
-
 	row := db.QueryRow(`
 SELECT json_array_length(sequence) AS num_tasks
 FROM task_sequence where id=1;
@@ -30,8 +29,7 @@ FROM task_sequence where id=1;
 }
 
 func UpdateTaskSequenceInDB(db *sql.DB, sequence []uint64) error {
-
-	sequenceJson, err := json.Marshal(sequence)
+	sequenceJSON, err := json.Marshal(sequence)
 	if err != nil {
 		return err
 	}
@@ -46,8 +44,7 @@ WHERE id = 1;
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(sequenceJson)
-
+	_, err = stmt.Exec(sequenceJSON)
 	if err != nil {
 		return err
 	}
@@ -56,7 +53,6 @@ WHERE id = 1;
 }
 
 func InsertTaskInDB(db *sql.DB, summary string, createdAt, updatedAt time.Time) (uint64, error) {
-
 	stmt, err := db.Prepare(`
 INSERT INTO task (summary, active, created_at, updated_at)
 VALUES (?, true, ?, ?);
@@ -67,7 +63,6 @@ VALUES (?, true, ?, ?);
 	defer stmt.Close()
 
 	res, err := stmt.Exec(summary, createdAt.UTC(), updatedAt.UTC())
-
 	if err != nil {
 		return 0, err
 	}
@@ -81,7 +76,6 @@ VALUES (?, true, ?, ?);
 }
 
 func ImportTaskIntoDB(db *sql.DB, summary string, active bool, createdAt, updatedAt time.Time) error {
-
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -98,7 +92,7 @@ VALUES (?, ?, ?, ?);`
 		return err
 	}
 
-	lastInsertId, err := res.LastInsertId()
+	lastInsertID, err := res.LastInsertId()
 	if err != nil {
 		return err
 	}
@@ -118,10 +112,10 @@ VALUES (?, ?, ?, ?);`
 	}
 
 	newTaskID := make([]int, 1)
-	newTaskID[0] = int(lastInsertId)
+	newTaskID[0] = int(lastInsertID)
 	updatedSeqItems := append(newTaskID, seqItems...)
 
-	sequenceJson, err := json.Marshal(updatedSeqItems)
+	sequenceJSON, err := json.Marshal(updatedSeqItems)
 	if err != nil {
 		return err
 	}
@@ -136,8 +130,7 @@ WHERE id = 1;
 	}
 	defer seqUpdateStmt.Close()
 
-	_, err = seqUpdateStmt.Exec(sequenceJson)
-
+	_, err = seqUpdateStmt.Exec(sequenceJSON)
 	if err != nil {
 		return err
 	}
@@ -150,7 +143,6 @@ WHERE id = 1;
 }
 
 func ImportTaskSummariesIntoDB(db *sql.DB, tasks []string, active bool, createdAt, updatedAt time.Time) error {
-
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -181,7 +173,7 @@ VALUES `
 		return err
 	}
 
-	lastInsertId, err := res.LastInsertId()
+	lastInsertID, err := res.LastInsertId()
 	if err != nil {
 		return err
 	}
@@ -202,13 +194,13 @@ VALUES `
 
 	newTaskIDs := make([]int, len(tasks))
 	counter := 0
-	for i := int(lastInsertId) - len(tasks) + 1; i <= int(lastInsertId); i++ {
+	for i := int(lastInsertID) - len(tasks) + 1; i <= int(lastInsertID); i++ {
 		newTaskIDs[counter] = i
 		counter++
 	}
 	updatedSeqItems := append(newTaskIDs, seqItems...)
 
-	sequenceJson, err := json.Marshal(updatedSeqItems)
+	sequenceJSON, err := json.Marshal(updatedSeqItems)
 	if err != nil {
 		return err
 	}
@@ -223,8 +215,7 @@ WHERE id = 1;
 	}
 	defer seqUpdateStmt.Close()
 
-	_, err = seqUpdateStmt.Exec(sequenceJson)
-
+	_, err = seqUpdateStmt.Exec(sequenceJSON)
 	if err != nil {
 		return err
 	}
@@ -237,7 +228,6 @@ WHERE id = 1;
 }
 
 func InsertTasksIntoDB(db *sql.DB, tasks []types.Task) error {
-
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -273,7 +263,7 @@ VALUES `
 		return err
 	}
 
-	sequenceJson, err := json.Marshal(seqItems)
+	sequenceJSON, err := json.Marshal(seqItems)
 	if err != nil {
 		return err
 	}
@@ -288,8 +278,7 @@ WHERE id = 1;
 	}
 	defer seqUpdateStmt.Close()
 
-	_, err = seqUpdateStmt.Exec(sequenceJson)
-
+	_, err = seqUpdateStmt.Exec(sequenceJSON)
 	if err != nil {
 		return err
 	}
@@ -302,7 +291,6 @@ WHERE id = 1;
 }
 
 func UpdateTaskSummaryInDB(db *sql.DB, id uint64, summary string, updatedAt time.Time) error {
-
 	stmt, err := db.Prepare(`
 UPDATE task
 SET summary = ?,
@@ -315,7 +303,6 @@ WHERE id = ?
 	defer stmt.Close()
 
 	_, err = stmt.Exec(summary, updatedAt.UTC(), id)
-
 	if err != nil {
 		return err
 	}
@@ -323,7 +310,6 @@ WHERE id = ?
 }
 
 func UpdateTaskContextInDB(db *sql.DB, id uint64, context string, updatedAt time.Time) error {
-
 	stmt, err := db.Prepare(`
 UPDATE task
 SET context = ?,
@@ -336,7 +322,6 @@ WHERE id = ?
 	defer stmt.Close()
 
 	_, err = stmt.Exec(context, updatedAt.UTC(), id)
-
 	if err != nil {
 		return err
 	}
@@ -344,7 +329,6 @@ WHERE id = ?
 }
 
 func UnsetTaskContextInDB(db *sql.DB, id uint64, updatedAt time.Time) error {
-
 	stmt, err := db.Prepare(`
 UPDATE task
 SET context = NULL,
@@ -357,7 +341,6 @@ WHERE id = ?
 	defer stmt.Close()
 
 	_, err = stmt.Exec(updatedAt.UTC(), id)
-
 	if err != nil {
 		return err
 	}
@@ -365,7 +348,6 @@ WHERE id = ?
 }
 
 func ChangeTaskStatusInDB(db *sql.DB, id uint64, active bool, updatedAt time.Time) error {
-
 	stmt, err := db.Prepare(`
 UPDATE task
 SET active = ?,
@@ -378,7 +360,6 @@ WHERE id = ?
 	defer stmt.Close()
 
 	_, err = stmt.Exec(active, updatedAt.UTC(), id)
-
 	if err != nil {
 		return err
 	}
@@ -386,7 +367,6 @@ WHERE id = ?
 }
 
 func FetchActiveTasksFromDB(db *sql.DB, limit int) ([]types.Task, error) {
-
 	var tasks []types.Task
 
 	rows, err := db.Query(`
@@ -419,11 +399,15 @@ LIMIT ?;
 		tasks = append(tasks, entry)
 
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	return tasks, nil
 }
 
 func FetchInActiveTasksFromDB(db *sql.DB, limit int) ([]types.Task, error) {
-
 	var tasks []types.Task
 
 	rows, err := db.Query(`
@@ -454,11 +438,15 @@ LIMIT ?;
 		tasks = append(tasks, entry)
 
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
 	return tasks, nil
 }
 
 func DeleteTaskInDB(db *sql.DB, id uint64) error {
-
 	stmt, err := db.Prepare(`
 DELETE from task
 WHERE id=?;
@@ -469,7 +457,6 @@ WHERE id=?;
 	defer stmt.Close()
 
 	_, err = stmt.Exec(id)
-
 	if err != nil {
 		return err
 	}

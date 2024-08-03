@@ -10,7 +10,6 @@ import (
 )
 
 func RenderUI(db *sql.DB, config Config) {
-
 	if len(os.Getenv("DEBUG")) > 0 {
 		f, err := tea.LogToFile("debug.log", "debug")
 		if err != nil {

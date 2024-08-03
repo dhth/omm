@@ -32,9 +32,9 @@ var (
 	hasContextStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(hasContextColor))
 
-	ErrTaskPrefixEmpty      = errors.New("Task prefix cannot be empty")
-	ErrTaskSummaryBodyEmpty = errors.New("Task summary body is empty")
-	ErrTaskSummaryTooLong   = fmt.Errorf("Task summary is too long; max length allowed: %d", TaskSummaryMaxLen)
+	ErrTaskPrefixEmpty      = errors.New("task prefix cannot be empty")
+	ErrTaskSummaryBodyEmpty = errors.New("task summary body is empty")
+	ErrTaskSummaryTooLong   = fmt.Errorf("task summary is too long; max length allowed: %d", TaskSummaryMaxLen)
 )
 
 type Task struct {

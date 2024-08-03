@@ -1,17 +1,16 @@
 package ui
 
 import (
+	"database/sql"
 	"os/exec"
 	"runtime"
 	"time"
-
-	"database/sql"
 
 	"github.com/atotto/clipboard"
 	tea "github.com/charmbracelet/bubbletea"
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
-	_ "modernc.org/sqlite"
+	_ "modernc.org/sqlite" // sqlite driver
 )
 
 func hideHelp(interval time.Duration) tea.Cmd {
@@ -83,12 +82,11 @@ func fetchTasks(db *sql.DB, active bool, limit int) tea.Cmd {
 	}
 }
 
-func openTextEditor(fPath string, editorCmd []string, taskIndex int, taskId uint64, oldContext *string) tea.Cmd {
-
+func openTextEditor(fPath string, editorCmd []string, taskIndex int, taskID uint64, oldContext *string) tea.Cmd {
 	c := exec.Command(editorCmd[0], append(editorCmd[1:], fPath)...)
 
 	return tea.ExecProcess(c, func(err error) tea.Msg {
-		return tea.Msg(textEditorClosed{fPath, taskIndex, taskId, oldContext, err})
+		return tea.Msg(textEditorClosed{fPath, taskIndex, taskID, oldContext, err})
 	})
 }
 

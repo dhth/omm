@@ -11,8 +11,7 @@ import (
 	"github.com/dhth/omm/internal/utils"
 )
 
-func InitialModel(db *sql.DB, config Config) model {
-
+func InitialModel(db *sql.DB, config Config) Model {
 	taskItems := make([]list.Item, 0)
 	tlSelItemStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(config.TaskListColor))
 
@@ -66,7 +65,7 @@ func InitialModel(db *sql.DB, config Config) model {
 			defaultListHeight,
 		)
 	}
-	archivedTaskList.Title = "archived"
+	archivedTaskList.Title = archivedTitle
 	archivedTaskList.SetShowStatusBar(true)
 	archivedTaskList.SetStatusBarItemName("task", "tasks")
 	archivedTaskList.SetFilteringEnabled(true)
@@ -119,7 +118,7 @@ func InitialModel(db *sql.DB, config Config) model {
 
 	tr, _ := utils.GetMarkDownRenderer(taskDetailsWordWrap)
 
-	m := model{
+	m := Model{
 		db:                    db,
 		cfg:                   config,
 		taskList:              taskList,
@@ -132,7 +131,7 @@ func InitialModel(db *sql.DB, config Config) model {
 		atlTitleStyle:         archivedTaskListTitleStyle,
 		tlSelStyle:            tlSelItemStyle,
 		atlSelStyle:           atlSelItemStyle,
-		contextVPTaskId:       0,
+		contextVPTaskID:       0,
 		rtos:                  runtime.GOOS,
 		uriRegex:              utils.GetURIRegex(),
 		taskDetailsMdRenderer: tr,
