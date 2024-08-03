@@ -1,4 +1,4 @@
-name: back compat PR
+name: back-compat PR
 
 on:
   pull_request:
@@ -24,12 +24,12 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
     - name: build head
-      run: go build ./... -o omm_head
+      run: go build -o omm_head
     - uses: actions/checkout@v4
       with:
         ref: main
     - name: build main
-      run: go build ./... -o omm_main
+      run: go build -o omm_main
     - name: Run last version
       run: |
         ./omm_main --db-path=omm-test.db 'test: a task from main'
