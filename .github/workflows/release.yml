@@ -5,6 +5,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  id-token: write
+
 env:
   GO_VERSION: '1.22.5'
 
@@ -27,11 +30,6 @@ jobs:
       uses: sigstore/cosign-installer@v3
       with:
         cosign-release: 'v2.2.3'
-    - name: Store Cosign private key in a file
-      run: 'echo "$COSIGN_KEY" > cosign.key'
-      shell: bash
-      env:
-        COSIGN_KEY: ${{secrets.COSIGN_KEY}}
     - name: Release Binaries
       uses: goreleaser/goreleaser-action@v6
       with:
@@ -39,4 +37,3 @@ jobs:
         args: release --clean
       env:
         GITHUB_TOKEN: ${{secrets.GH_PAT}}
-        COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
