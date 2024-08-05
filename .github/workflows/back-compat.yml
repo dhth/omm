@@ -34,8 +34,8 @@ jobs:
         cp omm_prev /var/tmp
     - name: Run last version
       run: |
-        /var/tmp/omm_prev --db-path=omm-test.db 'test: a task from previous commit'
+        /var/tmp/omm_prev --db-path=/var/tmp/throwaway.db 'test: a task from previous commit'
     - name: Run current version
       run: |
-        /var/tmp/omm_head --db-path=omm-test.db 'test: a task from main HEAD'
-        /var/tmp/omm_head --db-path=omm-test.db tasks
+        /var/tmp/omm_head --db-path=/var/tmp/throwaway.db 'test: a task from main HEAD'
+        /var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks
