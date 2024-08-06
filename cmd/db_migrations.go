@@ -57,7 +57,7 @@ LIMIT 1;
 func upgradeDBIfNeeded(db *sql.DB) error {
 	latestVersionInDB, err := fetchLatestDBVersion(db)
 	if err != nil {
-		return fmt.Errorf("%w: %v", errCouldntFetchDBVersion, err.Error())
+		return fmt.Errorf("%w: %s", errCouldntFetchDBVersion, err.Error())
 	}
 
 	if latestVersionInDB.version > latestDBVersion {
