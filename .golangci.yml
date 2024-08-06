@@ -17,4 +17,5 @@ linters:
     - staticcheck
     - unconvert
     - unused
+    - usestdlibvars
     - wastedassign
