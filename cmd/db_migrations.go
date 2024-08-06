@@ -55,9 +55,9 @@ LIMIT 1;
 }
 
 func upgradeDBIfNeeded(db *sql.DB) error {
-	latestVersionInDB, versionErr := fetchLatestDBVersion(db)
-	if versionErr != nil {
-		return fmt.Errorf("%w: %w", errCouldntFetchDBVersion, versionErr)
+	latestVersionInDB, err := fetchLatestDBVersion(db)
+	if err != nil {
+		return fmt.Errorf("%w: %v", errCouldntFetchDBVersion, err.Error())
 	}
 
 	if latestVersionInDB.version > latestDBVersion {
@@ -65,7 +65,7 @@ func upgradeDBIfNeeded(db *sql.DB) error {
 	}
 
 	if latestVersionInDB.version < latestDBVersion {
-		err := upgradeDB(db, latestVersionInDB.version)
+		err = upgradeDB(db, latestVersionInDB.version)
 		if err != nil {
 			return err
 		}
@@ -80,7 +80,7 @@ func upgradeDB(db *sql.DB, currentVersion int) error {
 		migrateQuery := migrations[i]
 		migrateErr := runMigration(db, migrateQuery, i)
 		if migrateErr != nil {
-			return fmt.Errorf("%w (version %d): %w", errDBMigrationFailed, i, migrateErr)
+			return fmt.Errorf("%w (version %d): %v", errDBMigrationFailed, i, migrateErr.Error())
 		}
 	}
 	return nil

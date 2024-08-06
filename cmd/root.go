@@ -79,17 +79,17 @@ func setupDB(dbPathFull string) (*sql.DB, error) {
 		dir := filepath.Dir(dbPathFull)
 		err = os.MkdirAll(dir, 0o755)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", errCouldntCreateDBDirectory, err)
+			return nil, fmt.Errorf("%w: %v", errCouldntCreateDBDirectory, err.Error())
 		}
 
 		db, err = getDB(dbPathFull)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", errCouldntCreateDB, err)
+			return nil, fmt.Errorf("%w: %v", errCouldntCreateDB, err.Error())
 		}
 
 		err = initDB(db)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", errCouldntInitialiseDB, err)
+			return nil, fmt.Errorf("%w: %v", errCouldntInitialiseDB, err.Error())
 		}
 		err = upgradeDB(db, 1)
 		if err != nil {
@@ -98,7 +98,7 @@ func setupDB(dbPathFull string) (*sql.DB, error) {
 	} else {
 		db, err = getDB(dbPathFull)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %w", errCouldntOpenDB, err)
+			return nil, fmt.Errorf("%w: %v", errCouldntOpenDB, err.Error())
 		}
 		err = upgradeDBIfNeeded(db)
 		if err != nil {
@@ -448,7 +448,8 @@ func initializeConfig(cmd *cobra.Command, configFile string) error {
 	v.AddConfigPath(filepath.Dir(configFile))
 
 	err := v.ReadInConfig()
-	if err != nil {
+	var notFoundErr viper.ConfigFileNotFoundError
+	if err != nil && !errors.As(err, &notFoundErr) {
 		return err
 	}
 
