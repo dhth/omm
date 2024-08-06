@@ -2,15 +2,14 @@ package cmd
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 
 	pers "github.com/dhth/omm/internal/persistence"
 )
 
-var (
-	errImportWillExceedTaskLimit = fmt.Errorf("Import will exceed maximum number of tasks allowed, which is %d. Archive/Delete tasks that are not active using ctrl+d/ctrl+x.", pers.TaskNumLimit)
-)
+var errWillExceedCapacity = errors.New("import will exceed capacity")
 
 func importTask(db *sql.DB, taskSummary string) error {
 	numTasks, err := pers.FetchNumActiveTasksFromDB(db)
@@ -18,7 +17,7 @@ func importTask(db *sql.DB, taskSummary string) error {
 		return err
 	}
 	if numTasks+1 > pers.TaskNumLimit {
-		return errImportWillExceedTaskLimit
+		return fmt.Errorf("%w (current task count: %d)", errWillExceedCapacity, numTasks)
 	}
 
 	now := time.Now()
@@ -31,7 +30,7 @@ func importTasks(db *sql.DB, taskSummaries []string) error {
 		return err
 	}
 	if numTasks+len(taskSummaries) > pers.TaskNumLimit {
-		return errImportWillExceedTaskLimit
+		return fmt.Errorf("%w (current task count: %d)", errWillExceedCapacity, numTasks)
 	}
 
 	now := time.Now()

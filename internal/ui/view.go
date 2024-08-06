@@ -13,7 +13,7 @@ var (
 	contextWordWrapUpperLimit = 160
 )
 
-func (m model) View() string {
+func (m Model) View() string {
 	if m.quitting {
 		return ""
 	}
@@ -62,7 +62,7 @@ func (m model) View() string {
 			content = fmt.Sprintf(`
   %s
 
-  %s`, m.atlTitleStyle.Render("archived"), formStyle.Render("No items. You archive items by pressing ctrl+d.\n"))
+  %s`, m.atlTitleStyle.Render(archivedTitle), formStyle.Render("No items. You archive items by pressing ctrl+d.\n"))
 			listEmpty = true
 		}
 
@@ -168,5 +168,4 @@ func (m model) View() string {
 	components = append(components, statusBar)
 
 	return lipgloss.JoinVertical(lipgloss.Left, components...)
-
 }

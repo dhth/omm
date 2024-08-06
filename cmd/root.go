@@ -25,7 +25,7 @@ const (
 	defaultConfigFilename   = "omm"
 	envPrefix               = "OMM"
 	author                  = "@dhth"
-	repoIssuesUrl           = "https://github.com/dhth/omm/issues"
+	repoIssuesURL           = "https://github.com/dhth/omm/issues"
 	defaultConfigDir        = ".config"
 	defaultDataDir          = ".local/share"
 	defaultConfigDirWindows = "AppData/Roaming"
@@ -41,13 +41,29 @@ var (
 	errConfigFileDoesntExist  = errors.New("config file does not exist")
 	errDBFileExtIncorrect     = errors.New("db file needs to end with .db")
 
-	errMaxImportLimitExceeded = fmt.Errorf("Max number of tasks that can be imported at a time: %d", pers.TaskNumLimit)
-	errNothingToImport        = errors.New("Nothing to import")
+	errMaxImportLimitExceeded = errors.New("import limit exceeded")
+	errNothingToImport        = errors.New("nothing to import")
 
-	errListDensityIncorrect = errors.New("List density is incorrect; valid values: compact/spacious")
+	errListDensityIncorrect = errors.New("list density is incorrect; valid values: compact/spacious")
+
+	errCouldntCreateDBDirectory = errors.New("couldn't create directory for database")
+	errCouldntCreateDB          = errors.New("couldn't create database")
+	errCouldntInitializeDB      = errors.New("couldn't initialize database")
+	errCouldntOpenDB            = errors.New("couldn't open database")
 
 	//go:embed assets/updates.txt
 	updateContents string
+
+	reportIssueMsg  = fmt.Sprintf("Let %s know about this error via %s.", author, repoIssuesURL)
+	maxImportNumMsg = fmt.Sprintf(`A maximum of %d tasks that can be imported at a time.
+Archive/Delete tasks that are not active using ctrl+d/ctrl+x.
+
+`, pers.TaskNumLimit)
+
+	taskCapacityMsg = fmt.Sprintf(`A maximum of %d tasks that can be active at a time.
+Archive/Delete tasks that are not active using ctrl+d/ctrl+x.
+
+`, pers.TaskNumLimit)
 )
 
 func Execute(version string) error {
@@ -63,7 +79,6 @@ func Execute(version string) error {
 }
 
 func setupDB(dbPathFull string) (*sql.DB, error) {
-
 	var db *sql.DB
 	var err error
 
@@ -71,35 +86,19 @@ func setupDB(dbPathFull string) (*sql.DB, error) {
 	if errors.Is(err, fs.ErrNotExist) {
 
 		dir := filepath.Dir(dbPathFull)
-		err = os.MkdirAll(dir, 0755)
+		err = os.MkdirAll(dir, 0o755)
 		if err != nil {
-			return nil, fmt.Errorf(`Couldn't create directory for data files: %s
-Error: %s`,
-				dir,
-				err)
+			return nil, fmt.Errorf("%w: %s", errCouldntCreateDBDirectory, err.Error())
 		}
 
 		db, err = getDB(dbPathFull)
-
 		if err != nil {
-			return nil, fmt.Errorf(`Couldn't create omm's local database. This is a fatal error;
-Let %s know about this via %s.
-
-Error: %s`,
-				author,
-				repoIssuesUrl,
-				err)
+			return nil, fmt.Errorf("%w: %s", errCouldntCreateDB, err.Error())
 		}
 
 		err = initDB(db)
 		if err != nil {
-			return nil, fmt.Errorf(`Couldn't create omm's local database. This is a fatal error;
-Let %s know about this via %s.
-
-Error: %s`,
-				author,
-				repoIssuesUrl,
-				err)
+			return nil, fmt.Errorf("%w: %s", errCouldntInitializeDB, err.Error())
 		}
 		err = upgradeDB(db, 1)
 		if err != nil {
@@ -108,13 +107,7 @@ Error: %s`,
 	} else {
 		db, err = getDB(dbPathFull)
 		if err != nil {
-			return nil, fmt.Errorf(`Couldn't open omm's local database. This is a fatal error;
-Let %s know about this via %s.
-
-Error: %s`,
-				author,
-				repoIssuesUrl,
-				err)
+			return nil, fmt.Errorf("%w: %s", errCouldntOpenDB, err.Error())
 		}
 		err = upgradeDBIfNeeded(db)
 		if err != nil {
@@ -126,7 +119,6 @@ Error: %s`,
 }
 
 func NewRootCommand() (*cobra.Command, error) {
-
 	var (
 		configPath            string
 		configPathFull        string
@@ -158,7 +150,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 `,
 		Args:         cobra.MaximumNArgs(1),
 		SilenceUsage: true,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			if cmd.CalledAs() == "updates" {
 				return nil
 			}
@@ -197,6 +189,49 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			}
 
 			db, err = setupDB(dbPathFull)
+			switch {
+			case errors.Is(err, errCouldntCreateDB):
+				fmt.Printf(`Couldn't create omm's local database. This is a fatal error.
+%s
+
+`, reportIssueMsg)
+			case errors.Is(err, errCouldntInitializeDB):
+				fmt.Printf(`Couldn't initialise omm's local database. This is a fatal error.
+%s
+
+`, reportIssueMsg)
+			case errors.Is(err, errCouldntOpenDB):
+				fmt.Printf(`Couldn't open omm's local database. This is a fatal error.
+%s
+
+`, reportIssueMsg)
+			case errors.Is(err, errCouldntFetchDBVersion):
+				fmt.Printf(`Couldn't get omm's latest database version. This is a fatal error.
+%s
+
+`, reportIssueMsg)
+			case errors.Is(err, errDBDowngraded):
+				fmt.Printf(`Looks like you downgraded omm. You should either delete omm's database file (you
+will lose data by doing that), or upgrade omm to the latest version.
+
+%s
+
+`, reportIssueMsg)
+			case errors.Is(err, errDBMigrationFailed):
+				fmt.Printf(`Something went wrong migrating omm's database. This is not supposed to happen.
+You can try running omm by passing it a custom database file path (using
+--db-path; this will create a new database) to see if that fixes things. If that
+works, you can either delete the previous database, or keep using this new
+database (both are not ideal).
+
+%s
+Sorry for breaking the upgrade step!
+
+---
+
+`, reportIssueMsg)
+			}
+
 			if err != nil {
 				return err
 			}
@@ -204,14 +239,17 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-
 			if len(args) != 0 {
 				summaryValid, err := types.CheckIfTaskSummaryValid(args[0])
 				if !summaryValid {
-					return err
+					return fmt.Errorf("%w", err)
 				}
 
 				err = importTask(db, args[0])
+				if errors.Is(err, errWillExceedCapacity) {
+					fmt.Print(taskCapacityMsg)
+				}
+
 				if err != nil {
 					return err
 				}
@@ -262,16 +300,12 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 	importCmd := &cobra.Command{
 		Use:   "import",
 		Short: "Import tasks into omm from stdin",
-		RunE: func(cmd *cobra.Command, args []string) error {
-
+		RunE: func(_ *cobra.Command, _ []string) error {
 			var tasks []string
 			taskCounter := 0
 
 			scanner := bufio.NewScanner(os.Stdin)
 			for scanner.Scan() {
-				if taskCounter > pers.TaskNumLimit {
-					return errMaxImportLimitExceeded
-				}
 
 				line := scanner.Text()
 				line = strings.TrimSpace(line)
@@ -282,6 +316,10 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 					tasks = append(tasks, line)
 				}
 				taskCounter++
+				if taskCounter > pers.TaskNumLimit {
+					fmt.Print(maxImportNumMsg)
+					return fmt.Errorf("%w", errMaxImportLimitExceeded)
+				}
 			}
 
 			if len(tasks) == 0 {
@@ -289,6 +327,9 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			}
 
 			err := importTasks(db, tasks)
+			if errors.Is(err, errWillExceedCapacity) {
+				fmt.Print(taskCapacityMsg)
+			}
 			if err != nil {
 				return err
 			}
@@ -300,7 +341,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 	tasksCmd := &cobra.Command{
 		Use:   "tasks",
 		Short: "Output tasks tracked by omm to stdout",
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(_ *cobra.Command, _ []string) error {
 			return printTasks(db, printTasksNum, os.Stdout)
 		},
 	}
@@ -308,20 +349,18 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 	guideCmd := &cobra.Command{
 		Use:   "guide",
 		Short: "Starts a guided walkthrough of omm's features",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-
+		PreRunE: func(_ *cobra.Command, _ []string) error {
 			guideErr := insertGuideTasks(db)
 			if guideErr != nil {
 				return fmt.Errorf(`Failed to set up a guided walkthrough.
-Let %s know about this via %s.
+%s
 
-Error: %s`, author, repoIssuesUrl, guideErr)
+Error: %w`, reportIssueMsg, guideErr)
 			}
 
 			return nil
 		},
-		RunE: func(cmd *cobra.Command, args []string) error {
-
+		RunE: func(cmd *cobra.Command, _ []string) error {
 			if cmd.Flags().Lookup("editor").Changed {
 				editorCmd = editorFlagInp
 			} else {
@@ -348,7 +387,7 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 	updatesCmd := &cobra.Command{
 		Use:   "updates",
 		Short: "List updates recently added to omm",
-		Run: func(cmd *cobra.Command, args []string) {
+		Run: func(_ *cobra.Command, _ []string) {
 			fmt.Print(updateContents)
 		},
 	}
@@ -357,13 +396,13 @@ Error: %s`, author, repoIssuesUrl, guideErr)
 	var defaultConfigPath, defaultDBPath string
 	var configPathAdditionalCxt, dbPathAdditionalCxt string
 	hd, err := os.UserHomeDir()
-
 	if err != nil {
 		return nil, fmt.Errorf(`Couldn't get your home directory. This is a fatal error;
 use --dbpath to specify database path manually
-Let %s know about this via %s.
 
-Error: %s`, author, repoIssuesUrl, err)
+%s
+
+Error: %w`, reportIssueMsg, err)
 	}
 
 	switch ros {
@@ -427,11 +466,9 @@ func initializeConfig(cmd *cobra.Command, configFile string) error {
 	v.SetConfigType("toml")
 	v.AddConfigPath(filepath.Dir(configFile))
 
-	var err error
-	if err = v.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
-			return err
-		}
+	err := v.ReadInConfig()
+	if err != nil && !errors.As(err, &viper.ConfigFileNotFoundError{}) {
+		return err
 	}
 
 	v.SetEnvPrefix(envPrefix)

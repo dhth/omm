@@ -19,6 +19,7 @@ const (
 	prefixPadding     = 24
 	timeFormat        = "2006/01/02 15:04"
 	taskSummaryWidth  = 120
+	archivedTitle     = "archived"
 )
 
 type taskChangeType uint
@@ -55,7 +56,7 @@ const (
 	prefixChoose
 )
 
-type model struct {
+type Model struct {
 	db                    *sql.DB
 	cfg                   Config
 	taskList              list.Model
@@ -65,7 +66,7 @@ type model struct {
 	tlIndexMap            map[uint64]int
 	atlIndexMap           map[uint64]int
 	taskIndex             int
-	taskId                uint64
+	taskID                uint64
 	taskChange            taskChangeType
 	contextVP             viewport.Model
 	contextVPReady        bool
@@ -87,7 +88,7 @@ type model struct {
 	atlSelStyle           lipgloss.Style
 	terminalWidth         int
 	terminalHeight        int
-	contextVPTaskId       uint64
+	contextVPTaskID       uint64
 	rtos                  string
 	uriRegex              *regexp.Regexp
 	shortenedListHt       int
@@ -97,7 +98,7 @@ type model struct {
 	showDeletePrompt      bool
 }
 
-func (m model) Init() tea.Cmd {
+func (m Model) Init() tea.Cmd {
 	return tea.Batch(
 		fetchTasks(m.db, true, pers.TaskNumLimit),
 		fetchTasks(m.db, false, pers.TaskNumLimit),

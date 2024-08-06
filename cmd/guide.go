@@ -68,7 +68,6 @@ func getContext(summary string) (string, error) {
 }
 
 func insertGuideTasks(db *sql.DB) error {
-
 	tasks := make([]types.Task, len(guideEntries))
 
 	now := time.Now()
@@ -78,7 +77,6 @@ func insertGuideTasks(db *sql.DB) error {
 	var err error
 	for i, e := range guideEntries {
 		ctxs[i], err = getContext(guideEntries[i].summary)
-
 		if err != nil {
 			continue
 		}

@@ -7,9 +7,7 @@ import (
 	"github.com/dhth/omm/cmd"
 )
 
-var (
-	version = "dev"
-)
+var version = "dev"
 
 func main() {
 	v := version

@@ -18,15 +18,19 @@ import (
 )
 
 const (
-	noSpaceAvailableMsg   = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
-	noContextMsg          = "  ∅"
-	viewPortMoveLineCount = 3
+	noSpaceAvailableMsg         = "Task list is at capacity. Archive/delete tasks using ctrl+d/ctrl+x."
+	noContextMsg                = "  ∅"
+	viewPortMoveLineCount       = 3
+	cannotMoveWhenFilteredMsg   = "Can't move items when the task list is filtered"
+	cannotAddWhenFilteredMsg    = "Can't add items when the task list is filtered"
+	cannotDeleteWhenFilteredMsg = "Can't delete items when the task list is filtered"
+	somethingWentWrongMsg       = "Something went wrong"
 )
 
 //go:embed assets/help.md
 var helpStr string
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 	m.successMsg = ""
@@ -82,7 +86,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.activeView = taskListView
 					m.activeTaskList = activeTasks
 				case taskUpdateSummary:
-					cmd = updateTaskSummary(m.db, m.taskIndex, m.taskId, taskSummary)
+					cmd = updateTaskSummary(m.db, m.taskIndex, m.taskID, taskSummary)
 					cmds = append(cmds, cmd)
 					m.taskInput.Reset()
 					m.activeView = taskListView
@@ -249,7 +253,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.taskList.Title = m.cfg.TaskListTitle
 				m.taskList.Styles.Title = m.taskList.Styles.Title.Background(lipgloss.Color(m.cfg.TaskListColor))
 			case archivedTaskListView:
-				m.archivedTaskList.Title = "archived"
+				m.archivedTaskList.Title = archivedTitle
 				m.archivedTaskList.Styles.Title = m.archivedTaskList.Styles.Title.Background(lipgloss.Color(m.cfg.ArchivedTaskListColor))
 			}
 			return m, tea.Batch(cmds...)
@@ -344,7 +348,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.taskList.IsFiltered() {
-				m.errorMsg = "Cannot add items when the task list is filtered"
+				m.errorMsg = cannotAddWhenFilteredMsg
 				break
 			}
 
@@ -366,7 +370,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.taskList.IsFiltered() {
-				m.errorMsg = "Cannot add items when the task list is filtered"
+				m.errorMsg = cannotAddWhenFilteredMsg
 				break
 			}
 
@@ -388,7 +392,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.taskList.IsFiltered() {
-				m.errorMsg = "Cannot add items when the task list is filtered"
+				m.errorMsg = cannotAddWhenFilteredMsg
 				break
 			}
 
@@ -414,7 +418,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.taskList.IsFiltered() {
-				m.errorMsg = "Cannot add items when the task list is filtered"
+				m.errorMsg = cannotAddWhenFilteredMsg
 				break
 			}
 
@@ -529,7 +533,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.taskList.IsFiltered() {
-				m.errorMsg = "Cannot move items when the task list is filtered"
+				m.errorMsg = cannotMoveWhenFilteredMsg
 				break
 			}
 
@@ -557,7 +561,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.taskList.IsFiltered() {
-				m.errorMsg = "Cannot move items when the task list is filtered"
+				m.errorMsg = cannotMoveWhenFilteredMsg
 				break
 			}
 
@@ -588,14 +592,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			index := m.taskList.Index()
 			t, ok := listItem.(types.Task)
 			if !ok {
-				m.errorMsg = "Something went wrong"
+				m.errorMsg = somethingWentWrongMsg
 				break
 			}
 
 			m.taskInput.SetValue(t.Summary)
 			m.taskInput.Focus()
 			m.taskIndex = index
-			m.taskId = t.ID
+			m.taskID = t.ID
 			m.taskChange = taskUpdateSummary
 			m.activeView = taskEntryView
 			return m, tea.Batch(cmds...)
@@ -662,7 +666,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				index := m.archivedTaskList.Index()
 				t, ok := listItem.(types.Task)
 				if !ok {
-					m.errorMsg = "Something went wrong"
+					m.errorMsg = somethingWentWrongMsg
 					break
 				}
 
@@ -684,7 +688,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				if m.taskList.IsFiltered() {
-					m.errorMsg = "Cannot delete items when the task list is filtered"
+					m.errorMsg = cannotDeleteWhenFilteredMsg
 					quit = true
 					break
 				}
@@ -695,7 +699,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 
 				if m.archivedTaskList.IsFiltered() {
-					m.errorMsg = "Cannot delete items when the task list is filtered"
+					m.errorMsg = cannotDeleteWhenFilteredMsg
 					quit = true
 					break
 				}
@@ -725,7 +729,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				index := m.taskList.Index()
 				t, ok := m.taskList.SelectedItem().(types.Task)
 				if !ok {
-					m.errorMsg = "Something went wrong"
+					m.errorMsg = somethingWentWrongMsg
 					break
 				}
 				cmd = deleteTask(m.db, t.ID, index, true)
@@ -740,7 +744,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				index := m.archivedTaskList.Index()
 				task, ok := m.archivedTaskList.SelectedItem().(types.Task)
 				if !ok {
-					m.errorMsg = "Something went wrong"
+					m.errorMsg = somethingWentWrongMsg
 					break
 				}
 
@@ -748,7 +752,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 				if m.cfg.ConfirmBeforeDeletion {
 					m.showDeletePrompt = false
-					m.archivedTaskList.Title = "archived"
+					m.archivedTaskList.Title = archivedTitle
 					m.archivedTaskList.Styles.Title = m.archivedTaskList.Styles.Title.Background(lipgloss.Color(m.cfg.ArchivedTaskListColor))
 				}
 			}
@@ -825,13 +829,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.taskList.IsFiltered() {
 					selected, ok := m.taskList.SelectedItem().(types.Task)
 					if !ok {
-						m.errorMsg = "Something went wrong"
+						m.errorMsg = somethingWentWrongMsg
 						break
 					}
 
 					listIndex, ok := m.tlIndexMap[selected.ID]
 					if !ok {
-						m.errorMsg = "Something went wrong"
+						m.errorMsg = somethingWentWrongMsg
 						break
 					}
 
@@ -867,13 +871,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 				selected, ok := m.archivedTaskList.SelectedItem().(types.Task)
 				if !ok {
-					m.errorMsg = "Something went wrong"
+					m.errorMsg = somethingWentWrongMsg
 					break
 				}
 
 				listIndex, ok := m.atlIndexMap[selected.ID]
 				if !ok {
-					m.errorMsg = "Something went wrong"
+					m.errorMsg = somethingWentWrongMsg
 					break
 				}
 
@@ -936,7 +940,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			}
 
-		case "E":
+		case "E", "$":
 			if m.activeView != taskListView {
 				break
 			}
@@ -946,7 +950,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.taskList.IsFiltered() {
-				m.errorMsg = "Cannot move items when the task list is filtered"
+				m.errorMsg = cannotMoveWhenFilteredMsg
 				break
 			}
 
@@ -986,14 +990,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case activeTasks:
 				t, ok = m.taskList.SelectedItem().(types.Task)
 				if !ok {
-					m.errorMsg = "Something went wrong"
+					m.errorMsg = somethingWentWrongMsg
 					break
 				}
 				index = m.taskList.Index()
 			case archivedTasks:
 				t, ok = m.archivedTaskList.SelectedItem().(types.Task)
 				if !ok {
-					m.errorMsg = "Something went wrong"
+					m.errorMsg = somethingWentWrongMsg
 					break
 				}
 				index = m.archivedTaskList.Index()
@@ -1361,7 +1365,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.setContextFSContent(t)
 			}
 			// to force refresh
-			m.contextVPTaskId = 0
+			m.contextVPTaskID = 0
 		}
 
 	case taskStatusChangedMsg:
@@ -1433,7 +1437,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	case textEditorClosed:
 		if msg.err != nil {
-			m.errorMsg = fmt.Sprintf("Something went wrong: %s", msg.err)
+			m.errorMsg = fmt.Sprintf("%s: %s", somethingWentWrongMsg, msg.err)
 			_ = os.Remove(msg.fPath)
 			break
 		}
@@ -1458,7 +1462,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
-		cmds = append(cmds, updateTaskContext(m.db, msg.taskIndex, msg.taskId, string(context), m.activeTaskList))
+		cmds = append(cmds, updateTaskContext(m.db, msg.taskIndex, msg.taskID, string(context), m.activeTaskList))
 	case uriOpenedMsg:
 		if msg.err != nil {
 			m.errorMsg = fmt.Sprintf("Error opening uri: %s", msg.err)
@@ -1492,7 +1496,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
-		if m.contextVPTaskId == t.ID {
+		if m.contextVPTaskID == t.ID {
 			break
 		}
 
@@ -1515,7 +1519,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		m.contextVP.SetContent(detailsToRender)
-		m.contextVPTaskId = t.ID
+		m.contextVPTaskID = t.ID
 
 	case archivedTaskListView:
 		if !skipListUpdate {
@@ -1531,7 +1535,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
-		if m.contextVPTaskId == t.ID {
+		if m.contextVPTaskID == t.ID {
 			break
 		}
 
@@ -1549,7 +1553,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		} else {
 			m.contextVP.SetContent(noContextMsg)
 		}
-		m.contextVPTaskId = t.ID
+		m.contextVPTaskID = t.ID
 
 	case taskEntryView:
 		m.taskInput, viewUpdateCmd = m.taskInput.Update(msg)
@@ -1576,7 +1580,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(cmds...)
 }
 
-func (m *model) updateActiveTasksSequence() tea.Cmd {
+func (m *Model) updateActiveTasksSequence() tea.Cmd {
 	sequence := make([]uint64, len(m.taskList.Items()))
 	tlIndexMap := make(map[uint64]int)
 
@@ -1593,7 +1597,7 @@ func (m *model) updateActiveTasksSequence() tea.Cmd {
 	return updateTaskSequence(m.db, sequence)
 }
 
-func (m *model) updateArchivedTasksIndex() {
+func (m *Model) updateArchivedTasksIndex() {
 	sequence := make([]uint64, len(m.archivedTaskList.Items()))
 	tlIndexMap := make(map[uint64]int)
 
@@ -1608,11 +1612,11 @@ func (m *model) updateArchivedTasksIndex() {
 	m.atlIndexMap = tlIndexMap
 }
 
-func (m model) isSpaceAvailable() bool {
+func (m Model) isSpaceAvailable() bool {
 	return len(m.taskList.Items()) < pers.TaskNumLimit
 }
 
-func (m *model) setContextFSContent(task types.Task) {
+func (m *Model) setContextFSContent(task types.Task) {
 	var ctx string
 	if task.Context != nil {
 		ctx = fmt.Sprintf("---\n%s", *task.Context)
@@ -1635,7 +1639,7 @@ func (m *model) setContextFSContent(task types.Task) {
 	m.taskDetailsVP.SetContent(details)
 }
 
-func (m model) getTaskURIs() ([]string, bool) {
+func (m Model) getTaskURIs() ([]string, bool) {
 	var t types.Task
 	var ok bool
 

@@ -9,7 +9,7 @@ import (
 )
 
 func TestGetGlamourStyleFromFile(t *testing.T) {
-	gotOption := glamour.WithStylesFromJSONBytes(glamourJsonBytes)
+	gotOption := glamour.WithStylesFromJSONBytes(glamourJSONBytes)
 	renderer, err := glamour.NewTermRenderer(gotOption)
 	assert.NoError(t, err)
 	assert.NotNil(t, renderer)
@@ -19,6 +19,6 @@ func TestGetGlamourStyleFromFile(t *testing.T) {
 }
 
 func TestGlamourStylesFileIsValid(t *testing.T) {
-	got := json.Valid(glamourJsonBytes)
+	got := json.Valid(glamourJSONBytes)
 	assert.True(t, got)
 }

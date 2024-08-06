@@ -7,14 +7,12 @@ import (
 	"github.com/muesli/termenv"
 )
 
-var (
-	//go:embed assets/gruvbox.json
-	glamourJsonBytes []byte
-)
+//go:embed assets/gruvbox.json
+var glamourJSONBytes []byte
 
 func GetMarkDownRenderer(wrap int) (*glamour.TermRenderer, error) {
 	return glamour.NewTermRenderer(
-		glamour.WithStylesFromJSONBytes(glamourJsonBytes),
+		glamour.WithStylesFromJSONBytes(glamourJSONBytes),
 		glamour.WithColorProfile(termenv.TrueColor),
 		glamour.WithWordWrap(wrap),
 	)

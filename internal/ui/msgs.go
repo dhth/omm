@@ -61,7 +61,7 @@ type tasksFetched struct {
 type textEditorClosed struct {
 	fPath      string
 	taskIndex  int
-	taskId     uint64
+	taskID     uint64
 	oldContext *string
 	err        error
 }
