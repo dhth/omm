@@ -32,9 +32,10 @@ var (
 	hasContextStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color(hasContextColor))
 
-	ErrTaskPrefixEmpty      = errors.New("task prefix cannot be empty")
+	ErrTaskSummaryEmpty     = errors.New("task summary is empty")
+	ErrTaskPrefixEmpty      = errors.New("task prefix is empty")
 	ErrTaskSummaryBodyEmpty = errors.New("task summary body is empty")
-	ErrTaskSummaryTooLong   = fmt.Errorf("task summary is too long; max length allowed: %d", TaskSummaryMaxLen)
+	ErrTaskSummaryTooLong   = errors.New("task summary is too long")
 )
 
 type Task struct {
@@ -66,7 +67,11 @@ func (t Task) Prefix() (TaskPrefix, bool) {
 
 func CheckIfTaskSummaryValid(summary string) (bool, error) {
 	if strings.TrimSpace(summary) == "" {
-		return false, ErrTaskPrefixEmpty
+		return false, ErrTaskSummaryEmpty
+	}
+
+	if len(summary) > TaskSummaryMaxLen {
+		return false, ErrTaskSummaryTooLong
 	}
 
 	summEls := strings.Split(summary, PrefixDelimiter)

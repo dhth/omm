@@ -4,7 +4,6 @@ linters:
     - errname
     - errorlint
     - goconst
-    - gofmt
     - gofumpt
     - gosimple
     - govet
@@ -17,6 +16,5 @@ linters:
     - sqlclosecheck
     - staticcheck
     - unconvert
-    - unused
     - unused
     - wastedassign

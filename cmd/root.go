@@ -41,20 +41,29 @@ var (
 	errConfigFileDoesntExist  = errors.New("config file does not exist")
 	errDBFileExtIncorrect     = errors.New("db file needs to end with .db")
 
-	errMaxImportLimitExceeded = fmt.Errorf("max number of tasks that can be imported at a time: %d", pers.TaskNumLimit)
+	errMaxImportLimitExceeded = errors.New("import limit exceeded")
 	errNothingToImport        = errors.New("nothing to import")
 
 	errListDensityIncorrect = errors.New("list density is incorrect; valid values: compact/spacious")
 
 	errCouldntCreateDBDirectory = errors.New("couldn't create directory for database")
 	errCouldntCreateDB          = errors.New("couldn't create database")
-	errCouldntInitialiseDB      = errors.New("couldn't initialise database")
+	errCouldntInitializeDB      = errors.New("couldn't initialize database")
 	errCouldntOpenDB            = errors.New("couldn't open database")
 
 	//go:embed assets/updates.txt
 	updateContents string
 
-	reportIssueMsg = fmt.Sprintf("Let %s know about this error via %s.", author, repoIssuesURL)
+	reportIssueMsg  = fmt.Sprintf("Let %s know about this error via %s.", author, repoIssuesURL)
+	maxImportNumMsg = fmt.Sprintf(`A maximum of %d tasks that can be imported at a time.
+Archive/Delete tasks that are not active using ctrl+d/ctrl+x.
+
+`, pers.TaskNumLimit)
+
+	taskCapacityMsg = fmt.Sprintf(`A maximum of %d tasks that can be active at a time.
+Archive/Delete tasks that are not active using ctrl+d/ctrl+x.
+
+`, pers.TaskNumLimit)
 )
 
 func Execute(version string) error {
@@ -89,7 +98,7 @@ func setupDB(dbPathFull string) (*sql.DB, error) {
 
 		err = initDB(db)
 		if err != nil {
-			return nil, fmt.Errorf("%w: %v", errCouldntInitialiseDB, err.Error())
+			return nil, fmt.Errorf("%w: %v", errCouldntInitializeDB, err.Error())
 		}
 		err = upgradeDB(db, 1)
 		if err != nil {
@@ -180,36 +189,36 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			}
 
 			db, err = setupDB(dbPathFull)
-			if err != nil {
-				if errors.Is(err, errCouldntCreateDB) {
-					fmt.Printf(`Couldn't create omm's local database. This is a fatal error.
+			switch {
+			case errors.Is(err, errCouldntCreateDB):
+				fmt.Printf(`Couldn't create omm's local database. This is a fatal error.
 %s
 
 `, reportIssueMsg)
-				} else if errors.Is(err, errCouldntInitialiseDB) {
-					fmt.Printf(`Couldn't initialise omm's local database. This is a fatal error.
+			case errors.Is(err, errCouldntInitializeDB):
+				fmt.Printf(`Couldn't initialise omm's local database. This is a fatal error.
 %s
 
 `, reportIssueMsg)
-				} else if errors.Is(err, errCouldntOpenDB) {
-					fmt.Printf(`Couldn't open omm's local database. This is a fatal error.
+			case errors.Is(err, errCouldntOpenDB):
+				fmt.Printf(`Couldn't open omm's local database. This is a fatal error.
 %s
 
 `, reportIssueMsg)
-				} else if errors.Is(err, errCouldntFetchDBVersion) {
-					fmt.Printf(`Couldn't get omm's latest database version. This is a fatal error.
+			case errors.Is(err, errCouldntFetchDBVersion):
+				fmt.Printf(`Couldn't get omm's latest database version. This is a fatal error.
 %s
 
 `, reportIssueMsg)
-				} else if errors.Is(err, errDBDowngraded) {
-					fmt.Printf(`Looks like you downgraded omm. You should either delete omm's database file (you
+			case errors.Is(err, errDBDowngraded):
+				fmt.Printf(`Looks like you downgraded omm. You should either delete omm's database file (you
 will lose data by doing that), or upgrade omm to the latest version.
 
 %s
 
 `, reportIssueMsg)
-				} else if errors.Is(err, errDBMigrationFailed) {
-					fmt.Printf(`Something went wrong migrating omm's database. This is not supposed to happen.
+			case errors.Is(err, errDBMigrationFailed):
+				fmt.Printf(`Something went wrong migrating omm's database. This is not supposed to happen.
 You can try running omm by passing it a custom database file path (using
 --db-path; this will create a new database) to see if that fixes things. If that
 works, you can either delete the previous database, or keep using this new
@@ -221,7 +230,9 @@ Sorry for breaking the upgrade step!
 ---
 
 `, reportIssueMsg)
-				}
+			}
+
+			if err != nil {
 				return err
 			}
 
@@ -231,10 +242,14 @@ Sorry for breaking the upgrade step!
 			if len(args) != 0 {
 				summaryValid, err := types.CheckIfTaskSummaryValid(args[0])
 				if !summaryValid {
-					return err
+					return fmt.Errorf("%w", err)
 				}
 
 				err = importTask(db, args[0])
+				if errors.Is(err, errWillExceedCapacity) {
+					fmt.Print(taskCapacityMsg)
+				}
+
 				if err != nil {
 					return err
 				}
@@ -291,9 +306,6 @@ Sorry for breaking the upgrade step!
 
 			scanner := bufio.NewScanner(os.Stdin)
 			for scanner.Scan() {
-				if taskCounter > pers.TaskNumLimit {
-					return errMaxImportLimitExceeded
-				}
 
 				line := scanner.Text()
 				line = strings.TrimSpace(line)
@@ -304,6 +316,10 @@ Sorry for breaking the upgrade step!
 					tasks = append(tasks, line)
 				}
 				taskCounter++
+				if taskCounter > pers.TaskNumLimit {
+					fmt.Print(maxImportNumMsg)
+					return fmt.Errorf("%w", errMaxImportLimitExceeded)
+				}
 			}
 
 			if len(tasks) == 0 {
@@ -311,6 +327,9 @@ Sorry for breaking the upgrade step!
 			}
 
 			err := importTasks(db, tasks)
+			if errors.Is(err, errWillExceedCapacity) {
+				fmt.Print(taskCapacityMsg)
+			}
 			if err != nil {
 				return err
 			}
@@ -448,8 +467,7 @@ func initializeConfig(cmd *cobra.Command, configFile string) error {
 	v.AddConfigPath(filepath.Dir(configFile))
 
 	err := v.ReadInConfig()
-	var notFoundErr viper.ConfigFileNotFoundError
-	if err != nil && !errors.As(err, &notFoundErr) {
+	if err != nil && !errors.As(err, &viper.ConfigFileNotFoundError{}) {
 		return err
 	}
 
