@@ -203,7 +203,7 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 				// cleanup
 				cleanupErr := os.Remove(dbPathFull)
 				if cleanupErr != nil {
-					fmt.Fprintf(os.Stderr, `Failed to remove omm's database file at %s as well. Remove it manually.
+					fmt.Fprintf(os.Stderr, `Failed to remove omm's database file as well (at %s). Remove it manually.
 Clean up error: %s
 
 `, dbPathFull, cleanupErr.Error())
