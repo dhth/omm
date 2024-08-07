@@ -191,34 +191,42 @@ Tip: Quickly add a task using 'omm "task summary goes here"'.
 			db, err = setupDB(dbPathFull)
 			switch {
 			case errors.Is(err, errCouldntCreateDB):
-				fmt.Printf(`Couldn't create omm's local database. This is a fatal error.
+				fmt.Fprintf(os.Stderr, `Couldn't create omm's local database. This is a fatal error.
 %s
 
 `, reportIssueMsg)
 			case errors.Is(err, errCouldntInitializeDB):
-				fmt.Printf(`Couldn't initialise omm's local database. This is a fatal error.
+				fmt.Fprintf(os.Stderr, `Couldn't initialise omm's local database. This is a fatal error.
 %s
 
 `, reportIssueMsg)
+				// cleanup
+				cleanupErr := os.Remove(dbPathFull)
+				if cleanupErr != nil {
+					fmt.Fprintf(os.Stderr, `Failed to remove omm's database file at %s as well. Remove it manually.
+Clean up error: %s
+
+`, dbPathFull, cleanupErr.Error())
+				}
 			case errors.Is(err, errCouldntOpenDB):
-				fmt.Printf(`Couldn't open omm's local database. This is a fatal error.
+				fmt.Fprintf(os.Stderr, `Couldn't open omm's local database. This is a fatal error.
 %s
 
 `, reportIssueMsg)
 			case errors.Is(err, errCouldntFetchDBVersion):
-				fmt.Printf(`Couldn't get omm's latest database version. This is a fatal error.
+				fmt.Fprintf(os.Stderr, `Couldn't get omm's latest database version. This is a fatal error.
 %s
 
 `, reportIssueMsg)
 			case errors.Is(err, errDBDowngraded):
-				fmt.Printf(`Looks like you downgraded omm. You should either delete omm's database file (you
+				fmt.Fprintf(os.Stderr, `Looks like you downgraded omm. You should either delete omm's database file (you
 will lose data by doing that), or upgrade omm to the latest version.
 
 %s
 
 `, reportIssueMsg)
 			case errors.Is(err, errDBMigrationFailed):
-				fmt.Printf(`Something went wrong migrating omm's database. This is not supposed to happen.
+				fmt.Fprintf(os.Stderr, `Something went wrong migrating omm's database. This is not supposed to happen.
 You can try running omm by passing it a custom database file path (using
 --db-path; this will create a new database) to see if that fixes things. If that
 works, you can either delete the previous database, or keep using this new
@@ -247,7 +255,7 @@ Sorry for breaking the upgrade step!
 
 				err = importTask(db, args[0])
 				if errors.Is(err, errWillExceedCapacity) {
-					fmt.Print(taskCapacityMsg)
+					fmt.Fprint(os.Stderr, taskCapacityMsg)
 				}
 
 				if err != nil {
@@ -317,7 +325,7 @@ Sorry for breaking the upgrade step!
 				}
 				taskCounter++
 				if taskCounter > pers.TaskNumLimit {
-					fmt.Print(maxImportNumMsg)
+					fmt.Fprint(os.Stderr, maxImportNumMsg)
 					return fmt.Errorf("%w", errMaxImportLimitExceeded)
 				}
 			}
@@ -328,7 +336,7 @@ Sorry for breaking the upgrade step!
 
 			err := importTasks(db, tasks)
 			if errors.Is(err, errWillExceedCapacity) {
-				fmt.Print(taskCapacityMsg)
+				fmt.Fprint(os.Stderr, taskCapacityMsg)
 			}
 			if err != nil {
 				return err
