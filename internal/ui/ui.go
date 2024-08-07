@@ -13,7 +13,7 @@ func RenderUI(db *sql.DB, config Config) {
 	if len(os.Getenv("DEBUG")) > 0 {
 		f, err := tea.LogToFile("debug.log", "debug")
 		if err != nil {
-			fmt.Println("fatal:", err)
+			fmt.Fprintf(os.Stderr, "fatal error: %s", err.Error())
 			os.Exit(1)
 		}
 		defer f.Close()
