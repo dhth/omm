@@ -144,7 +144,7 @@ func GetDynamicStyle(str string) lipgloss.Style {
 	h.Write([]byte(str))
 	hash := h.Sum32()
 
-	color := colors[int(hash)%len(colors)]
+	color := colors[hash%uint32(len(colors))]
 	return lipgloss.NewStyle().
 		Foreground(lipgloss.Color(color))
 }
