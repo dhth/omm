@@ -2,7 +2,7 @@ Sometimes you'll add URIs to a task's summary or its context.
 		
 Such URIs could be placed anywhere in the summary/context. For example:
 
-- https://c.xkcd.com/random/comic
+- [URL](https://c.xkcd.com/random/comic)
 - spotify:track:4fVBFyglBhMf0erfF7pBJp
 - obsidian://open?vault=VAULT&file=FILE
 - mailto:example@example.com
