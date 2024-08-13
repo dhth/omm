@@ -44,8 +44,9 @@ jobs:
       run: |
         /var/tmp/omm_head --db-path=/var/tmp/throwaway.db 'test: a task from PR HEAD'
         /var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks
-        ls -a
+        pwd
+        ls -a .github
     - name: Validate number of tasks
-      working-directory: .github/scripts
+      working-directory: ./.github/scripts
       run: |
         ./checknumtasks.sh 2
