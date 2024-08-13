@@ -37,8 +37,6 @@ This is a URL: [omm](https://github.com/dhth/omm)
 ---
 
 > This is a block quote
-> that spans
-> multiple lines
 
 ---
 
