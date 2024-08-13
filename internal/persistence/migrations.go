@@ -1,4 +1,4 @@
-package cmd
+package persistence
 
 import (
 	"database/sql"
@@ -12,9 +12,9 @@ const (
 )
 
 var (
-	errDBDowngraded          = errors.New("database downgraded")
-	errDBMigrationFailed     = errors.New("database migration failed")
-	errCouldntFetchDBVersion = errors.New("couldn't fetch version")
+	ErrDBDowngraded          = errors.New("database downgraded")
+	ErrDBMigrationFailed     = errors.New("database migration failed")
+	ErrCouldntFetchDBVersion = errors.New("couldn't fetch version")
 )
 
 type dbVersionInfo struct {
@@ -54,18 +54,18 @@ LIMIT 1;
 	return dbVersion, err
 }
 
-func upgradeDBIfNeeded(db *sql.DB) error {
+func UpgradeDBIfNeeded(db *sql.DB) error {
 	latestVersionInDB, err := fetchLatestDBVersion(db)
 	if err != nil {
-		return fmt.Errorf("%w: %s", errCouldntFetchDBVersion, err.Error())
+		return fmt.Errorf("%w: %s", ErrCouldntFetchDBVersion, err.Error())
 	}
 
 	if latestVersionInDB.version > latestDBVersion {
-		return errDBDowngraded
+		return ErrDBDowngraded
 	}
 
 	if latestVersionInDB.version < latestDBVersion {
-		err = upgradeDB(db, latestVersionInDB.version)
+		err = UpgradeDB(db, latestVersionInDB.version)
 		if err != nil {
 			return err
 		}
@@ -74,13 +74,13 @@ func upgradeDBIfNeeded(db *sql.DB) error {
 	return nil
 }
 
-func upgradeDB(db *sql.DB, currentVersion int) error {
+func UpgradeDB(db *sql.DB, currentVersion int) error {
 	migrations := getMigrations()
 	for i := currentVersion + 1; i <= latestDBVersion; i++ {
 		migrateQuery := migrations[i]
 		migrateErr := runMigration(db, migrateQuery, i)
 		if migrateErr != nil {
-			return fmt.Errorf("%w (version %d): %v", errDBMigrationFailed, i, migrateErr.Error())
+			return fmt.Errorf("%w (version %d): %v", ErrDBMigrationFailed, i, migrateErr.Error())
 		}
 	}
 	return nil

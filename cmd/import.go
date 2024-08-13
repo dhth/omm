@@ -12,7 +12,7 @@ import (
 var errWillExceedCapacity = errors.New("import will exceed capacity")
 
 func importTask(db *sql.DB, taskSummary string) error {
-	numTasks, err := pers.FetchNumActiveTasksFromDB(db)
+	numTasks, err := pers.FetchNumActiveTasksShown(db)
 	if err != nil {
 		return err
 	}
@@ -21,11 +21,11 @@ func importTask(db *sql.DB, taskSummary string) error {
 	}
 
 	now := time.Now()
-	return pers.ImportTaskIntoDB(db, taskSummary, true, now, now)
+	return pers.ImportTask(db, taskSummary, true, now, now)
 }
 
 func importTasks(db *sql.DB, taskSummaries []string) error {
-	numTasks, err := pers.FetchNumActiveTasksFromDB(db)
+	numTasks, err := pers.FetchNumActiveTasksShown(db)
 	if err != nil {
 		return err
 	}
@@ -34,5 +34,5 @@ func importTasks(db *sql.DB, taskSummaries []string) error {
 	}
 
 	now := time.Now()
-	return pers.ImportTaskSummariesIntoDB(db, taskSummaries, true, now, now)
+	return pers.ImportTaskSummaries(db, taskSummaries, true, now, now)
 }

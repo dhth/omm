@@ -13,7 +13,53 @@ const (
 	ContextMaxBytes = 4096 // 4KB seems to be sufficient for context
 )
 
-func FetchNumActiveTasksFromDB(db *sql.DB) (int, error) {
+func fetchTaskSequence(db *sql.DB) ([]uint64, error) {
+	var seq []byte
+	seqRow := db.QueryRow("SELECT sequence from task_sequence where id=1;")
+
+	err := seqRow.Scan(&seq)
+	if err != nil {
+		return nil, err
+	}
+
+	var seqItems []uint64
+	err = json.Unmarshal(seq, &seqItems)
+	if err != nil {
+		return nil, err
+	}
+	return seqItems, nil
+}
+
+func fetchNumActiveTasks(db *sql.DB) (int, error) {
+	var rowCount int
+	err := db.QueryRow("SELECT count(*) from task where active is true").Scan(&rowCount)
+	return rowCount, err
+}
+
+func fetchNumTotalTasks(db *sql.DB) (int, error) {
+	var rowCount int
+	err := db.QueryRow("SELECT count(*) from task").Scan(&rowCount)
+	return rowCount, err
+}
+
+func fetchTaskByID(db *sql.DB, ID int) (types.Task, error) {
+	var entry types.Task
+	row := db.QueryRow(`
+SELECT id, summary, active, context, created_at, updated_at
+from task
+WHERE id=?;
+`, ID)
+	err := row.Scan(&entry.ID,
+		&entry.Summary,
+		&entry.Active,
+		&entry.Context,
+		&entry.CreatedAt,
+		&entry.UpdatedAt,
+	)
+	return entry, err
+}
+
+func FetchNumActiveTasksShown(db *sql.DB) (int, error) {
 	row := db.QueryRow(`
 SELECT json_array_length(sequence) AS num_tasks
 FROM task_sequence where id=1;
@@ -28,7 +74,7 @@ FROM task_sequence where id=1;
 	return numTasks, nil
 }
 
-func UpdateTaskSequenceInDB(db *sql.DB, sequence []uint64) error {
+func UpdateTaskSequence(db *sql.DB, sequence []uint64) error {
 	sequenceJSON, err := json.Marshal(sequence)
 	if err != nil {
 		return err
@@ -52,7 +98,7 @@ WHERE id = 1;
 	return nil
 }
 
-func InsertTaskInDB(db *sql.DB, summary string, createdAt, updatedAt time.Time) (uint64, error) {
+func InsertTask(db *sql.DB, summary string, createdAt, updatedAt time.Time) (uint64, error) {
 	stmt, err := db.Prepare(`
 INSERT INTO task (summary, active, created_at, updated_at)
 VALUES (?, true, ?, ?);
@@ -75,7 +121,7 @@ VALUES (?, true, ?, ?);
 	return uint64(li), nil
 }
 
-func ImportTaskIntoDB(db *sql.DB, summary string, active bool, createdAt, updatedAt time.Time) error {
+func ImportTask(db *sql.DB, summary string, active bool, createdAt, updatedAt time.Time) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -142,7 +188,7 @@ WHERE id = 1;
 	return nil
 }
 
-func ImportTaskSummariesIntoDB(db *sql.DB, tasks []string, active bool, createdAt, updatedAt time.Time) error {
+func ImportTaskSummaries(db *sql.DB, tasks []string, active bool, createdAt, updatedAt time.Time) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -227,7 +273,7 @@ WHERE id = 1;
 	return nil
 }
 
-func InsertTasksIntoDB(db *sql.DB, tasks []types.Task) error {
+func InsertTasks(db *sql.DB, tasks []types.Task) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err
@@ -290,7 +336,7 @@ WHERE id = 1;
 	return nil
 }
 
-func UpdateTaskSummaryInDB(db *sql.DB, id uint64, summary string, updatedAt time.Time) error {
+func UpdateTaskSummary(db *sql.DB, id uint64, summary string, updatedAt time.Time) error {
 	stmt, err := db.Prepare(`
 UPDATE task
 SET summary = ?,
@@ -309,7 +355,7 @@ WHERE id = ?
 	return nil
 }
 
-func UpdateTaskContextInDB(db *sql.DB, id uint64, context string, updatedAt time.Time) error {
+func UpdateTaskContext(db *sql.DB, id uint64, context string, updatedAt time.Time) error {
 	stmt, err := db.Prepare(`
 UPDATE task
 SET context = ?,
@@ -328,7 +374,7 @@ WHERE id = ?
 	return nil
 }
 
-func UnsetTaskContextInDB(db *sql.DB, id uint64, updatedAt time.Time) error {
+func UnsetTaskContext(db *sql.DB, id uint64, updatedAt time.Time) error {
 	stmt, err := db.Prepare(`
 UPDATE task
 SET context = NULL,
@@ -347,7 +393,7 @@ WHERE id = ?
 	return nil
 }
 
-func ChangeTaskStatusInDB(db *sql.DB, id uint64, active bool, updatedAt time.Time) error {
+func ChangeTaskStatus(db *sql.DB, id uint64, active bool, updatedAt time.Time) error {
 	stmt, err := db.Prepare(`
 UPDATE task
 SET active = ?,
@@ -366,7 +412,7 @@ WHERE id = ?
 	return nil
 }
 
-func FetchActiveTasksFromDB(db *sql.DB, limit int) ([]types.Task, error) {
+func FetchActiveTasks(db *sql.DB, limit int) ([]types.Task, error) {
 	var tasks []types.Task
 
 	rows, err := db.Query(`
@@ -407,7 +453,7 @@ LIMIT ?;
 	return tasks, nil
 }
 
-func FetchInActiveTasksFromDB(db *sql.DB, limit int) ([]types.Task, error) {
+func FetchInActiveTasks(db *sql.DB, limit int) ([]types.Task, error) {
 	var tasks []types.Task
 
 	rows, err := db.Query(`
@@ -446,7 +492,7 @@ LIMIT ?;
 	return tasks, nil
 }
 
-func DeleteTaskInDB(db *sql.DB, id uint64) error {
+func DeleteTask(db *sql.DB, id uint64) error {
 	stmt, err := db.Prepare(`
 DELETE from task
 WHERE id=?;

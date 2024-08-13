@@ -96,11 +96,11 @@ func setupDB(dbPathFull string) (*sql.DB, error) {
 			return nil, fmt.Errorf("%w: %s", errCouldntCreateDB, err.Error())
 		}
 
-		err = initDB(db)
+		err = pers.InitDB(db)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %s", errCouldntInitializeDB, err.Error())
 		}
-		err = upgradeDB(db, 1)
+		err = pers.UpgradeDB(db, 1)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +109,7 @@ func setupDB(dbPathFull string) (*sql.DB, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%w: %s", errCouldntOpenDB, err.Error())
 		}
-		err = upgradeDBIfNeeded(db)
+		err = pers.UpgradeDBIfNeeded(db)
 		if err != nil {
 			return nil, err
 		}
@@ -213,19 +213,19 @@ Clean up error: %s
 %s
 
 `, reportIssueMsg)
-			case errors.Is(err, errCouldntFetchDBVersion):
+			case errors.Is(err, pers.ErrCouldntFetchDBVersion):
 				fmt.Fprintf(os.Stderr, `Couldn't get omm's latest database version. This is a fatal error.
 %s
 
 `, reportIssueMsg)
-			case errors.Is(err, errDBDowngraded):
+			case errors.Is(err, pers.ErrDBDowngraded):
 				fmt.Fprintf(os.Stderr, `Looks like you downgraded omm. You should either delete omm's database file (you
 will lose data by doing that), or upgrade omm to the latest version.
 
 %s
 
 `, reportIssueMsg)
-			case errors.Is(err, errDBMigrationFailed):
+			case errors.Is(err, pers.ErrDBMigrationFailed):
 				fmt.Fprintf(os.Stderr, `Something went wrong migrating omm's database. This is not supposed to happen.
 You can try running omm by passing it a custom database file path (using
 --db-path; this will create a new database) to see if that fixes things. If that
