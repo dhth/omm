@@ -35,5 +35,6 @@ jobs:
     - name: run omm
       run: |
         go build .
+        cat assets/sample-tasks.txt | ./omm import
         ./omm 'test: a task'
         ./omm tasks

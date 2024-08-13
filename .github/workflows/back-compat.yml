@@ -42,3 +42,4 @@ jobs:
       run: |
         /var/tmp/omm_head --db-path=/var/tmp/throwaway.db 'test: a task from main HEAD'
         /var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks
+        [ "$(/var/tmp/omm_head tasks | wc -l)" -eq 2 ]

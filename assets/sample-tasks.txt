@@ -1,0 +1,12 @@
+traps: Set up an ACME trap for the Road Runner
+tech: Order new ACME rocket skates
+traps: Draw fake tunnel on the canyon wall
+tech: Check ACME catalog for new gadgets
+tech: Test the giant slingshot
+tech: Assemble ACME jet-propelled pogo stick
+plan: Plan the next trap location
+orders: Buy more bird seed for the bait
+tech: Install spring-loaded boxing glove
+design: Design a new blueprint for capturing the Road Runner
+order: Order a lifetime supply of ACME bird seed to lure Road Runner
+traps: Paint a fake bridge over a dry riverbed
