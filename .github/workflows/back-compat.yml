@@ -21,20 +21,22 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 2
+    - run: git checkout HEAD~1
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
+    - name: build last commit
+      run: |
+        go build -o omm_prev
+        cp omm_prev /var/tmp
+        rm omm_prev
+    - run: git checkout main
     - name: build head
       run: |
         go build -o omm_head
         cp omm_head /var/tmp
         rm omm_head
-    - run: git checkout HEAD~1
-    - name: build main
-      run: |
-        go build -o omm_prev
-        cp omm_prev /var/tmp
     - name: Run last version
       run: |
         /var/tmp/omm_prev --db-path=/var/tmp/throwaway.db 'test: a task from previous commit'
@@ -42,4 +44,4 @@ jobs:
       run: |
         /var/tmp/omm_head --db-path=/var/tmp/throwaway.db 'test: a task from main HEAD'
         /var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks
-        [ "$(/var/tmp/omm_head tasks | wc -l)" -eq 2 ]
+        ./.github/scripts/checknumtasks.sh 2 "$(/var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks | wc -l | xargs)"
