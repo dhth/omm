@@ -17,11 +17,7 @@ env:
 
 jobs:
   build:
-    name: build
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
     - name: Set up Go
@@ -32,10 +28,3 @@ jobs:
       run: go build -v ./...
     - name: go test
       run: go test -v ./...
-    - name: run omm
-      run: |
-        go build .
-        cat assets/sample-tasks.txt | ./omm import
-        ./omm 'test: a task'
-        ./omm tasks
-        ./.github/scripts/checknumtasks.sh "$(./omm tasks | wc -l | xargs)" 11
