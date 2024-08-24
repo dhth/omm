@@ -21,21 +21,21 @@ func hideHelp(interval time.Duration) tea.Cmd {
 
 func updateTaskSequence(db *sql.DB, sequence []uint64) tea.Cmd {
 	return func() tea.Msg {
-		err := pers.UpdateTaskSequenceInDB(db, sequence)
+		err := pers.UpdateTaskSequence(db, sequence)
 		return taskSequenceUpdatedMsg{err}
 	}
 }
 
 func createTask(db *sql.DB, summary string, createdAt, updatedAt time.Time) tea.Cmd {
 	return func() tea.Msg {
-		id, err := pers.InsertTaskInDB(db, summary, createdAt, updatedAt)
+		id, err := pers.InsertTask(db, summary, createdAt, updatedAt)
 		return taskCreatedMsg{id, summary, createdAt, updatedAt, err}
 	}
 }
 
 func deleteTask(db *sql.DB, id uint64, index int, active bool) tea.Cmd {
 	return func() tea.Msg {
-		err := pers.DeleteTaskInDB(db, id)
+		err := pers.DeleteTask(db, id)
 		return taskDeletedMsg{id, index, active, err}
 	}
 }
@@ -43,7 +43,7 @@ func deleteTask(db *sql.DB, id uint64, index int, active bool) tea.Cmd {
 func updateTaskSummary(db *sql.DB, listIndex int, id uint64, summary string) tea.Cmd {
 	return func() tea.Msg {
 		now := time.Now()
-		err := pers.UpdateTaskSummaryInDB(db, id, summary, now)
+		err := pers.UpdateTaskSummary(db, id, summary, now)
 		return taskSummaryUpdatedMsg{listIndex, id, summary, now, err}
 	}
 }
@@ -53,9 +53,9 @@ func updateTaskContext(db *sql.DB, listIndex int, id uint64, context string, lis
 		var err error
 		now := time.Now()
 		if context == "" {
-			err = pers.UnsetTaskContextInDB(db, id, now)
+			err = pers.UnsetTaskContext(db, id, now)
 		} else {
-			err = pers.UpdateTaskContextInDB(db, id, context, now)
+			err = pers.UpdateTaskContext(db, id, context, now)
 		}
 		return taskContextUpdatedMsg{listIndex, list, id, context, now, err}
 	}
@@ -63,7 +63,7 @@ func updateTaskContext(db *sql.DB, listIndex int, id uint64, context string, lis
 
 func changeTaskStatus(db *sql.DB, listIndex int, id uint64, active bool, updatedAt time.Time) tea.Cmd {
 	return func() tea.Msg {
-		err := pers.ChangeTaskStatusInDB(db, id, active, updatedAt)
+		err := pers.ChangeTaskStatus(db, id, active, updatedAt)
 		return taskStatusChangedMsg{listIndex, id, active, updatedAt, err}
 	}
 }
@@ -74,9 +74,9 @@ func fetchTasks(db *sql.DB, active bool, limit int) tea.Cmd {
 		var err error
 		switch active {
 		case true:
-			tasks, err = pers.FetchActiveTasksFromDB(db, limit)
+			tasks, err = pers.FetchActiveTasks(db, limit)
 		case false:
-			tasks, err = pers.FetchInActiveTasksFromDB(db, limit)
+			tasks, err = pers.FetchInActiveTasks(db, limit)
 		}
 		return tasksFetched{tasks, active, err}
 	}

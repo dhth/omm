@@ -37,24 +37,23 @@ const (
 )
 
 var (
-	errConfigFileExtIncorrect = errors.New("config file must be a TOML file")
-	errConfigFileDoesntExist  = errors.New("config file does not exist")
-	errDBFileExtIncorrect     = errors.New("db file needs to end with .db")
-
-	errMaxImportLimitExceeded = errors.New("import limit exceeded")
-	errNothingToImport        = errors.New("nothing to import")
-
-	errListDensityIncorrect = errors.New("list density is incorrect; valid values: compact/spacious")
-
+	errCouldntGetHomeDir        = errors.New("couldn't get home directory")
+	errConfigFileExtIncorrect   = errors.New("config file must be a TOML file")
+	errConfigFileDoesntExist    = errors.New("config file does not exist")
+	errDBFileExtIncorrect       = errors.New("db file needs to end with .db")
+	errMaxImportLimitExceeded   = errors.New("import limit exceeded")
+	errNothingToImport          = errors.New("nothing to import")
+	errListDensityIncorrect     = errors.New("list density is incorrect; valid values: compact/spacious")
 	errCouldntCreateDBDirectory = errors.New("couldn't create directory for database")
 	errCouldntCreateDB          = errors.New("couldn't create database")
 	errCouldntInitializeDB      = errors.New("couldn't initialize database")
 	errCouldntOpenDB            = errors.New("couldn't open database")
+	errCouldntSetupGuide        = errors.New("couldn't set up guided walkthrough")
 
 	//go:embed assets/updates.txt
 	updateContents string
 
-	reportIssueMsg  = fmt.Sprintf("Let %s know about this error via %s.", author, repoIssuesURL)
+	reportIssueMsg  = fmt.Sprintf("This isn't supposed to happen; let %s know about this error via \n%s.", author, repoIssuesURL)
 	maxImportNumMsg = fmt.Sprintf(`A maximum of %d tasks that can be imported at a time.
 Archive/Delete tasks that are not active using ctrl+d/ctrl+x.
 
@@ -68,14 +67,22 @@ Archive/Delete tasks that are not active using ctrl+d/ctrl+x.
 
 func Execute(version string) error {
 	rootCmd, err := NewRootCommand()
-
-	rootCmd.Version = version
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-		os.Exit(1)
+		switch {
+		case errors.Is(err, errCouldntGetHomeDir):
+			fmt.Printf("\n%s\n", reportIssueMsg)
+		}
+		return err
 	}
+	rootCmd.Version = version
 
-	return rootCmd.Execute()
+	err = rootCmd.Execute()
+	switch {
+	case errors.Is(err, errCouldntSetupGuide):
+		fmt.Printf("\n%s\n", reportIssueMsg)
+	}
+	return err
 }
 
 func setupDB(dbPathFull string) (*sql.DB, error) {
@@ -96,11 +103,11 @@ func setupDB(dbPathFull string) (*sql.DB, error) {
 			return nil, fmt.Errorf("%w: %s", errCouldntCreateDB, err.Error())
 		}
 
-		err = initDB(db)
+		err = pers.InitDB(db)
 		if err != nil {
 			return nil, fmt.Errorf("%w: %s", errCouldntInitializeDB, err.Error())
 		}
-		err = upgradeDB(db, 1)
+		err = pers.UpgradeDB(db, 1)
 		if err != nil {
 			return nil, err
 		}
@@ -109,7 +116,7 @@ func setupDB(dbPathFull string) (*sql.DB, error) {
 		if err != nil {
 			return nil, fmt.Errorf("%w: %s", errCouldntOpenDB, err.Error())
 		}
-		err = upgradeDBIfNeeded(db)
+		err = pers.UpgradeDBIfNeeded(db)
 		if err != nil {
 			return nil, err
 		}
@@ -213,19 +220,19 @@ Clean up error: %s
 %s
 
 `, reportIssueMsg)
-			case errors.Is(err, errCouldntFetchDBVersion):
+			case errors.Is(err, pers.ErrCouldntFetchDBVersion):
 				fmt.Fprintf(os.Stderr, `Couldn't get omm's latest database version. This is a fatal error.
 %s
 
 `, reportIssueMsg)
-			case errors.Is(err, errDBDowngraded):
+			case errors.Is(err, pers.ErrDBDowngraded):
 				fmt.Fprintf(os.Stderr, `Looks like you downgraded omm. You should either delete omm's database file (you
 will lose data by doing that), or upgrade omm to the latest version.
 
 %s
 
 `, reportIssueMsg)
-			case errors.Is(err, errDBMigrationFailed):
+			case errors.Is(err, pers.ErrDBMigrationFailed):
 				fmt.Fprintf(os.Stderr, `Something went wrong migrating omm's database. This is not supposed to happen.
 You can try running omm by passing it a custom database file path (using
 --db-path; this will create a new database) to see if that fixes things. If that
@@ -360,10 +367,7 @@ Sorry for breaking the upgrade step!
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			guideErr := insertGuideTasks(db)
 			if guideErr != nil {
-				return fmt.Errorf(`Failed to set up a guided walkthrough.
-%s
-
-Error: %w`, reportIssueMsg, guideErr)
+				return fmt.Errorf("%w: %s", errCouldntSetupGuide, guideErr.Error())
 			}
 
 			return nil
@@ -405,12 +409,7 @@ Error: %w`, reportIssueMsg, guideErr)
 	var configPathAdditionalCxt, dbPathAdditionalCxt string
 	hd, err := os.UserHomeDir()
 	if err != nil {
-		return nil, fmt.Errorf(`Couldn't get your home directory. This is a fatal error;
-use --dbpath to specify database path manually
-
-%s
-
-Error: %w`, reportIssueMsg, err)
+		return nil, fmt.Errorf("%w: %s", errCouldntGetHomeDir, err.Error())
 	}
 
 	switch ros {

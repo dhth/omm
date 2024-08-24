@@ -9,7 +9,7 @@ import (
 )
 
 func printTasks(db *sql.DB, limit uint8, writer io.Writer) error {
-	tasks, err := pers.FetchActiveTasksFromDB(db, int(limit))
+	tasks, err := pers.FetchActiveTasks(db, int(limit))
 	if err != nil {
 		return err
 	}

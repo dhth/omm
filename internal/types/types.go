@@ -39,7 +39,6 @@ var (
 )
 
 type Task struct {
-	ItemTitle string
 	ID        uint64
 	Summary   string
 	Context   *string
