@@ -22,7 +22,13 @@ func importTask(db *sql.DB, taskSummary string) error {
 	}
 
 	now := time.Now()
-	_, err = pers.ImportTask(db, taskSummary, true, now, now)
+	task := types.Task{
+		Summary:   taskSummary,
+		Active:    true,
+		CreatedAt: now,
+		UpdatedAt: now,
+	}
+	_, err = pers.InsertTasks(db, []types.Task{task}, true)
 	return err
 }
 
