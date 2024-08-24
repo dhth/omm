@@ -90,7 +90,7 @@ func insertGuideTasks(db *sql.DB) error {
 		}
 	}
 
-	err = pers.InsertTasks(db, tasks)
+	_, err = pers.InsertTasks(db, tasks, true)
 
 	return err
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	pers "github.com/dhth/omm/internal/persistence"
+	"github.com/dhth/omm/internal/types"
 )
 
 var errWillExceedCapacity = errors.New("import will exceed capacity")
@@ -35,6 +36,15 @@ func importTasks(db *sql.DB, taskSummaries []string) error {
 	}
 
 	now := time.Now()
-	_, err = pers.ImportTaskSummaries(db, taskSummaries, true, now, now)
+	tasks := make([]types.Task, len(taskSummaries))
+	for i, summ := range taskSummaries {
+		tasks[i] = types.Task{
+			Summary:   summ,
+			Active:    true,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+	}
+	_, err = pers.InsertTasks(db, tasks, true)
 	return err
 }

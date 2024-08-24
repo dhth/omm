@@ -36,6 +36,12 @@ func fetchNumActiveTasks(db *sql.DB) (int, error) {
 	return rowCount, err
 }
 
+func fetchNumTotalTasks(db *sql.DB) (int, error) {
+	var rowCount int
+	err := db.QueryRow("SELECT count(*) from task").Scan(&rowCount)
+	return rowCount, err
+}
+
 func fetchTaskByID(db *sql.DB, ID int64) (types.Task, error) {
 	var entry types.Task
 	row := db.QueryRow(`
@@ -182,7 +188,7 @@ WHERE id = 1;
 	return lastInsertID, nil
 }
 
-func ImportTaskSummaries(db *sql.DB, tasks []string, active bool, createdAt, updatedAt time.Time) (int64, error) {
+func InsertTasks(db *sql.DB, tasks []types.Task, insertAtTop bool) (int64, error) {
 	tx, err := db.Begin()
 	if err != nil {
 		return -1, err
@@ -191,21 +197,19 @@ func ImportTaskSummaries(db *sql.DB, tasks []string, active bool, createdAt, upd
 		_ = tx.Rollback()
 	}()
 
-	query := `INSERT INTO task (summary, active, created_at, updated_at)
+	query := `INSERT INTO task (summary, context, active, created_at, updated_at)
 VALUES `
 
 	values := make([]interface{}, 0, len(tasks)*4)
 
-	ca := createdAt.UTC()
-	ua := updatedAt.UTC()
-
-	for i, ts := range tasks {
+	for i, t := range tasks {
 		if i > 0 {
 			query += ","
 		}
-		query += "(?, ?, ?, ?)"
-		values = append(values, ts, active, ca, ua)
+		query += "(?, ?, ?, ?, ?)"
+		values = append(values, t.Summary, t.Context, t.Active, t.CreatedAt.UTC(), t.UpdatedAt.UTC())
 	}
+
 	query += ";"
 
 	res, err := tx.Exec(query, values...)
@@ -232,13 +236,21 @@ VALUES `
 		return -1, err
 	}
 
-	newTaskIDs := make([]int, len(tasks))
-	counter := 0
-	for i := int(lastInsertID) - len(tasks) + 1; i <= int(lastInsertID); i++ {
-		newTaskIDs[counter] = i
-		counter++
+	var newTaskIDs []int
+	taskID := int(lastInsertID) - len(tasks) + 1
+	for _, t := range tasks {
+		if t.Active {
+			newTaskIDs = append(newTaskIDs, taskID)
+		}
+		taskID++
 	}
-	updatedSeqItems := append(newTaskIDs, seqItems...)
+
+	var updatedSeqItems []int
+	if insertAtTop {
+		updatedSeqItems = append(newTaskIDs, seqItems...)
+	} else {
+		updatedSeqItems = append(seqItems, newTaskIDs...)
+	}
 
 	sequenceJSON, err := json.Marshal(updatedSeqItems)
 	if err != nil {
@@ -265,69 +277,6 @@ WHERE id = 1;
 		return -1, err
 	}
 	return lastInsertID, nil
-}
-
-func InsertTasks(db *sql.DB, tasks []types.Task) error {
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-	defer func() {
-		_ = tx.Rollback()
-	}()
-
-	query := `INSERT INTO task (summary, context, active, created_at, updated_at)
-VALUES `
-
-	values := make([]interface{}, 0, len(tasks)*4)
-
-	var seqItems []int
-	seqCounter := 1
-	for i, t := range tasks {
-		if i > 0 {
-			query += ","
-		}
-		query += "(?, ?, ?, ?, ?)"
-		values = append(values, t.Summary, t.Context, t.Active, t.CreatedAt.UTC(), t.UpdatedAt.UTC())
-
-		if t.Active {
-			seqItems = append(seqItems, seqCounter)
-		}
-		seqCounter++
-	}
-
-	query += ";"
-
-	_, err = tx.Exec(query, values...)
-	if err != nil {
-		return err
-	}
-
-	sequenceJSON, err := json.Marshal(seqItems)
-	if err != nil {
-		return err
-	}
-
-	seqUpdateStmt, err := tx.Prepare(`
-UPDATE task_sequence
-SET sequence = ?
-WHERE id = 1;
-`)
-	if err != nil {
-		return err
-	}
-	defer seqUpdateStmt.Close()
-
-	_, err = seqUpdateStmt.Exec(sequenceJSON)
-	if err != nil {
-		return err
-	}
-
-	err = tx.Commit()
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func UpdateTaskSummary(db *sql.DB, id uint64, summary string, updatedAt time.Time) error {

@@ -14,11 +14,7 @@ import (
 	_ "modernc.org/sqlite" // sqlite driver
 )
 
-var (
-	testDB          *sql.DB
-	numSeedActive   = 3
-	numSeedInActive = 2
-)
+var testDB *sql.DB
 
 func TestMain(m *testing.M) {
 	var err error
@@ -49,6 +45,10 @@ func cleanupDB(t *testing.T) {
 		if err != nil {
 			t.Fatalf("failed to clean up table %q: %v", tbl, err)
 		}
+		_, err := testDB.Exec("DELETE FROM sqlite_sequence WHERE name=?;", tbl)
+		if err != nil {
+			t.Fatalf("failed to reset auto increment for table %q: %v", tbl, err)
+		}
 	}
 	_, err = testDB.Exec(`UPDATE task_sequence
 SET sequence = '[]'
@@ -58,14 +58,15 @@ WHERE id = 1;`)
 	}
 }
 
-func seedDB(t *testing.T, db *sql.DB) {
-	t.Helper()
+func getSampleTasks() ([]types.Task, int, int) {
+	numActive := 3
+	numInactive := 2
 
-	tasks := make([]types.Task, numSeedActive+numSeedInActive)
-	contexts := make([]string, numSeedActive+numSeedInActive)
+	tasks := make([]types.Task, numActive+numInactive)
+	contexts := make([]string, numActive+numInactive)
 	now := time.Now().UTC()
 	counter := 0
-	for range numSeedActive {
+	for range numActive {
 		contexts[counter] = fmt.Sprintf("context for task %d", counter)
 		tasks[counter] = types.Task{
 			Summary:   fmt.Sprintf("prefix: task %d", counter),
@@ -76,7 +77,7 @@ func seedDB(t *testing.T, db *sql.DB) {
 		}
 		counter++
 	}
-	for range numSeedInActive {
+	for range numInactive {
 		contexts[counter] = fmt.Sprintf("context for task %d", counter)
 		tasks[counter] = types.Task{
 			Summary:   fmt.Sprintf("prefix: task %d", counter),
@@ -87,6 +88,15 @@ func seedDB(t *testing.T, db *sql.DB) {
 		}
 		counter++
 	}
+
+	return tasks, numActive, numInactive
+}
+
+func seedDB(t *testing.T, db *sql.DB) (int, int) {
+	t.Helper()
+
+	tasks, na, ni := getSampleTasks()
+
 	for _, task := range tasks {
 		_, err := db.Exec(`
 INSERT INTO task (summary, active, created_at, updated_at)
@@ -96,8 +106,8 @@ VALUES (?, ?, ?, ?)`, task.Summary, task.Active, task.CreatedAt, task.UpdatedAt)
 		}
 	}
 
-	seqItems := make([]int, numSeedActive)
-	for i := range numSeedActive {
+	seqItems := make([]int, na)
+	for i := range na {
 		seqItems[i] = i + 1
 	}
 	sequenceJSON, err := json.Marshal(seqItems)
@@ -113,15 +123,15 @@ WHERE id = 1;
 	if err != nil {
 		t.Fatalf("failed to insert data into table \"task_sequence\": %v", err)
 	}
+
+	return na, ni
 }
 
 func TestImportTask(t *testing.T) {
 	t.Cleanup(func() { cleanupDB(t) })
 
 	// GIVEN
-	seedDB(t, testDB)
-	numActiveTasksBefore, err := fetchNumActiveTasks(testDB)
-	require.NoError(t, err)
+	na, _ := seedDB(t, testDB)
 
 	// WHEN
 	summary := "prefix: an imported task"
@@ -132,7 +142,7 @@ func TestImportTask(t *testing.T) {
 	// THEN
 	numActiveTasksAfter, err := fetchNumActiveTasks(testDB)
 	require.NoError(t, err)
-	assert.Equal(t, numActiveTasksAfter, numActiveTasksBefore+1, "number of active tasks didn't increase by 1")
+	assert.Equal(t, numActiveTasksAfter, na+1, "number of active tasks didn't increase by 1")
 
 	task, err := fetchTaskByID(testDB, lastID)
 	require.NoError(t, err)
@@ -141,51 +151,117 @@ func TestImportTask(t *testing.T) {
 
 	seq, err := fetchTaskSequence(testDB)
 	require.NoError(t, err)
-	require.Equal(t, numActiveTasksAfter, len(seq), "number of tasks in task sequence doesn't match number of active tasks")
-	assert.Equal(t, seq[0], task.ID, "newly added task is not shown at the top of the list")
+	assert.Equal(t, seq, []uint64{6, 1, 2, 3}, "task sequence isn't correct")
 }
 
-func TestImportTaskSummaries(t *testing.T) {
+func TestInsertTasksWorksWithEmptyTaskList(t *testing.T) {
 	t.Cleanup(func() { cleanupDB(t) })
 
 	// GIVEN
-	seedDB(t, testDB)
-	numActiveTasksBefore, err := fetchNumActiveTasks(testDB)
-	require.NoError(t, err)
-
 	// WHEN
-	newTaskSummaries := []string{
-		"prefix: imported task 1",
-		"prefix: imported task 2",
-		"prefix: imported task 3",
-	}
-	now := time.Now().UTC()
-	lastID, err := ImportTaskSummaries(testDB, newTaskSummaries, true, now, now)
+	tasks, na, ni := getSampleTasks()
+	lastID, err := InsertTasks(testDB, tasks, true)
+	assert.Equal(t, lastID, int64(na+ni), "last ID is not correct")
 	require.NoError(t, err)
 
 	// THEN
-	numActiveTasksAfter, err := fetchNumActiveTasks(testDB)
+	numActiveRes, err := fetchNumActiveTasks(testDB)
 	require.NoError(t, err)
-	assert.Equal(t, numActiveTasksAfter, numActiveTasksBefore+len(newTaskSummaries), "number of active tasks didn't increase by the correct amount")
+	assert.Equal(t, numActiveRes, na, "number of active tasks didn't increase by the correct amount")
 
-	task, err := fetchTaskByID(testDB, lastID)
+	numTotalRes, err := fetchNumTotalTasks(testDB)
 	require.NoError(t, err)
-	assert.True(t, task.Active)
-	assert.Equal(t, newTaskSummaries[2], task.Summary)
+	assert.Equal(t, numTotalRes, na+ni, "number of total tasks didn't increase by the correct amount")
+
+	lastTask, err := fetchTaskByID(testDB, lastID)
+	require.NoError(t, err)
+	assert.Equal(t, tasks[len(tasks)-1].Active, lastTask.Active)
+	assert.Equal(t, tasks[len(tasks)-1].Summary, lastTask.Summary)
+	assert.Equal(t, tasks[len(tasks)-1].Context, lastTask.Context)
 
 	seq, err := fetchTaskSequence(testDB)
 	require.NoError(t, err)
-	require.Equal(t, numActiveTasksAfter, len(seq), "number of tasks in task sequence doesn't match number of active tasks")
+	assert.Equal(t, seq, []uint64{1, 2, 3}, "task sequence isn't correct")
+}
 
-	// ensure new task sequence is correct
-	// that is:
-	// imported task 1
-	// imported task 2
-	// imported task 3
-	// ... old sequence
-	currentID := int(lastID) - len(newTaskSummaries) + 1
-	for i := range len(newTaskSummaries) {
-		assert.Equal(t, currentID, int(seq[i]), "task at sequence position %d is incorrect", i+1)
-		currentID++
+func TestInsertTasksAddsTasksAtTheTop(t *testing.T) {
+	t.Cleanup(func() { cleanupDB(t) })
+
+	// GIVEN
+	na, ni := seedDB(t, testDB)
+
+	// WHEN
+	now := time.Now().UTC()
+	tasks := []types.Task{
+		{
+			Summary:   "prefix: new task 1",
+			Active:    true,
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+		{
+			Summary:   "prefix: new inactive task 1",
+			Active:    false,
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+		{
+			Summary:   "prefix: new task 3",
+			Active:    true,
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
 	}
+
+	_, err := InsertTasks(testDB, tasks, true)
+	require.NoError(t, err)
+
+	// THEN
+	numActiveRes, err := fetchNumActiveTasks(testDB)
+	require.NoError(t, err)
+	assert.Equal(t, numActiveRes, na+2, "number of active tasks didn't increase by the correct amount")
+
+	numTotalRes, err := fetchNumTotalTasks(testDB)
+	require.NoError(t, err)
+	assert.Equal(t, numTotalRes, na+ni+3, "number of total tasks didn't increase by the correct amount")
+
+	seq, err := fetchTaskSequence(testDB)
+	require.NoError(t, err)
+	assert.Equal(t, seq, []uint64{6, 8, 1, 2, 3}, "task sequence isn't correct")
+}
+
+func TestInsertTasksAddsTasksAtTheEnd(t *testing.T) {
+	t.Cleanup(func() { cleanupDB(t) })
+
+	// GIVEN
+	na, _ := seedDB(t, testDB)
+
+	// WHEN
+	now := time.Now().UTC()
+	tasks := []types.Task{
+		{
+			Summary:   "prefix: new task 1",
+			Active:    true,
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+		{
+			Summary:   "prefix: new task 2",
+			Active:    true,
+			CreatedAt: now,
+			UpdatedAt: now,
+		},
+	}
+
+	_, err := InsertTasks(testDB, tasks, false)
+	require.NoError(t, err)
+
+	// THEN
+	numActiveRes, err := fetchNumActiveTasks(testDB)
+	require.NoError(t, err)
+	assert.Equal(t, numActiveRes, na+2, "number of active tasks didn't increase by the correct amount")
+
+	seq, err := fetchTaskSequence(testDB)
+	require.NoError(t, err)
+	assert.Equal(t, seq, []uint64{1, 2, 3, 6, 7}, "task sequence isn't correct")
 }
