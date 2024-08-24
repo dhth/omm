@@ -21,7 +21,8 @@ func importTask(db *sql.DB, taskSummary string) error {
 	}
 
 	now := time.Now()
-	return pers.ImportTask(db, taskSummary, true, now, now)
+	_, err = pers.ImportTask(db, taskSummary, true, now, now)
+	return err
 }
 
 func importTasks(db *sql.DB, taskSummaries []string) error {
@@ -34,5 +35,6 @@ func importTasks(db *sql.DB, taskSummaries []string) error {
 	}
 
 	now := time.Now()
-	return pers.ImportTaskSummaries(db, taskSummaries, true, now, now)
+	_, err = pers.ImportTaskSummaries(db, taskSummaries, true, now, now)
+	return err
 }

@@ -44,11 +44,17 @@ func TestMain(m *testing.M) {
 
 func cleanupDB(t *testing.T) {
 	var err error
-	for _, tbl := range []string{"task", "task_sequence"} {
+	for _, tbl := range []string{"task"} {
 		_, err = testDB.Exec(fmt.Sprintf("DELETE FROM %s", tbl))
 		if err != nil {
 			t.Fatalf("failed to clean up table %q: %v", tbl, err)
 		}
+	}
+	_, err = testDB.Exec(`UPDATE task_sequence
+SET sequence = '[]'
+WHERE id = 1;`)
+	if err != nil {
+		t.Fatalf("failed to clean up table task_sequence: %v", err)
 	}
 }
 
@@ -116,13 +122,11 @@ func TestImportTask(t *testing.T) {
 	seedDB(t, testDB)
 	numActiveTasksBefore, err := fetchNumActiveTasks(testDB)
 	require.NoError(t, err)
-	numTotalTasksBefore, err := fetchNumTotalTasks(testDB)
-	require.NoError(t, err)
 
 	// WHEN
 	summary := "prefix: an imported task"
 	now := time.Now().UTC()
-	err = ImportTask(testDB, summary, true, now, now)
+	lastID, err := ImportTask(testDB, summary, true, now, now)
 	require.NoError(t, err)
 
 	// THEN
@@ -130,7 +134,7 @@ func TestImportTask(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, numActiveTasksAfter, numActiveTasksBefore+1, "number of active tasks didn't increase by 1")
 
-	task, err := fetchTaskByID(testDB, numTotalTasksBefore+1)
+	task, err := fetchTaskByID(testDB, lastID)
 	require.NoError(t, err)
 	assert.True(t, task.Active)
 	assert.Equal(t, summary, task.Summary)
@@ -148,33 +152,40 @@ func TestImportTaskSummaries(t *testing.T) {
 	seedDB(t, testDB)
 	numActiveTasksBefore, err := fetchNumActiveTasks(testDB)
 	require.NoError(t, err)
-	numTotalTasksBefore, err := fetchNumTotalTasks(testDB)
-	require.NoError(t, err)
 
 	// WHEN
-	summaries := []string{
+	newTaskSummaries := []string{
 		"prefix: imported task 1",
 		"prefix: imported task 2",
 		"prefix: imported task 3",
 	}
 	now := time.Now().UTC()
-	err = ImportTaskSummaries(testDB, summaries, true, now, now)
+	lastID, err := ImportTaskSummaries(testDB, newTaskSummaries, true, now, now)
 	require.NoError(t, err)
 
 	// THEN
 	numActiveTasksAfter, err := fetchNumActiveTasks(testDB)
 	require.NoError(t, err)
-	assert.Equal(t, numActiveTasksAfter, numActiveTasksBefore+len(summaries), "number of active tasks didn't increase by the correct amount")
+	assert.Equal(t, numActiveTasksAfter, numActiveTasksBefore+len(newTaskSummaries), "number of active tasks didn't increase by the correct amount")
 
-	task, err := fetchTaskByID(testDB, numTotalTasksBefore+1)
+	task, err := fetchTaskByID(testDB, lastID)
 	require.NoError(t, err)
 	assert.True(t, task.Active)
-	assert.Equal(t, summaries[0], task.Summary)
+	assert.Equal(t, newTaskSummaries[2], task.Summary)
 
 	seq, err := fetchTaskSequence(testDB)
 	require.NoError(t, err)
 	require.Equal(t, numActiveTasksAfter, len(seq), "number of tasks in task sequence doesn't match number of active tasks")
-	for i := range summaries {
-		assert.Equal(t, numTotalTasksBefore+i+1, int(seq[i]), "task at sequence position %d is incorrect", i+1)
+
+	// ensure new task sequence is correct
+	// that is:
+	// imported task 1
+	// imported task 2
+	// imported task 3
+	// ... old sequence
+	currentID := int(lastID) - len(newTaskSummaries) + 1
+	for i := range len(newTaskSummaries) {
+		assert.Equal(t, currentID, int(seq[i]), "task at sequence position %d is incorrect", i+1)
+		currentID++
 	}
 }

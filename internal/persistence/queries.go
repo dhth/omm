@@ -36,13 +36,7 @@ func fetchNumActiveTasks(db *sql.DB) (int, error) {
 	return rowCount, err
 }
 
-func fetchNumTotalTasks(db *sql.DB) (int, error) {
-	var rowCount int
-	err := db.QueryRow("SELECT count(*) from task").Scan(&rowCount)
-	return rowCount, err
-}
-
-func fetchTaskByID(db *sql.DB, ID int) (types.Task, error) {
+func fetchTaskByID(db *sql.DB, ID int64) (types.Task, error) {
 	var entry types.Task
 	row := db.QueryRow(`
 SELECT id, summary, active, context, created_at, updated_at
@@ -121,10 +115,10 @@ VALUES (?, true, ?, ?);
 	return uint64(li), nil
 }
 
-func ImportTask(db *sql.DB, summary string, active bool, createdAt, updatedAt time.Time) error {
+func ImportTask(db *sql.DB, summary string, active bool, createdAt, updatedAt time.Time) (int64, error) {
 	tx, err := db.Begin()
 	if err != nil {
-		return err
+		return -1, err
 	}
 	defer func() {
 		_ = tx.Rollback()
@@ -135,12 +129,12 @@ VALUES (?, ?, ?, ?);`
 
 	res, err := tx.Exec(query, summary, active, createdAt.UTC(), updatedAt.UTC())
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	lastInsertID, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	var seq []byte
@@ -148,13 +142,13 @@ VALUES (?, ?, ?, ?);`
 
 	err = seqRow.Scan(&seq)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	var seqItems []int
 	err = json.Unmarshal(seq, &seqItems)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	newTaskID := make([]int, 1)
@@ -163,7 +157,7 @@ VALUES (?, ?, ?, ?);`
 
 	sequenceJSON, err := json.Marshal(updatedSeqItems)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	seqUpdateStmt, err := tx.Prepare(`
@@ -172,26 +166,26 @@ SET sequence = ?
 WHERE id = 1;
 `)
 	if err != nil {
-		return err
+		return -1, err
 	}
 	defer seqUpdateStmt.Close()
 
 	_, err = seqUpdateStmt.Exec(sequenceJSON)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return -1, err
 	}
-	return nil
+	return lastInsertID, nil
 }
 
-func ImportTaskSummaries(db *sql.DB, tasks []string, active bool, createdAt, updatedAt time.Time) error {
+func ImportTaskSummaries(db *sql.DB, tasks []string, active bool, createdAt, updatedAt time.Time) (int64, error) {
 	tx, err := db.Begin()
 	if err != nil {
-		return err
+		return -1, err
 	}
 	defer func() {
 		_ = tx.Rollback()
@@ -216,12 +210,12 @@ VALUES `
 
 	res, err := tx.Exec(query, values...)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	lastInsertID, err := res.LastInsertId()
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	var seq []byte
@@ -229,13 +223,13 @@ VALUES `
 
 	err = seqRow.Scan(&seq)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	var seqItems []int
 	err = json.Unmarshal(seq, &seqItems)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	newTaskIDs := make([]int, len(tasks))
@@ -248,7 +242,7 @@ VALUES `
 
 	sequenceJSON, err := json.Marshal(updatedSeqItems)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	seqUpdateStmt, err := tx.Prepare(`
@@ -257,20 +251,20 @@ SET sequence = ?
 WHERE id = 1;
 `)
 	if err != nil {
-		return err
+		return -1, err
 	}
 	defer seqUpdateStmt.Close()
 
 	_, err = seqUpdateStmt.Exec(sequenceJSON)
 	if err != nil {
-		return err
+		return -1, err
 	}
 
 	err = tx.Commit()
 	if err != nil {
-		return err
+		return -1, err
 	}
-	return nil
+	return lastInsertID, nil
 }
 
 func InsertTasks(db *sql.DB, tasks []types.Task) error {
