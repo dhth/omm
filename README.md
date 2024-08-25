@@ -1,7 +1,7 @@
 # omm
 
 [![Latest Release](https://img.shields.io/github/release/dhth/omm.svg?style=for-the-badge)](https://github.com/dhth/omm/releases/latest)
-![Commits Since Latest Release](https://img.shields.io/github/commits-since/dhth/omm/latest?style=for-the-badge)
+[![Commits Since Latest Release](https://img.shields.io/github/commits-since/dhth/omm/latest?style=for-the-badge)][2]
 [![Build Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/build.yml?style=for-the-badge)](https://github.com/dhth/omm/actions/workflows/build.yml)
 [![Vulncheck Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/vulncheck.yml?style=for-the-badge&label=vulncheck)](https://github.com/dhth/omm/actions/workflows/vulncheck.yml)
 [![GitHub Discussions](https://img.shields.io/badge/GITHUB_DISCUSSION-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/dhth/omm/discussions)
@@ -288,21 +288,21 @@ verify its authenticity. Checksums are applied to all released artifacts, and
 the resulting checksum file is signed using
 [cosign](https://docs.sigstore.dev/cosign/installation/).
 
-Steps to verify (replace the version in the commands listed with the one you
-want):
+Steps to verify (replace `A.B.C` in the commands listed below with the version
+you want):
 
 1. Download the following files from the release:
 
-   - omm_0.5.0_checksums.txt
-   - omm_0.5.0_checksums.txt.pem
-   - omm_0.5.0_checksums.txt.sig
+   - omm_A.B.C_checksums.txt
+   - omm_A.B.C_checksums.txt.pem
+   - omm_A.B.C_checksums.txt.sig
 
 2. Verify the signature:
 
    ```shell
-   cosign verify-blob omm_0.5.0_checksums.txt \
-       --certificate omm_0.5.0_checksums.txt.pem \
-       --signature omm_0.5.0_checksums.txt.sig \
+   cosign verify-blob omm_A.B.C_checksums.txt \
+       --certificate omm_A.B.C_checksums.txt.pem \
+       --signature omm_A.B.C_checksums.txt.sig \
        --certificate-identity-regexp 'https://github\.com/dhth/omm/\.github/workflows/.+' \
        --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
    ```
@@ -310,17 +310,22 @@ want):
 3. Download the compressed archive you want, and validate its checksum:
 
    ```shell
-   curl -sSLO https://github.com/dhth/omm/releases/download/v0.5.0/omm_0.5.0_linux_amd64.tar.gz
-   sha256sum --ignore-missing -c omm_0.5.0_checksums.txt
+   curl -sSLO https://github.com/dhth/omm/releases/download/vA.B.C/omm_A.B.C_linux_amd64.tar.gz
+   sha256sum --ignore-missing -c omm_A.B.C_checksums.txt
    ```
 
 3. If checksum validation goes through, uncompress the archive:
 
    ```shell
-   tar -xzf omm_0.5.0_linux_amd64.tar.gz
+   tar -xzf omm_A.B.C_linux_amd64.tar.gz
    ./omm
    # profit!
    ```
+
+Repo Activity
+---
+
+![Alt](https://repobeats.axiom.co/api/embed/a88c59f3f7e5bd9ef4756d71c122e22e02f2df69.svg "Repo activity")
 
 Acknowledgements
 ---
