@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/bubbles v0.19.0
-	github.com/charmbracelet/bubbletea v0.27.1
+	github.com/charmbracelet/bubbletea v1.1.1
 	github.com/charmbracelet/glamour v0.8.0
 	github.com/charmbracelet/lipgloss v0.13.0
 	github.com/dustin/go-humanize v1.0.1
