@@ -1,13 +1,9 @@
 # omm
 
-[![Latest Release](https://img.shields.io/github/release/dhth/omm.svg?style=for-the-badge)](https://github.com/dhth/omm/releases/latest)
-[![Commits Since Latest Release](https://img.shields.io/github/commits-since/dhth/omm/latest?style=for-the-badge)][2]
-[![Build Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/build.yml?style=for-the-badge)](https://github.com/dhth/omm/actions/workflows/build.yml)
-[![Vulncheck Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/vulncheck.yml?style=for-the-badge&label=vulncheck)](https://github.com/dhth/omm/actions/workflows/vulncheck.yml)
-[![GitHub Discussions](https://img.shields.io/badge/GITHUB_DISCUSSION-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/dhth/omm/discussions)
-
-✨ Overview
----
+[![Build Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/build.yml?style=flat-square)](https://github.com/dhth/omm/actions/workflows/build.yml)
+[![Vulncheck Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/vulncheck.yml?style=flat-square&label=vulncheck)](https://github.com/dhth/omm/actions/workflows/vulncheck.yml)
+[![Latest Release](https://img.shields.io/github/release/dhth/omm.svg?style=flat-square)](https://github.com/dhth/omm/releases/latest)
+[![Commits Since Latest Release](https://img.shields.io/github/commits-since/dhth/omm/latest?style=flat-square)](https://github.com/dhth/omm/releases)
 
 `omm` (stands for "on-my-mind") is a keyboard-driven task manager for the
 command line.
@@ -41,7 +37,7 @@ brew install dhth/tap/omm
 go install github.com/dhth/omm@latest
 ```
 
-Or get the binaries directly from a [release][2]. Read more about verifying the
+Or get the binary directly from a [release][2]. Read more about verifying the
 authenticity of released artifacts [here](#-verifying-release-artifacts).
 
 💡 Guide
@@ -321,11 +317,6 @@ you want):
    ./omm
    # profit!
    ```
-
-Repo Activity
----
-
-![Alt](https://repobeats.axiom.co/api/embed/a88c59f3f7e5bd9ef4756d71c122e22e02f2df69.svg "Repo activity")
 
 Acknowledgements
 ---
