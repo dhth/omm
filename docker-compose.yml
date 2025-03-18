@@ -1,7 +1,7 @@
 # to test operations on linux
 services:
   omm-dev:
-    image: golang:1.23.5-alpine
+    image: golang:1.24.1-alpine
     volumes:
       - .:/go/src/app
     working_dir: /go/src/app
