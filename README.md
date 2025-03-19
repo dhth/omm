@@ -40,6 +40,10 @@ go install github.com/dhth/omm@latest
 Or get the binary directly from a [release][2]. Read more about verifying the
 authenticity of released artifacts [here](#-verifying-release-artifacts).
 
+> [!NOTE]
+> Would you like to see `omm` on Windows? Vote
+> [here](https://github.com/dhth/omm/discussions/51).
+
 💡 Guide
 ---
 
