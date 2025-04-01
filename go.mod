@@ -1,7 +1,6 @@
 module github.com/dhth/omm
 
 go 1.24.1
-
 require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/bubbles v0.20.0
@@ -12,7 +11,7 @@ require (
 	github.com/muesli/termenv v0.16.0
 	github.com/spf13/cobra v1.9.1
 	github.com/spf13/pflag v1.0.6
-	github.com/spf13/viper v1.20.0
+	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
 	modernc.org/sqlite v1.36.1
 	mvdan.cc/xurls/v2 v2.6.0
