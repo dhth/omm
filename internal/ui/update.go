@@ -469,13 +469,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.taskDetailsVP.AtBottom() {
 					break
 				}
-				m.taskDetailsVP.LineDown(viewPortMoveLineCount)
+				m.taskDetailsVP.ScrollDown(viewPortMoveLineCount)
 
 			case helpView:
 				if m.helpVP.AtBottom() {
 					break
 				}
-				m.helpVP.LineDown(viewPortMoveLineCount)
+				m.helpVP.ScrollDown(viewPortMoveLineCount)
 			}
 
 		case "up", "k":
@@ -518,13 +518,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.taskDetailsVP.AtTop() {
 					break
 				}
-				m.taskDetailsVP.LineUp(viewPortMoveLineCount)
+				m.taskDetailsVP.ScrollUp(viewPortMoveLineCount)
 
 			case helpView:
 				if m.helpVP.AtTop() {
 					break
 				}
-				m.helpVP.LineUp(viewPortMoveLineCount)
+				m.helpVP.ScrollUp(viewPortMoveLineCount)
 			}
 
 		case "J":
