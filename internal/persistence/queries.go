@@ -10,7 +10,7 @@ import (
 
 const (
 	TaskNumLimit    = 300
-	ContextMaxBytes = 4096 // 4KB seems to be sufficient for context
+	ContextMaxBytes = 1024 * 1024
 )
 
 func fetchTaskSequence(db *sql.DB) ([]uint64, error) {
