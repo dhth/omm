@@ -34,6 +34,7 @@ const (
 	dbFileName              = "omm/omm.db"
 	printTasksDefault       = 20
 	taskListTitleMaxLen     = 8
+	updatesMaxWidth         = 80
 )
 
 var (
@@ -50,7 +51,7 @@ var (
 	errCouldntOpenDB            = errors.New("couldn't open database")
 	errCouldntSetupGuide        = errors.New("couldn't set up guided walkthrough")
 
-	//go:embed assets/updates.txt
+	//go:embed assets/CHANGELOG.md
 	updateContents string
 
 	reportIssueMsg  = fmt.Sprintf("This isn't supposed to happen; let %s know about this error via \n%s.", author, repoIssuesURL)
