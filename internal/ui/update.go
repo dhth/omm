@@ -195,31 +195,35 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		m.taskList.SetHeight(listHeight)
 		m.archivedTaskList.SetHeight(listHeight)
+		vpWidth := msg.Width - 4
 
 		if !m.contextVPReady {
-			m.contextVP = viewport.New(msg.Width-3, contextHeight)
+			m.contextVP = viewport.New(vpWidth, contextHeight)
 			m.contextVPReady = true
 		} else {
-			m.contextVP.Width = msg.Width - 3
+			m.contextVP.Width = vpWidth
 			m.contextVP.Height = contextHeight
 		}
 
 		if !m.taskDetailsVPReady {
-			m.taskDetailsVP = viewport.New(msg.Width-4, m.terminalHeight-4)
+			m.taskDetailsVP = viewport.New(vpWidth, m.terminalHeight-4)
 			m.taskDetailsVP.KeyMap.HalfPageDown.SetKeys("ctrl+d")
 			m.taskDetailsVPReady = true
 			m.taskDetailsVP.KeyMap.Up.SetEnabled(false)
 			m.taskDetailsVP.KeyMap.Down.SetEnabled(false)
 		} else {
-			m.taskDetailsVP.Width = msg.Width - 4
+			m.taskDetailsVP.Width = vpWidth
 			m.taskDetailsVP.Height = m.terminalHeight - 4
 		}
 
-		crWrap := (msg.Width - 4)
-		if crWrap > contextWordWrapUpperLimit {
-			crWrap = contextWordWrapUpperLimit
+		contextMdRenderer, err := utils.GetMarkDownRenderer(vpWidth)
+		if err == nil {
+			m.contextMdRenderer = contextMdRenderer
 		}
-		m.contextMdRenderer, _ = utils.GetMarkDownRenderer(crWrap)
+		taskDetailsMdRenderer, err := utils.GetMarkDownRenderer(vpWidth)
+		if err == nil {
+			m.taskDetailsMdRenderer = taskDetailsMdRenderer
+		}
 
 		helpToRender := helpStr
 		switch m.contextMdRenderer {
