@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Use full width for context and task details
 - Increase upper threshold for context length to 1 MB (was 4KB before)
+- Preserve newlines in rendered context
 
 ## [v0.5.1] - Aug 13, 2024
 
