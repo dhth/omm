@@ -1,21 +1,35 @@
+version: "2"
 linters:
   enable:
-    - errcheck
     - errname
     - errorlint
     - goconst
-    - gofumpt
-    - gosimple
-    - govet
-    - ineffassign
     - nilerr
     - prealloc
     - predeclared
     - revive
     - rowserrcheck
     - sqlclosecheck
-    - staticcheck
     - unconvert
-    - unused
     - usestdlibvars
     - wastedassign
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gofumpt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

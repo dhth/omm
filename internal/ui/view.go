@@ -67,7 +67,8 @@ func (m Model) View() string {
 		}
 
 	case taskEntryView:
-		if m.taskChange == taskInsert {
+		switch m.taskChange {
+		case taskInsert:
 			header := taskEntryTitleStyle.Render("enter your task")
 
 			var newTaskPosition string
@@ -95,10 +96,10 @@ func (m Model) View() string {
 				formHelpStyle.Render("press <esc> to go back, ⏎ to submit"),
 			)
 
-			for i := 0; i < m.terminalHeight-12; i++ {
+			for range m.terminalHeight - 12 {
 				content += "\n"
 			}
-		} else if m.taskChange == taskUpdateSummary {
+		case taskUpdateSummary:
 			header := taskEntryTitleStyle.Render("update task")
 			content = fmt.Sprintf(`
   %s
@@ -113,9 +114,10 @@ func (m Model) View() string {
 				m.taskInput.View(),
 				formHelpStyle.Render("press <esc> to go back, ⏎ to submit"),
 			)
-			for i := 0; i < m.terminalHeight-10; i++ {
+			for range m.terminalHeight - 10 {
 				content += "\n"
 			}
+
 		}
 
 	case taskDetailsView:
