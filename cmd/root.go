@@ -34,7 +34,6 @@ const (
 	dbFileName              = "omm/omm.db"
 	printTasksDefault       = 20
 	taskListTitleMaxLen     = 8
-	updatesMaxWidth         = 80
 )
 
 var (
