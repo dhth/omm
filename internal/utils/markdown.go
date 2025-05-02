@@ -14,6 +14,7 @@ func GetMarkDownRenderer(wrap int) (*glamour.TermRenderer, error) {
 	return glamour.NewTermRenderer(
 		glamour.WithStylesFromJSONBytes(glamourJSONBytes),
 		glamour.WithColorProfile(termenv.TrueColor),
+		glamour.WithPreservedNewLines(),
 		glamour.WithWordWrap(wrap),
 	)
 }
