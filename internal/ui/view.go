@@ -7,11 +7,7 @@ import (
 	"github.com/dhth/omm/internal/utils"
 )
 
-var (
-	TaskListDefaultTitle      = "omm"
-	taskDetailsWordWrap       = 120
-	contextWordWrapUpperLimit = 160
-)
+var TaskListDefaultTitle = "omm"
 
 func (m Model) View() string {
 	if m.quitting {

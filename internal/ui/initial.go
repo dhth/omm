@@ -116,25 +116,22 @@ func InitialModel(db *sql.DB, config Config) Model {
 		Background(lipgloss.Color(prefixSearchColor)).
 		Bold(true)
 
-	tr, _ := utils.GetMarkDownRenderer(taskDetailsWordWrap)
-
 	m := Model{
-		db:                    db,
-		cfg:                   config,
-		taskList:              taskList,
-		archivedTaskList:      archivedTaskList,
-		taskBMList:            contextBMList,
-		prefixSearchList:      prefixSearchList,
-		taskInput:             taskInput,
-		showHelpIndicator:     true,
-		tlTitleStyle:          taskListTitleStyle,
-		atlTitleStyle:         archivedTaskListTitleStyle,
-		tlSelStyle:            tlSelItemStyle,
-		atlSelStyle:           atlSelItemStyle,
-		contextVPTaskID:       0,
-		rtos:                  runtime.GOOS,
-		uriRegex:              utils.GetURIRegex(),
-		taskDetailsMdRenderer: tr,
+		db:                db,
+		cfg:               config,
+		taskList:          taskList,
+		archivedTaskList:  archivedTaskList,
+		taskBMList:        contextBMList,
+		prefixSearchList:  prefixSearchList,
+		taskInput:         taskInput,
+		showHelpIndicator: true,
+		tlTitleStyle:      taskListTitleStyle,
+		atlTitleStyle:     archivedTaskListTitleStyle,
+		tlSelStyle:        tlSelItemStyle,
+		atlSelStyle:       atlSelItemStyle,
+		contextVPTaskID:   0,
+		rtos:              runtime.GOOS,
+		uriRegex:          utils.GetURIRegex(),
 	}
 
 	return m
