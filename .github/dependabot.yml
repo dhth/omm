@@ -3,9 +3,7 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "monthly"
-    reviewers:
-      - "dhth"
+      interval: "weekly"
     labels:
       - "dependencies"
     commit-message:
@@ -14,9 +12,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "monthly"
-    reviewers:
-      - "dhth"
+      interval: "weekly"
     labels:
       - "dependencies"
     commit-message:
