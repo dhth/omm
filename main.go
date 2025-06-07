@@ -4,7 +4,7 @@ import (
 	"os"
 	"runtime/debug"
 
-	"github.com/dhth/omm/cmd"
+	"github.com/dhth/omm/internal/cmd"
 )
 
 var version = "dev"

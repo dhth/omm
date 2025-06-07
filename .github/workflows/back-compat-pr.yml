@@ -7,9 +7,6 @@ on:
       - "**/*.go"
       - ".github/workflows/back-compat-pr.yml"
 
-permissions:
-  contents: read
-
 env:
   GO_VERSION: '1.24.4'
 
@@ -45,5 +42,5 @@ jobs:
       - name: Run current version
         run: |
           /var/tmp/omm_head --db-path=/var/tmp/throwaway.db 'test: a task from PR HEAD'
-          /var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks
-          ./.github/scripts/checknumtasks.sh "$(/var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks | wc -l | xargs)" 2
+          /var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks list
+          ./.github/scripts/checknumtasks.sh "$(/var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks list | wc -l | xargs)" 2

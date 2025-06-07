@@ -9,9 +9,6 @@ on:
       - "**/*.go"
       - ".github/workflows/run.yml"
 
-permissions:
-  contents: read
-
 env:
   GO_VERSION: '1.24.4'
 
@@ -33,5 +30,5 @@ jobs:
         run: |
           cat assets/sample-tasks.txt | ./omm import
           ./omm 'test: a task'
-          ./omm tasks
-          ./.github/scripts/checknumtasks.sh "$(./omm tasks | wc -l | xargs)" 11
+          ./omm tasks list
+          ./.github/scripts/checknumtasks.sh "$(./omm tasks list | wc -l | xargs)" 11
