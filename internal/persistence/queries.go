@@ -3,6 +3,8 @@ package persistence
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/dhth/omm/internal/types"
@@ -12,6 +14,9 @@ const (
 	TaskNumLimit    = 300
 	ContextMaxBytes = 1024 * 1024
 )
+
+// TODO: wrap all unexpected sql errors with this
+var errCouldntExecuteQuery = errors.New("couldn't execute query")
 
 func fetchTaskSequence(db *sql.DB) ([]uint64, error) {
 	var seq []byte
@@ -133,7 +138,7 @@ func InsertTasks(db *sql.DB, tasks []types.Task, insertAtTop bool) (int64, error
 	query := `INSERT INTO task (summary, context, active, created_at, updated_at)
 VALUES `
 
-	values := make([]interface{}, 0, len(tasks)*4)
+	values := make([]any, 0, len(tasks)*4)
 
 	for i, t := range tasks {
 		if i > 0 {
@@ -327,6 +332,52 @@ LIMIT ?;
 	}
 
 	return tasks, nil
+}
+
+func FetchNthActiveTask(db *sql.DB, index uint64) (types.Task, bool, error) {
+	var zero types.Task
+
+	// QueryRow always returns a non-nil value
+	row := db.QueryRow(`
+SELECT
+    id,
+    summary,
+    active,
+    context,
+    created_at,
+    updated_at
+FROM
+    task
+WHERE
+    id = (
+        SELECT
+            json_extract(sequence, '$[' || ? || ']')
+        FROM
+            task_sequence
+        WHERE
+            id = 1
+    );
+`, index)
+
+	if row.Err() != nil {
+		return zero, false, fmt.Errorf("%w, %s", errCouldntExecuteQuery, row.Err().Error())
+	}
+
+	var task types.Task
+	err := row.Scan(&task.ID,
+		&task.Summary,
+		&task.Active,
+		&task.Context,
+		&task.CreatedAt,
+		&task.UpdatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return zero, false, nil
+	} else if err != nil {
+		return zero, true, err
+	}
+
+	return task, true, nil
 }
 
 func FetchInActiveTasks(db *sql.DB, limit int) ([]types.Task, error) {
