@@ -71,13 +71,13 @@ func TestTasksCmd(t *testing.T) {
 
 		numTasks := 10
 		for i := range numTasks {
-			c := exec.Command(binPath, "-d", dbPath, fmt.Sprintf("prefix: task %d", 9-i))
+			c := exec.Command(binPath, "-d", dbPath, fmt.Sprintf("prefix: task %d", 10-i))
 			err := c.Run()
 			require.NoError(t, err)
 		}
 
 		// WHEN
-		c := exec.Command(binPath, "-d", dbPath, "tasks", "show", "2")
+		c := exec.Command(binPath, "-d", dbPath, "tasks", "show", "2", "-f", "plain")
 		output, err := c.CombinedOutput()
 
 		// THEN
@@ -86,9 +86,50 @@ func TestTasksCmd(t *testing.T) {
 		assert.Equal(t, "prefix: task 2", strings.TrimSpace(string(output)))
 	})
 
+	t.Run("Showing task details in json format works", func(t *testing.T) {
+		// GIVEN
+		dbPath := filepath.Join(tempDir, fmt.Sprintf("omm-%s.db", uuid.New().String()))
+
+		numTasks := 10
+		for i := range numTasks {
+			c := exec.Command(binPath, "-d", dbPath, fmt.Sprintf("prefix: task %d", 10-i))
+			err := c.Run()
+			require.NoError(t, err)
+		}
+
+		// WHEN
+		c := exec.Command(binPath, "-d", dbPath, "tasks", "show", "2", "-f", "json")
+		output, err := c.CombinedOutput()
+
+		// THEN
+		require.NoError(t, err)
+
+		expected := `
+{
+  "summary": "prefix: task 2",
+  "context": null
+}
+`
+		assert.Equal(t, strings.TrimSpace(expected), strings.TrimSpace(string(output)))
+	})
+
 	//------------//
 	//  FAILURES  //
 	//------------//
+
+	t.Run("Showing task details for index 0 fails", func(t *testing.T) {
+		// GIVEN
+		dbPath := filepath.Join(tempDir, fmt.Sprintf("omm-%s.db", uuid.New().String()))
+
+		// WHEN
+		c := exec.Command(binPath, "-d", dbPath, "tasks", "show", "0")
+		output, err := c.CombinedOutput()
+
+		// THEN
+		assert.Error(t, err)
+
+		assert.Contains(t, string(output), "invalid value for task index provided;")
+	})
 
 	t.Run("Showing task details for an invalid index fails", func(t *testing.T) {
 		// GIVEN
@@ -96,18 +137,32 @@ func TestTasksCmd(t *testing.T) {
 
 		numTasks := 10
 		for i := range numTasks {
-			c := exec.Command(binPath, "-d", dbPath, fmt.Sprintf("prefix: task %d", 9-i))
+			c := exec.Command(binPath, "-d", dbPath, fmt.Sprintf("prefix: task %d", 10-i))
 			err := c.Run()
 			require.NoError(t, err)
 		}
 
 		// WHEN
-		c := exec.Command(binPath, "-d", dbPath, "tasks", "show", "10")
+		c := exec.Command(binPath, "-d", dbPath, "tasks", "show", "11")
 		output, err := c.CombinedOutput()
 
 		// THEN
 		assert.Error(t, err)
 
 		assert.Contains(t, string(output), "no task exists at given index")
+	})
+
+	t.Run("Showing task details with an invalid output format fails", func(t *testing.T) {
+		// GIVEN
+		dbPath := filepath.Join(tempDir, fmt.Sprintf("omm-%s.db", uuid.New().String()))
+
+		// WHEN
+		c := exec.Command(binPath, "-d", dbPath, "tasks", "show", "1", "-f", "unknown")
+		output, err := c.CombinedOutput()
+
+		// THEN
+		assert.Error(t, err)
+
+		assert.Contains(t, string(output), "invalid value for output format provided;")
 	})
 }

@@ -51,6 +51,7 @@ var (
 	errCouldntOpenDB                    = errors.New("couldn't open database")
 	errCouldntSetupGuide                = errors.New("couldn't set up guided walkthrough")
 	errInvalidValueForTaskIndexProvided = errors.New("invalid value for task index provided")
+	errInvalidShowTaskOutputFmtProvided = errors.New("invalid value for output format provided")
 
 	//go:embed assets/CHANGELOG.md
 	updateContents string
@@ -144,6 +145,7 @@ func NewRootCommand() (*cobra.Command, error) {
 		confirmBeforeDeletion bool
 		circularNav           bool
 		numListTasks          uint16
+		showTaskOutputFmtStr  string
 	)
 
 	rootCmd := &cobra.Command{
@@ -374,11 +376,16 @@ Sorry for breaking the upgrade step!
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			index, err := strconv.ParseUint(args[0], 10, 0)
-			if err != nil {
-				return fmt.Errorf("%w; value needs to be an integer >= 0", errInvalidValueForTaskIndexProvided)
+			if err != nil || index == 0 {
+				return fmt.Errorf("%w; value needs to be an integer >= 1", errInvalidValueForTaskIndexProvided)
 			}
 
-			return showTask(db, index, os.Stdout)
+			format, ok := parseShowTaskOutputFormat(showTaskOutputFmtStr)
+			if !ok {
+				return fmt.Errorf("%w; allowed values: %v", errInvalidShowTaskOutputFmtProvided, showTaskOutputFormats())
+			}
+
+			return showTask(db, index, format, os.Stdout)
 		},
 	}
 
@@ -472,6 +479,7 @@ Sorry for breaking the upgrade step!
 	tasksCmd.PersistentFlags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
 
 	listTasksCmd.Flags().Uint16VarP(&numListTasks, "num", "n", numListTasksDefault, "number of tasks to list")
+	showTaskCmd.Flags().StringVarP(&showTaskOutputFmtStr, "format", "f", "plain", fmt.Sprintf("output format to use, possible values: %v", showTaskOutputFormats()))
 
 	importCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	importCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
