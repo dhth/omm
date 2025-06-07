@@ -45,5 +45,5 @@ jobs:
       - name: Run current version
         run: |
           /var/tmp/omm_head --db-path=/var/tmp/throwaway.db 'test: a task from PR HEAD'
-          /var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks
+          /var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks list
           ./.github/scripts/checknumtasks.sh "$(/var/tmp/omm_head --db-path=/var/tmp/throwaway.db tasks | wc -l | xargs)" 2

@@ -33,5 +33,5 @@ jobs:
         run: |
           cat assets/sample-tasks.txt | ./omm import
           ./omm 'test: a task'
-          ./omm tasks
+          ./omm tasks list
           ./.github/scripts/checknumtasks.sh "$(./omm tasks | wc -l | xargs)" 11
