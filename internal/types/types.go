@@ -39,17 +39,17 @@ var (
 )
 
 type TaskDetails struct {
-	Summary string
-	Context *string
+	Summary string  `json:"summary"`
+	Context *string `json:"context"`
 }
 
 type Task struct {
 	ID        uint64    `json:"-"`
 	Summary   string    `json:"summary"`
 	Context   *string   `json:"context"`
-	Active    bool      `json:"-"`
-	CreatedAt time.Time `json:"-"`
-	UpdatedAt time.Time `json:"-"`
+	Active    bool      `json:"active"`
+	CreatedAt time.Time `json:"created-at"`
+	UpdatedAt time.Time `json:"updated-at"`
 }
 
 func (t Task) GetDetails() TaskDetails {

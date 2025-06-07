@@ -334,6 +334,60 @@ LIMIT ?;
 	return tasks, nil
 }
 
+func FetchTasksThatMatchQuery(db *sql.DB, query string, active bool, limit uint16) ([]types.Task, error) {
+	var tasks []types.Task
+
+	searchTerm := fmt.Sprintf("%%%s%%", query)
+	rows, err := db.Query(`
+SELECT
+    t.id,
+    t.summary,
+    t.context,
+    t.created_at,
+    t.updated_at
+FROM
+    task t
+WHERE
+    (
+        t.summary LIKE ?
+        OR t.context LIKE ?
+    )
+    AND t.active IS ?
+ORDER BY
+    t.updated_at DESC
+LIMIT
+    ?;
+`, searchTerm, searchTerm, active, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var entry types.Task
+		err = rows.Scan(&entry.ID,
+			&entry.Summary,
+			&entry.Context,
+			&entry.CreatedAt,
+			&entry.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		entry.CreatedAt = entry.CreatedAt.Local()
+		entry.UpdatedAt = entry.UpdatedAt.Local()
+		entry.Active = true
+		tasks = append(tasks, entry)
+
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
+}
+
 func FetchNthActiveTask(db *sql.DB, index uint64) (types.Task, bool, error) {
 	var zero types.Task
 

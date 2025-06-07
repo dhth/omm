@@ -146,6 +146,8 @@ func NewRootCommand() (*cobra.Command, error) {
 		circularNav           bool
 		numListTasks          uint16
 		showTaskOutputFmtStr  string
+		numSearchTasks        uint16
+		searchTasksActive     bool
 	)
 
 	rootCmd := &cobra.Command{
@@ -370,6 +372,15 @@ Sorry for breaking the upgrade step!
 		},
 	}
 
+	searchTasksCmd := &cobra.Command{
+		Use:   "search <QUERY>",
+		Short: "Search tasks",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			return searchTasks(db, args[0], searchTasksActive, numSearchTasks, os.Stdout)
+		},
+	}
+
 	showTaskCmd := &cobra.Command{
 		Use:   "show <INDEX>",
 		Short: "Show task",
@@ -480,6 +491,8 @@ Sorry for breaking the upgrade step!
 
 	listTasksCmd.Flags().Uint16VarP(&numListTasks, "num", "n", numListTasksDefault, "number of tasks to list")
 	showTaskCmd.Flags().StringVarP(&showTaskOutputFmtStr, "format", "f", "plain", fmt.Sprintf("output format to use, possible values: %v", showTaskOutputFormats()))
+	searchTasksCmd.Flags().Uint16VarP(&numSearchTasks, "num", "n", numListTasksDefault, "number of tasks to list")
+	searchTasksCmd.Flags().BoolVar(&searchTasksActive, "active", true, "active status to use as a filter")
 
 	importCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	importCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
@@ -487,6 +500,7 @@ Sorry for breaking the upgrade step!
 	guideCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
 
 	tasksCmd.AddCommand(listTasksCmd)
+	tasksCmd.AddCommand(searchTasksCmd)
 	tasksCmd.AddCommand(showTaskCmd)
 
 	rootCmd.AddCommand(importCmd)
