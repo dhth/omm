@@ -12,6 +12,7 @@ import (
 	"github.com/charmbracelet/glamour"
 	"github.com/charmbracelet/lipgloss"
 	pers "github.com/dhth/omm/internal/persistence"
+	"github.com/dhth/omm/internal/types"
 )
 
 const (
@@ -96,6 +97,7 @@ type Model struct {
 	taskDetailsMdRenderer *glamour.TermRenderer
 	prefixSearchUse       prefixUse
 	showDeletePrompt      bool
+	yankedTaskDetails     *types.TaskDetails
 }
 
 func (m Model) Init() tea.Cmd {

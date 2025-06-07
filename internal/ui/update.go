@@ -4,7 +4,7 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
-	"sort"
+	"slices"
 	"strings"
 	"time"
 
@@ -80,7 +80,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch m.taskChange {
 				case taskInsert:
 					now := time.Now()
-					cmd = createTask(m.db, taskSummary, now, now)
+					cmd = createTask(m.db, m.taskIndex, taskSummary, nil, now, now)
 					cmds = append(cmds, cmd)
 					m.taskInput.Reset()
 					m.activeView = taskListView
@@ -138,9 +138,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					break
 				}
 
-				sort.Slice(prefixes, func(i, j int) bool {
-					return prefixes[i] < prefixes[j]
-				})
+				slices.Sort(prefixes)
 
 				pi := make([]list.Item, len(prefixes))
 				for i, p := range prefixes {
@@ -550,9 +548,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			itemAbove := m.taskList.Items()[ci+1]
+			itemBelow := m.taskList.Items()[ci+1]
 			currentItem := m.taskList.Items()[ci]
-			m.taskList.SetItem(ci, itemAbove)
+			m.taskList.SetItem(ci, itemBelow)
 			m.taskList.SetItem(ci+1, currentItem)
 			m.taskList.Select(ci + 1)
 
@@ -805,9 +803,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			sort.Slice(prefixes, func(i, j int) bool {
-				return prefixes[i] < prefixes[j]
-			})
+			slices.Sort(prefixes)
 
 			pi := make([]list.Item, len(prefixes))
 			for i, p := range prefixes {
@@ -1261,6 +1257,64 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			cmds = append(cmds, copyContextToClipboard(*t.Context))
+
+		case "Y":
+			if m.activeView != taskListView && m.activeView != archivedTaskListView && m.activeView != taskDetailsView {
+				break
+			}
+
+			var t types.Task
+			var ok bool
+
+			switch m.activeView {
+			case taskListView:
+				t, ok = m.taskList.SelectedItem().(types.Task)
+			case archivedTaskListView:
+				t, ok = m.archivedTaskList.SelectedItem().(types.Task)
+			case taskDetailsView:
+				switch m.activeTaskList {
+				case activeTasks:
+					t, ok = m.taskList.SelectedItem().(types.Task)
+				case archivedTasks:
+					t, ok = m.archivedTaskList.SelectedItem().(types.Task)
+				}
+			}
+
+			if !ok {
+				break
+			}
+
+			yankedTaskDetails := t.GetDetails()
+			m.yankedTaskDetails = &yankedTaskDetails
+			m.successMsg = "yanked!"
+
+		case "p":
+			if m.activeView != taskListView {
+				break
+			}
+
+			if m.yankedTaskDetails == nil {
+				m.errorMsg = "nothing yanked!"
+				break
+			}
+
+			now := time.Now()
+			cmd = createTask(m.db, m.taskList.Index()+1, m.yankedTaskDetails.Summary, m.yankedTaskDetails.Context, now, now)
+			cmds = append(cmds, cmd)
+
+		case "P":
+			if m.activeView != taskListView {
+				break
+			}
+
+			if m.yankedTaskDetails == nil {
+				m.errorMsg = "nothing yanked!"
+				break
+			}
+
+			now := time.Now()
+			cmd = createTask(m.db, m.taskList.Index(), m.yankedTaskDetails.Summary, m.yankedTaskDetails.Context, now, now)
+			cmds = append(cmds, cmd)
 		}
 
 	case HideHelpMsg:
@@ -1272,17 +1326,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
-		t := types.Task{
-			ID:        msg.id,
-			Summary:   msg.taskSummary,
-			Active:    true,
-			CreatedAt: msg.createdAt,
-			UpdatedAt: msg.updatedAt,
-		}
-		entry := list.Item(t)
-		cmd = m.taskList.InsertItem(m.taskIndex, entry)
+		entry := list.Item(msg.task)
+		cmd = m.taskList.InsertItem(msg.index, entry)
 		cmds = append(cmds, cmd)
-		m.taskList.Select(m.taskIndex)
+		m.taskList.Select(msg.index)
 
 		cmd = m.updateActiveTasksSequence()
 		cmds = append(cmds, cmd)

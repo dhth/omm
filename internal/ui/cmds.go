@@ -26,10 +26,18 @@ func updateTaskSequence(db *sql.DB, sequence []uint64) tea.Cmd {
 	}
 }
 
-func createTask(db *sql.DB, summary string, createdAt, updatedAt time.Time) tea.Cmd {
+func createTask(db *sql.DB, index int, summary string, context *string, createdAt, updatedAt time.Time) tea.Cmd {
 	return func() tea.Msg {
-		id, err := pers.InsertTask(db, summary, createdAt, updatedAt)
-		return taskCreatedMsg{id, summary, createdAt, updatedAt, err}
+		id, err := pers.InsertTask(db, summary, context, createdAt, updatedAt)
+		task := types.Task{
+			ID:        id,
+			Summary:   summary,
+			Context:   context,
+			Active:    true,
+			CreatedAt: createdAt,
+			UpdatedAt: updatedAt,
+		}
+		return taskCreatedMsg{index, task, err}
 	}
 }
 

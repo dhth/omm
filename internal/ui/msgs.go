@@ -13,11 +13,9 @@ type taskSequenceUpdatedMsg struct {
 }
 
 type taskCreatedMsg struct {
-	id          uint64
-	taskSummary string
-	createdAt   time.Time
-	updatedAt   time.Time
-	err         error
+	index int
+	task  types.Task
+	err   error
 }
 
 type taskDeletedMsg struct {

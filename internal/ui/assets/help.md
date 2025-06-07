@@ -43,6 +43,7 @@ ctrl+r             reload task lists
 /                  filter list by task prefix
 ctrl+p             filter by prefix via the prefix selection list
 y                  copy selected task's context to system clipboard
+Y                  yank current task
 v                  toggle between compact and spacious view
 ```
 
@@ -59,6 +60,8 @@ u                  update task summary
 E                  move task to the end
 J                  move task one position down
 K                  move task one position up
+p                  paste yanked task below
+P                  paste yanked task above
 ```
 
 **Note**: Most actions on tasks are not allowed when the tasks list is in a
@@ -79,6 +82,7 @@ ctrl+p             choose/change prefix via the prefix selection list
 h/←/→/l            move backwards/forwards when in the task details view
 y                  copy current task's context to system clipboard
 B                  open all bookmarks added to current task
+Y                  yank current task
 ```
 
 ### Task Bookmarks List
