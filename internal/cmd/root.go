@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,23 +33,24 @@ const (
 	defaultDataDirWindows   = "AppData/Local"
 	configFileName          = "omm/omm.toml"
 	dbFileName              = "omm/omm.db"
-	printTasksDefault       = 20
+	numListTasksDefault     = 20
 	taskListTitleMaxLen     = 8
 )
 
 var (
-	errCouldntGetHomeDir        = errors.New("couldn't get home directory")
-	errConfigFileExtIncorrect   = errors.New("config file must be a TOML file")
-	errConfigFileDoesntExist    = errors.New("config file does not exist")
-	errDBFileExtIncorrect       = errors.New("db file needs to end with .db")
-	errMaxImportLimitExceeded   = errors.New("import limit exceeded")
-	errNothingToImport          = errors.New("nothing to import")
-	errListDensityIncorrect     = errors.New("list density is incorrect; valid values: compact/spacious")
-	errCouldntCreateDBDirectory = errors.New("couldn't create directory for database")
-	errCouldntCreateDB          = errors.New("couldn't create database")
-	errCouldntInitializeDB      = errors.New("couldn't initialize database")
-	errCouldntOpenDB            = errors.New("couldn't open database")
-	errCouldntSetupGuide        = errors.New("couldn't set up guided walkthrough")
+	errCouldntGetHomeDir                = errors.New("couldn't get home directory")
+	errConfigFileExtIncorrect           = errors.New("config file must be a TOML file")
+	errConfigFileDoesntExist            = errors.New("config file does not exist")
+	errDBFileExtIncorrect               = errors.New("db file needs to end with .db")
+	errMaxImportLimitExceeded           = errors.New("import limit exceeded")
+	errNothingToImport                  = errors.New("nothing to import")
+	errListDensityIncorrect             = errors.New("list density is incorrect; valid values: compact/spacious")
+	errCouldntCreateDBDirectory         = errors.New("couldn't create directory for database")
+	errCouldntCreateDB                  = errors.New("couldn't create database")
+	errCouldntInitializeDB              = errors.New("couldn't initialize database")
+	errCouldntOpenDB                    = errors.New("couldn't open database")
+	errCouldntSetupGuide                = errors.New("couldn't set up guided walkthrough")
+	errInvalidValueForTaskIndexProvided = errors.New("invalid value for task index provided")
 
 	//go:embed assets/CHANGELOG.md
 	updateContents string
@@ -134,7 +136,6 @@ func NewRootCommand() (*cobra.Command, error) {
 		db                    *sql.DB
 		taskListColor         string
 		archivedTaskListColor string
-		printTasksNum         uint8
 		taskListTitle         string
 		listDensityFlagInp    string
 		editorFlagInp         string
@@ -142,6 +143,7 @@ func NewRootCommand() (*cobra.Command, error) {
 		showContextFlagInp    bool
 		confirmBeforeDeletion bool
 		circularNav           bool
+		numListTasks          uint16
 	)
 
 	rootCmd := &cobra.Command{
@@ -355,9 +357,28 @@ Sorry for breaking the upgrade step!
 
 	tasksCmd := &cobra.Command{
 		Use:   "tasks",
-		Short: "Output tasks tracked by omm to stdout",
+		Short: "Interact with tasks tracked by omm",
+	}
+
+	listTasksCmd := &cobra.Command{
+		Use:   "list",
+		Short: "List tasks",
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return printTasks(db, printTasksNum, os.Stdout)
+			return printTasks(db, numListTasks, os.Stdout)
+		},
+	}
+
+	showTaskCmd := &cobra.Command{
+		Use:   "show <INDEX>",
+		Short: "Show task",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(_ *cobra.Command, args []string) error {
+			index, err := strconv.ParseUint(args[0], 10, 0)
+			if err != nil {
+				return fmt.Errorf("%w; value needs to be an integer >= 0", errInvalidValueForTaskIndexProvided)
+			}
+
+			return showTask(db, index, os.Stdout)
 		},
 	}
 
@@ -447,14 +468,18 @@ Sorry for breaking the upgrade step!
 	rootCmd.Flags().BoolVar(&confirmBeforeDeletion, "confirm-before-deletion", true, "whether to ask for confirmation before deleting a task")
 	rootCmd.Flags().BoolVar(&circularNav, "circular-nav", false, "whether to enable circular navigation for lists (cycle back to the first entry from the last, and vice versa)")
 
-	tasksCmd.Flags().Uint8VarP(&printTasksNum, "num", "n", printTasksDefault, "number of tasks to print")
-	tasksCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
-	tasksCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
+	tasksCmd.PersistentFlags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
+	tasksCmd.PersistentFlags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
+
+	listTasksCmd.Flags().Uint16VarP(&numListTasks, "num", "n", numListTasksDefault, "number of tasks to list")
 
 	importCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	importCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
 
 	guideCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
+
+	tasksCmd.AddCommand(listTasksCmd)
+	tasksCmd.AddCommand(showTaskCmd)
 
 	rootCmd.AddCommand(importCmd)
 	rootCmd.AddCommand(tasksCmd)
