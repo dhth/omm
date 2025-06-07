@@ -38,6 +38,11 @@ var (
 	ErrTaskSummaryTooLong   = errors.New("task summary is too long")
 )
 
+type TaskDetails struct {
+	Summary string
+	Context *string
+}
+
 type Task struct {
 	ID        uint64
 	Summary   string
@@ -45,6 +50,19 @@ type Task struct {
 	Active    bool
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+func (t Task) GetDetails() TaskDetails {
+	var context *string
+	if t.Context != nil {
+		c := *t.Context
+		context = &c
+	}
+
+	return TaskDetails{
+		Summary: t.Summary,
+		Context: context,
+	}
 }
 
 type ContextBookmark string
