@@ -38,20 +38,21 @@ const (
 )
 
 var (
-	errCouldntGetHomeDir                = errors.New("couldn't get home directory")
-	errConfigFileExtIncorrect           = errors.New("config file must be a TOML file")
-	errConfigFileDoesntExist            = errors.New("config file does not exist")
-	errDBFileExtIncorrect               = errors.New("db file needs to end with .db")
-	errMaxImportLimitExceeded           = errors.New("import limit exceeded")
-	errNothingToImport                  = errors.New("nothing to import")
-	errListDensityIncorrect             = errors.New("list density is incorrect; valid values: compact/spacious")
-	errCouldntCreateDBDirectory         = errors.New("couldn't create directory for database")
-	errCouldntCreateDB                  = errors.New("couldn't create database")
-	errCouldntInitializeDB              = errors.New("couldn't initialize database")
-	errCouldntOpenDB                    = errors.New("couldn't open database")
-	errCouldntSetupGuide                = errors.New("couldn't set up guided walkthrough")
-	errInvalidValueForTaskIndexProvided = errors.New("invalid value for task index provided")
-	errInvalidTaskOutputFmtProvided     = errors.New("invalid value for output format provided")
+	errCouldntGetHomeDir               = errors.New("couldn't get home directory")
+	errConfigFileExtIncorrect          = errors.New("config file must be a TOML file")
+	errConfigFileDoesntExist           = errors.New("config file does not exist")
+	errDBFileExtIncorrect              = errors.New("db file needs to end with .db")
+	errMaxImportLimitExceeded          = errors.New("import limit exceeded")
+	errNothingToImport                 = errors.New("nothing to import")
+	errListDensityIncorrect            = errors.New("list density is incorrect; valid values: compact/spacious")
+	errCouldntCreateDBDirectory        = errors.New("couldn't create directory for database")
+	errCouldntCreateDB                 = errors.New("couldn't create database")
+	errCouldntInitializeDB             = errors.New("couldn't initialize database")
+	errCouldntOpenDB                   = errors.New("couldn't open database")
+	errCouldntSetupGuide               = errors.New("couldn't set up guided walkthrough")
+	errInvalidTaskIndexProvided        = errors.New("invalid task index provided")
+	errInvalidTaskOutputFmtProvided    = errors.New("invalid output format provided")
+	errInvalidTaskStatusFilterProvided = errors.New("invalid status filter provided")
 
 	//go:embed assets/CHANGELOG.md
 	updateContents string
@@ -147,7 +148,7 @@ func NewRootCommand() (*cobra.Command, error) {
 		taskOutputFmtStr      string
 		tasksLimit            uint16
 		tasksOffset           uint16
-		searchTasksActive     bool
+		statusFilterStr       string
 	)
 
 	rootCmd := &cobra.Command{
@@ -368,13 +369,23 @@ Sorry for breaking the upgrade step!
 		Use:   "list",
 		Short: "List tasks",
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return listTasks(db, tasksLimit, tasksOffset, os.Stdout)
+			format, ok := parseTaskOutputFormat(taskOutputFmtStr)
+			if !ok {
+				return fmt.Errorf("%w; allowed values: %v", errInvalidTaskOutputFmtProvided, taskOutputFormats())
+			}
+
+			statusFilter, ok := types.ParseTaskStatusFilter(statusFilterStr)
+			if !ok {
+				return fmt.Errorf("%w; allowed values: %v", errInvalidTaskStatusFilterProvided, types.TaskStatusFilterValues())
+			}
+
+			return listTasks(db, statusFilter, tasksLimit, tasksOffset, format, os.Stdout)
 		},
 	}
 
 	searchTasksCmd := &cobra.Command{
 		Use:   "search <QUERY>",
-		Short: "Search tasks",
+		Short: "Search tasks based on a query",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			format, ok := parseTaskOutputFormat(taskOutputFmtStr)
@@ -382,18 +393,23 @@ Sorry for breaking the upgrade step!
 				return fmt.Errorf("%w; allowed values: %v", errInvalidTaskOutputFmtProvided, taskOutputFormats())
 			}
 
-			return searchTasks(db, args[0], format, searchTasksActive, tasksLimit, tasksOffset, os.Stdout)
+			statusFilter, ok := types.ParseTaskStatusFilter(statusFilterStr)
+			if !ok {
+				return fmt.Errorf("%w; allowed values: %v", errInvalidTaskStatusFilterProvided, types.TaskStatusFilterValues())
+			}
+
+			return searchTasks(db, args[0], statusFilter, tasksLimit, tasksOffset, format, os.Stdout)
 		},
 	}
 
 	showTaskCmd := &cobra.Command{
 		Use:   "show <INDEX>",
-		Short: "Show task",
+		Short: "Show details for the task at a specific position in omm's list",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
 			index, err := strconv.ParseUint(args[0], 10, 0)
 			if err != nil || index == 0 {
-				return fmt.Errorf("%w; value needs to be an integer >= 1", errInvalidValueForTaskIndexProvided)
+				return fmt.Errorf("%w; value needs to be an integer >= 1", errInvalidTaskIndexProvided)
 			}
 
 			format, ok := parseTaskOutputFormat(taskOutputFmtStr)
@@ -494,15 +510,17 @@ Sorry for breaking the upgrade step!
 	tasksCmd.PersistentFlags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	tasksCmd.PersistentFlags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
 
+	listTasksCmd.Flags().StringVarP(&taskOutputFmtStr, "format", "f", "plain", fmt.Sprintf("output format to use, possible values: %v", taskOutputFormats()))
 	listTasksCmd.Flags().Uint16VarP(&tasksLimit, "limit", "l", numListTasksDefault, "number of tasks to list")
 	listTasksCmd.Flags().Uint16VarP(&tasksOffset, "offset", "o", 0, "offset to use")
+	listTasksCmd.Flags().StringVarP(&statusFilterStr, "status", "s", "active", fmt.Sprintf("status to use as a filter; possible values: %v", types.TaskStatusFilterValues()))
 
 	showTaskCmd.Flags().StringVarP(&taskOutputFmtStr, "format", "f", "plain", fmt.Sprintf("output format to use, possible values: %v", taskOutputFormats()))
 
 	searchTasksCmd.Flags().StringVarP(&taskOutputFmtStr, "format", "f", "plain", fmt.Sprintf("output format to use, possible values: %v", taskOutputFormats()))
 	searchTasksCmd.Flags().Uint16VarP(&tasksLimit, "limit", "l", numListTasksDefault, "number of tasks to list")
 	searchTasksCmd.Flags().Uint16VarP(&tasksOffset, "offset", "o", 0, "offset to use")
-	searchTasksCmd.Flags().BoolVar(&searchTasksActive, "active", true, "active status to use as a filter")
+	searchTasksCmd.Flags().StringVarP(&statusFilterStr, "status", "s", "active", fmt.Sprintf("status to use as a filter; possible values: %v", types.TaskStatusFilterValues()))
 
 	importCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	importCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))

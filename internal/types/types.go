@@ -48,8 +48,8 @@ type Task struct {
 	Summary   string    `json:"summary"`
 	Context   *string   `json:"context"`
 	Active    bool      `json:"active"`
-	CreatedAt time.Time `json:"created-at"`
-	UpdatedAt time.Time `json:"updated-at"`
+	CreatedAt time.Time `json:"-"`
+	UpdatedAt time.Time `json:"-"`
 }
 
 func (t Task) GetDetails() TaskDetails {
@@ -188,4 +188,29 @@ func (p TaskPrefix) Description() string {
 
 func (p TaskPrefix) FilterValue() string {
 	return string(p)
+}
+
+type TaskStatusFilter uint8
+
+const (
+	TaskStatusActive TaskStatusFilter = iota
+	TaskStatusInactive
+	TaskStatusAny
+)
+
+func TaskStatusFilterValues() []string {
+	return []string{"active", "inactive", "any"}
+}
+
+func ParseTaskStatusFilter(value string) (TaskStatusFilter, bool) {
+	switch value {
+	case "active":
+		return TaskStatusActive, true
+	case "inactive":
+		return TaskStatusInactive, true
+	case "any":
+		return TaskStatusAny, true
+	default:
+		return TaskStatusAny, false
+	}
 }

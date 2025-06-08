@@ -342,30 +342,33 @@ LIMIT
 	return tasks, nil
 }
 
-func FetchTasksThatMatchQuery(db *sql.DB, query string, active bool, limit, offset uint16) ([]types.Task, error) {
+func FetchTasks(db *sql.DB, statusFilter types.TaskStatusFilter, limit, offset uint16) ([]types.Task, error) {
 	var tasks []types.Task
 
-	searchTerm := fmt.Sprintf("%%%s%%", query)
-	rows, err := db.Query(`
+	var statusFilterStr string
+	switch statusFilter {
+	case types.TaskStatusActive:
+		statusFilterStr = "WHERE t.active IS true"
+	case types.TaskStatusInactive:
+		statusFilterStr = "WHERE t.active IS false"
+	}
+
+	rows, err := db.Query(fmt.Sprintf(`
 SELECT
     t.id,
     t.summary,
     t.context,
+	t.active,
     t.created_at,
     t.updated_at
 FROM
     task t
-WHERE
-    (
-        t.summary LIKE ?
-        OR t.context LIKE ?
-    )
-    AND t.active IS ?
+	%s
 ORDER BY
     t.updated_at DESC
 LIMIT
     ? OFFSET ?;
-`, searchTerm, searchTerm, active, limit, offset)
+`, statusFilterStr), limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -376,6 +379,7 @@ LIMIT
 		err = rows.Scan(&entry.ID,
 			&entry.Summary,
 			&entry.Context,
+			&entry.Active,
 			&entry.CreatedAt,
 			&entry.UpdatedAt,
 		)
@@ -384,7 +388,69 @@ LIMIT
 		}
 		entry.CreatedAt = entry.CreatedAt.Local()
 		entry.UpdatedAt = entry.UpdatedAt.Local()
-		entry.Active = true
+		tasks = append(tasks, entry)
+
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
+}
+
+func FetchTasksThatMatchQuery(db *sql.DB, query string, statusFilter types.TaskStatusFilter, limit, offset uint16) ([]types.Task, error) {
+	var tasks []types.Task
+
+	var statusFilterStr string
+	switch statusFilter {
+	case types.TaskStatusActive:
+		statusFilterStr = "AND t.active IS true"
+	case types.TaskStatusInactive:
+		statusFilterStr = "AND t.active IS false"
+	}
+
+	searchTerm := fmt.Sprintf("%%%s%%", query)
+	rows, err := db.Query(fmt.Sprintf(`
+SELECT
+    t.id,
+    t.summary,
+    t.context,
+	t.active,
+    t.created_at,
+    t.updated_at
+FROM
+    task t
+WHERE
+    (
+        t.summary LIKE ?
+        OR t.context LIKE ?
+    )
+	%s
+ORDER BY
+    t.updated_at DESC
+LIMIT
+    ? OFFSET ?;
+`, statusFilterStr), searchTerm, searchTerm, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var entry types.Task
+		err = rows.Scan(&entry.ID,
+			&entry.Summary,
+			&entry.Context,
+			&entry.Active,
+			&entry.CreatedAt,
+			&entry.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		entry.CreatedAt = entry.CreatedAt.Local()
+		entry.UpdatedAt = entry.UpdatedAt.Local()
 		tasks = append(tasks, entry)
 
 	}

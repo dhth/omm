@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	pers "github.com/dhth/omm/internal/persistence"
+	"github.com/dhth/omm/internal/types"
 )
 
 var (
@@ -17,8 +18,14 @@ var (
 	errCouldntSearchTasks       = errors.New("couldn't search tasks")
 )
 
-func listTasks(db *sql.DB, limit, offset uint16, writer io.Writer) error {
-	tasks, err := pers.FetchActiveTasks(db, limit, offset)
+func listTasks(db *sql.DB,
+	statusFilter types.TaskStatusFilter,
+	limit,
+	offset uint16,
+	format taskOutputFormat,
+	writer io.Writer,
+) error {
+	tasks, err := pers.FetchTasks(db, statusFilter, limit, offset)
 	if err != nil {
 		return err
 	}
@@ -27,12 +34,21 @@ func listTasks(db *sql.DB, limit, offset uint16, writer io.Writer) error {
 		return nil
 	}
 
-	summaries := make([]string, len(tasks))
-	for i, task := range tasks {
-		summaries[i] = task.Summary
+	switch format {
+	case taskOutputPlain:
+		summaries := make([]string, len(tasks))
+		for i, task := range tasks {
+			summaries[i] = task.Summary
+		}
+		fmt.Fprintln(writer, strings.Join(summaries, "\n"))
+	case taskOutputJSON:
+		data, err := json.MarshalIndent(tasks, "", "  ")
+		if err != nil {
+			return fmt.Errorf("%w: %s", errCouldntMarshalTaskToJSON, err.Error())
+		}
+		fmt.Fprintf(writer, "%s\n", data)
 	}
 
-	fmt.Fprintln(writer, strings.Join(summaries, "\n"))
 	return nil
 }
 
@@ -65,8 +81,15 @@ func showTask(db *sql.DB, index uint64, format taskOutputFormat, writer io.Write
 	return nil
 }
 
-func searchTasks(db *sql.DB, query string, format taskOutputFormat, active bool, limit, offset uint16, writer io.Writer) error {
-	tasks, err := pers.FetchTasksThatMatchQuery(db, query, active, limit, offset)
+func searchTasks(db *sql.DB,
+	query string,
+	statusFilter types.TaskStatusFilter,
+	limit,
+	offset uint16,
+	format taskOutputFormat,
+	writer io.Writer,
+) error {
+	tasks, err := pers.FetchTasksThatMatchQuery(db, query, statusFilter, limit, offset)
 	if err != nil {
 		return fmt.Errorf("%w: %s", errCouldntSearchTasks, err.Error())
 	}
