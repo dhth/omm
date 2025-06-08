@@ -3,6 +3,8 @@ package persistence
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/dhth/omm/internal/types"
@@ -12,6 +14,9 @@ const (
 	TaskNumLimit    = 300
 	ContextMaxBytes = 1024 * 1024
 )
+
+// TODO: wrap all unexpected sql errors with this
+var errCouldntExecuteQuery = errors.New("couldn't execute query")
 
 func fetchTaskSequence(db *sql.DB) ([]uint64, error) {
 	var seq []byte
@@ -133,7 +138,7 @@ func InsertTasks(db *sql.DB, tasks []types.Task, insertAtTop bool) (int64, error
 	query := `INSERT INTO task (summary, context, active, created_at, updated_at)
 VALUES `
 
-	values := make([]interface{}, 0, len(tasks)*4)
+	values := make([]any, 0, len(tasks)*4)
 
 	for i, t := range tasks {
 		if i > 0 {
@@ -288,17 +293,25 @@ WHERE id = ?
 	return nil
 }
 
-func FetchActiveTasks(db *sql.DB, limit int) ([]types.Task, error) {
+func FetchActiveTasks(db *sql.DB, limit, offset uint16) ([]types.Task, error) {
 	var tasks []types.Task
 
 	rows, err := db.Query(`
-SELECT t.id, t.summary, t.context, t.created_at, t.updated_at
-FROM task_sequence s
-JOIN json_each(s.sequence) j ON CAST(j.value AS INTEGER) = t.id
-JOIN task t ON t.id = j.value
-ORDER BY j.key
-LIMIT ?;
-`, limit)
+SELECT
+    t.id,
+    t.summary,
+    t.context,
+    t.created_at,
+    t.updated_at
+FROM
+    task_sequence s
+    JOIN json_each(s.sequence) j ON CAST(j.value AS INTEGER) = t.id
+    JOIN task t ON t.id = j.value
+ORDER BY
+    j.key
+LIMIT
+    ? OFFSET ?;
+`, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -329,7 +342,173 @@ LIMIT ?;
 	return tasks, nil
 }
 
-func FetchInActiveTasks(db *sql.DB, limit int) ([]types.Task, error) {
+func FetchTasks(db *sql.DB, statusFilter types.TaskStatusFilter, limit, offset uint16) ([]types.Task, error) {
+	var tasks []types.Task
+
+	var statusFilterStr string
+	switch statusFilter {
+	case types.TaskStatusActive:
+		statusFilterStr = "WHERE t.active IS true"
+	case types.TaskStatusInactive:
+		statusFilterStr = "WHERE t.active IS false"
+	}
+
+	rows, err := db.Query(fmt.Sprintf(`
+SELECT
+    t.id,
+    t.summary,
+    t.context,
+	t.active,
+    t.created_at,
+    t.updated_at
+FROM
+    task t
+	%s
+ORDER BY
+    t.updated_at DESC
+LIMIT
+    ? OFFSET ?;
+`, statusFilterStr), limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var entry types.Task
+		err = rows.Scan(&entry.ID,
+			&entry.Summary,
+			&entry.Context,
+			&entry.Active,
+			&entry.CreatedAt,
+			&entry.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		entry.CreatedAt = entry.CreatedAt.Local()
+		entry.UpdatedAt = entry.UpdatedAt.Local()
+		tasks = append(tasks, entry)
+
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
+}
+
+func FetchTasksThatMatchQuery(db *sql.DB, query string, statusFilter types.TaskStatusFilter, limit, offset uint16) ([]types.Task, error) {
+	var tasks []types.Task
+
+	var statusFilterStr string
+	switch statusFilter {
+	case types.TaskStatusActive:
+		statusFilterStr = "AND t.active IS true"
+	case types.TaskStatusInactive:
+		statusFilterStr = "AND t.active IS false"
+	}
+
+	searchTerm := fmt.Sprintf("%%%s%%", query)
+	rows, err := db.Query(fmt.Sprintf(`
+SELECT
+    t.id,
+    t.summary,
+    t.context,
+	t.active,
+    t.created_at,
+    t.updated_at
+FROM
+    task t
+WHERE
+    (
+        t.summary LIKE ?
+        OR t.context LIKE ?
+    )
+	%s
+ORDER BY
+    t.updated_at DESC
+LIMIT
+    ? OFFSET ?;
+`, statusFilterStr), searchTerm, searchTerm, limit, offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var entry types.Task
+		err = rows.Scan(&entry.ID,
+			&entry.Summary,
+			&entry.Context,
+			&entry.Active,
+			&entry.CreatedAt,
+			&entry.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		entry.CreatedAt = entry.CreatedAt.Local()
+		entry.UpdatedAt = entry.UpdatedAt.Local()
+		tasks = append(tasks, entry)
+
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return tasks, nil
+}
+
+func FetchNthActiveTask(db *sql.DB, index uint64) (types.Task, bool, error) {
+	var zero types.Task
+
+	// QueryRow always returns a non-nil value
+	row := db.QueryRow(`
+SELECT
+    id,
+    summary,
+    active,
+    context,
+    created_at,
+    updated_at
+FROM
+    task
+WHERE
+    id = (
+        SELECT
+            json_extract(sequence, '$[' || ? || ']')
+        FROM
+            task_sequence
+        WHERE
+            id = 1
+    );
+`, index)
+
+	if row.Err() != nil {
+		return zero, false, fmt.Errorf("%w, %s", errCouldntExecuteQuery, row.Err().Error())
+	}
+
+	var task types.Task
+	err := row.Scan(&task.ID,
+		&task.Summary,
+		&task.Active,
+		&task.Context,
+		&task.CreatedAt,
+		&task.UpdatedAt,
+	)
+	if errors.Is(err, sql.ErrNoRows) {
+		return zero, false, nil
+	} else if err != nil {
+		return zero, true, err
+	}
+
+	return task, true, nil
+}
+
+func FetchInActiveTasks(db *sql.DB, limit uint16) ([]types.Task, error) {
 	var tasks []types.Task
 
 	rows, err := db.Query(`
