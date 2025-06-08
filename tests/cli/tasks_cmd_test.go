@@ -128,7 +128,7 @@ func TestTasksCmd(t *testing.T) {
 		// THEN
 		assert.Error(t, err)
 
-		assert.Contains(t, string(output), "invalid value for task index provided;")
+		assert.Contains(t, string(output), "invalid task index provided;")
 	})
 
 	t.Run("Showing task details for an invalid index fails", func(t *testing.T) {
@@ -163,6 +163,6 @@ func TestTasksCmd(t *testing.T) {
 		// THEN
 		assert.Error(t, err)
 
-		assert.Contains(t, string(output), "invalid value for output format provided;")
+		assert.Contains(t, string(output), "invalid output format provided;")
 	})
 }
