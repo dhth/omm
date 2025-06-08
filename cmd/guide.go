@@ -37,6 +37,7 @@ var (
 		{summary: "actions: adding context"},
 		{summary: "actions: markdown in context"},
 		{summary: "actions: filtering tasks"},
+		{summary: "actions: duplicating tasks"},
 		{summary: "actions: quick filtering via a list"},
 		{summary: "actions: deleting a task"},
 		{summary: "domain: task bookmarks"},

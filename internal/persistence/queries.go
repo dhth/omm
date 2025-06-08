@@ -98,17 +98,17 @@ WHERE id = 1;
 	return nil
 }
 
-func InsertTask(db *sql.DB, summary string, createdAt, updatedAt time.Time) (uint64, error) {
+func InsertTask(db *sql.DB, summary string, context *string, createdAt, updatedAt time.Time) (uint64, error) {
 	stmt, err := db.Prepare(`
-INSERT INTO task (summary, active, created_at, updated_at)
-VALUES (?, true, ?, ?);
+INSERT INTO task (summary, context, active, created_at, updated_at)
+VALUES (?, ?, true, ?, ?);
 `)
 	if err != nil {
 		return 0, err
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(summary, createdAt.UTC(), updatedAt.UTC())
+	res, err := stmt.Exec(summary, context, createdAt.UTC(), updatedAt.UTC())
 	if err != nil {
 		return 0, err
 	}
