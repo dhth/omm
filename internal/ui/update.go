@@ -1298,6 +1298,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
+			if m.taskList.FilterState() != list.Unfiltered {
+				m.errorMsg = "you can only paste in an unfiltered state"
+				break
+			}
+
 			now := time.Now()
 			cmd = createTask(m.db, m.taskList.Index()+1, m.yankedTaskDetails.Summary, m.yankedTaskDetails.Context, now, now)
 			cmds = append(cmds, cmd)
@@ -1309,6 +1314,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			if m.yankedTaskDetails == nil {
 				m.errorMsg = "nothing yanked!"
+				break
+			}
+
+			if m.taskList.FilterState() != list.Unfiltered {
+				m.errorMsg = "you can only paste in an unfiltered state"
 				break
 			}
 
