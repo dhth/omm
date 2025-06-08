@@ -51,7 +51,7 @@ var (
 	errCouldntOpenDB                    = errors.New("couldn't open database")
 	errCouldntSetupGuide                = errors.New("couldn't set up guided walkthrough")
 	errInvalidValueForTaskIndexProvided = errors.New("invalid value for task index provided")
-	errInvalidShowTaskOutputFmtProvided = errors.New("invalid value for output format provided")
+	errInvalidTaskOutputFmtProvided     = errors.New("invalid value for output format provided")
 
 	//go:embed assets/CHANGELOG.md
 	updateContents string
@@ -144,9 +144,9 @@ func NewRootCommand() (*cobra.Command, error) {
 		showContextFlagInp    bool
 		confirmBeforeDeletion bool
 		circularNav           bool
-		numListTasks          uint16
-		showTaskOutputFmtStr  string
-		numSearchTasks        uint16
+		taskOutputFmtStr      string
+		tasksLimit            uint16
+		tasksOffset           uint16
 		searchTasksActive     bool
 	)
 
@@ -368,7 +368,7 @@ Sorry for breaking the upgrade step!
 		Use:   "list",
 		Short: "List tasks",
 		RunE: func(_ *cobra.Command, _ []string) error {
-			return printTasks(db, numListTasks, os.Stdout)
+			return listTasks(db, tasksLimit, tasksOffset, os.Stdout)
 		},
 	}
 
@@ -377,7 +377,12 @@ Sorry for breaking the upgrade step!
 		Short: "Search tasks",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(_ *cobra.Command, args []string) error {
-			return searchTasks(db, args[0], searchTasksActive, numSearchTasks, os.Stdout)
+			format, ok := parseTaskOutputFormat(taskOutputFmtStr)
+			if !ok {
+				return fmt.Errorf("%w; allowed values: %v", errInvalidTaskOutputFmtProvided, taskOutputFormats())
+			}
+
+			return searchTasks(db, args[0], format, searchTasksActive, tasksLimit, tasksOffset, os.Stdout)
 		},
 	}
 
@@ -391,9 +396,9 @@ Sorry for breaking the upgrade step!
 				return fmt.Errorf("%w; value needs to be an integer >= 1", errInvalidValueForTaskIndexProvided)
 			}
 
-			format, ok := parseShowTaskOutputFormat(showTaskOutputFmtStr)
+			format, ok := parseTaskOutputFormat(taskOutputFmtStr)
 			if !ok {
-				return fmt.Errorf("%w; allowed values: %v", errInvalidShowTaskOutputFmtProvided, showTaskOutputFormats())
+				return fmt.Errorf("%w; allowed values: %v", errInvalidTaskOutputFmtProvided, taskOutputFormats())
 			}
 
 			return showTask(db, index, format, os.Stdout)
@@ -489,9 +494,14 @@ Sorry for breaking the upgrade step!
 	tasksCmd.PersistentFlags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	tasksCmd.PersistentFlags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
 
-	listTasksCmd.Flags().Uint16VarP(&numListTasks, "num", "n", numListTasksDefault, "number of tasks to list")
-	showTaskCmd.Flags().StringVarP(&showTaskOutputFmtStr, "format", "f", "plain", fmt.Sprintf("output format to use, possible values: %v", showTaskOutputFormats()))
-	searchTasksCmd.Flags().Uint16VarP(&numSearchTasks, "num", "n", numListTasksDefault, "number of tasks to list")
+	listTasksCmd.Flags().Uint16VarP(&tasksLimit, "limit", "l", numListTasksDefault, "number of tasks to list")
+	listTasksCmd.Flags().Uint16VarP(&tasksOffset, "offset", "o", 0, "offset to use")
+
+	showTaskCmd.Flags().StringVarP(&taskOutputFmtStr, "format", "f", "plain", fmt.Sprintf("output format to use, possible values: %v", taskOutputFormats()))
+
+	searchTasksCmd.Flags().StringVarP(&taskOutputFmtStr, "format", "f", "plain", fmt.Sprintf("output format to use, possible values: %v", taskOutputFormats()))
+	searchTasksCmd.Flags().Uint16VarP(&tasksLimit, "limit", "l", numListTasksDefault, "number of tasks to list")
+	searchTasksCmd.Flags().Uint16VarP(&tasksOffset, "offset", "o", 0, "offset to use")
 	searchTasksCmd.Flags().BoolVar(&searchTasksActive, "active", true, "active status to use as a filter")
 
 	importCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))

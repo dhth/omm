@@ -17,11 +17,16 @@ var (
 	errCouldntSearchTasks       = errors.New("couldn't search tasks")
 )
 
-func printTasks(db *sql.DB, limit uint16, writer io.Writer) error {
-	tasks, err := pers.FetchActiveTasks(db, int(limit))
+func listTasks(db *sql.DB, limit, offset uint16, writer io.Writer) error {
+	tasks, err := pers.FetchActiveTasks(db, limit, offset)
 	if err != nil {
 		return err
 	}
+
+	if len(tasks) == 0 {
+		return nil
+	}
+
 	summaries := make([]string, len(tasks))
 	for i, task := range tasks {
 		summaries[i] = task.Summary
@@ -31,7 +36,7 @@ func printTasks(db *sql.DB, limit uint16, writer io.Writer) error {
 	return nil
 }
 
-func showTask(db *sql.DB, index uint64, format showTaskOutputFormat, writer io.Writer) error {
+func showTask(db *sql.DB, index uint64, format taskOutputFormat, writer io.Writer) error {
 	task, found, err := pers.FetchNthActiveTask(db, index-1)
 	if err != nil {
 		return err
@@ -60,17 +65,30 @@ func showTask(db *sql.DB, index uint64, format showTaskOutputFormat, writer io.W
 	return nil
 }
 
-func searchTasks(db *sql.DB, query string, active bool, limit uint16, writer io.Writer) error {
-	tasks, err := pers.FetchTasksThatMatchQuery(db, query, active, limit)
+func searchTasks(db *sql.DB, query string, format taskOutputFormat, active bool, limit, offset uint16, writer io.Writer) error {
+	tasks, err := pers.FetchTasksThatMatchQuery(db, query, active, limit, offset)
 	if err != nil {
 		return fmt.Errorf("%w: %s", errCouldntSearchTasks, err.Error())
 	}
 
-	data, err := json.MarshalIndent(tasks, "", "  ")
-	if err != nil {
-		return fmt.Errorf("%w: %s", errCouldntMarshalTaskToJSON, err.Error())
+	if len(tasks) == 0 {
+		return nil
 	}
-	fmt.Fprintf(writer, "%s\n", data)
+
+	switch format {
+	case taskOutputPlain:
+		summaries := make([]string, len(tasks))
+		for i, task := range tasks {
+			summaries[i] = task.Summary
+		}
+		fmt.Fprintln(writer, strings.Join(summaries, "\n"))
+	case taskOutputJSON:
+		data, err := json.MarshalIndent(tasks, "", "  ")
+		if err != nil {
+			return fmt.Errorf("%w: %s", errCouldntMarshalTaskToJSON, err.Error())
+		}
+		fmt.Fprintf(writer, "%s\n", data)
+	}
 
 	return nil
 }

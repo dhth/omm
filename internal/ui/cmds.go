@@ -76,13 +76,13 @@ func changeTaskStatus(db *sql.DB, listIndex int, id uint64, active bool, updated
 	}
 }
 
-func fetchTasks(db *sql.DB, active bool, limit int) tea.Cmd {
+func fetchTasks(db *sql.DB, active bool, limit uint16) tea.Cmd {
 	return func() tea.Msg {
 		var tasks []types.Task
 		var err error
 		switch active {
 		case true:
-			tasks, err = pers.FetchActiveTasks(db, limit)
+			tasks, err = pers.FetchActiveTasks(db, limit, 0)
 		case false:
 			tasks, err = pers.FetchInActiveTasks(db, limit)
 		}

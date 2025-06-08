@@ -293,17 +293,25 @@ WHERE id = ?
 	return nil
 }
 
-func FetchActiveTasks(db *sql.DB, limit int) ([]types.Task, error) {
+func FetchActiveTasks(db *sql.DB, limit, offset uint16) ([]types.Task, error) {
 	var tasks []types.Task
 
 	rows, err := db.Query(`
-SELECT t.id, t.summary, t.context, t.created_at, t.updated_at
-FROM task_sequence s
-JOIN json_each(s.sequence) j ON CAST(j.value AS INTEGER) = t.id
-JOIN task t ON t.id = j.value
-ORDER BY j.key
-LIMIT ?;
-`, limit)
+SELECT
+    t.id,
+    t.summary,
+    t.context,
+    t.created_at,
+    t.updated_at
+FROM
+    task_sequence s
+    JOIN json_each(s.sequence) j ON CAST(j.value AS INTEGER) = t.id
+    JOIN task t ON t.id = j.value
+ORDER BY
+    j.key
+LIMIT
+    ? OFFSET ?;
+`, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -334,7 +342,7 @@ LIMIT ?;
 	return tasks, nil
 }
 
-func FetchTasksThatMatchQuery(db *sql.DB, query string, active bool, limit uint16) ([]types.Task, error) {
+func FetchTasksThatMatchQuery(db *sql.DB, query string, active bool, limit, offset uint16) ([]types.Task, error) {
 	var tasks []types.Task
 
 	searchTerm := fmt.Sprintf("%%%s%%", query)
@@ -356,8 +364,8 @@ WHERE
 ORDER BY
     t.updated_at DESC
 LIMIT
-    ?;
-`, searchTerm, searchTerm, active, limit)
+    ? OFFSET ?;
+`, searchTerm, searchTerm, active, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -434,7 +442,7 @@ WHERE
 	return task, true, nil
 }
 
-func FetchInActiveTasks(db *sql.DB, limit int) ([]types.Task, error) {
+func FetchInActiveTasks(db *sql.DB, limit uint16) ([]types.Task, error) {
 	var tasks []types.Task
 
 	rows, err := db.Query(`

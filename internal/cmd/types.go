@@ -1,17 +1,17 @@
 package cmd
 
-type showTaskOutputFormat uint8
+type taskOutputFormat uint8
 
 const (
-	taskOutputPlain showTaskOutputFormat = iota
+	taskOutputPlain taskOutputFormat = iota
 	taskOutputJSON
 )
 
-func showTaskOutputFormats() []string {
+func taskOutputFormats() []string {
 	return []string{"plain", "json"}
 }
 
-func parseShowTaskOutputFormat(value string) (showTaskOutputFormat, bool) {
+func parseTaskOutputFormat(value string) (taskOutputFormat, bool) {
 	switch value {
 	case "plain":
 		return taskOutputPlain, true
