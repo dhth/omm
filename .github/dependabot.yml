@@ -3,18 +3,16 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     labels:
       - "dependencies"
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: "build"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     labels:
       - "dependencies"
     commit-message:
-      prefix: "chore"
-      include: "scope"
+      prefix: "ci"
