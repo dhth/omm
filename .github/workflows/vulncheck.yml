@@ -1,22 +1,15 @@
 name: vulncheck
-on:
-  push:
-    branches: ["main"]
-  pull_request:
-    paths:
-      - "go.*"
-      - "**/*.go"
-      - ".github/workflows/vulncheck.yml"
 
-permissions:
-  contents: read
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 6'
 
 env:
   GO_VERSION: '1.24.4'
 
 jobs:
   vulncheck:
-    name: vulncheck
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

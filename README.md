@@ -1,6 +1,6 @@
 # omm
 
-[![Build Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/build.yml?style=flat-square)](https://github.com/dhth/omm/actions/workflows/build.yml)
+[![Build Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/main.yml?style=flat-square)](https://github.com/dhth/omm/actions/workflows/main.yml)
 [![Vulncheck Workflow Status](https://img.shields.io/github/actions/workflow/status/dhth/omm/vulncheck.yml?style=flat-square&label=vulncheck)](https://github.com/dhth/omm/actions/workflows/vulncheck.yml)
 [![Latest Release](https://img.shields.io/github/release/dhth/omm.svg?style=flat-square)](https://github.com/dhth/omm/releases/latest)
 [![Commits Since Latest Release](https://img.shields.io/github/commits-since/dhth/omm/latest?style=flat-square)](https://github.com/dhth/omm/releases)
