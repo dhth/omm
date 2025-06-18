@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	TaskNumLimit    = 300
+	TaskNumLimit    = 10000
 	ContextMaxBytes = 1024 * 1024
 )
 
@@ -133,7 +133,7 @@ func InsertTasks(db *sql.DB, tasks []types.Task, insertAtTop bool) (int64, error
 	query := `INSERT INTO task (summary, context, active, created_at, updated_at)
 VALUES `
 
-	values := make([]interface{}, 0, len(tasks)*4)
+	values := make([]any, 0, len(tasks)*4)
 
 	for i, t := range tasks {
 		if i > 0 {
