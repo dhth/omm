@@ -34,6 +34,7 @@ const (
 	dbFileName              = "omm/omm.db"
 	printTasksDefault       = 20
 	taskListTitleMaxLen     = 8
+	importTasksLimit        = 1000
 )
 
 var (
@@ -57,7 +58,7 @@ var (
 	maxImportNumMsg = fmt.Sprintf(`A maximum of %d tasks that can be imported at a time.
 Archive/Delete tasks that are not active using ctrl+d/ctrl+x.
 
-`, pers.TaskNumLimit)
+`, importTasksLimit)
 
 	taskCapacityMsg = fmt.Sprintf(`A maximum of %d tasks that can be active at a time.
 Archive/Delete tasks that are not active using ctrl+d/ctrl+x.
@@ -331,7 +332,7 @@ Sorry for breaking the upgrade step!
 					tasks = append(tasks, line)
 				}
 				taskCounter++
-				if taskCounter > pers.TaskNumLimit {
+				if taskCounter > importTasksLimit {
 					fmt.Fprint(os.Stderr, maxImportNumMsg)
 					return fmt.Errorf("%w", errMaxImportLimitExceeded)
 				}
