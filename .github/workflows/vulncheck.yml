@@ -3,7 +3,7 @@ name: vulncheck
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 8 * * 6'
+    - cron: '0 2 * * 2,6'
 
 env:
   GO_VERSION: '1.24.4'
@@ -17,8 +17,7 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
+      - name: install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@latest
       - name: govulncheck
-        shell: bash
-        run: |
-          go install golang.org/x/vuln/cmd/govulncheck@latest
-          govulncheck ./...
+        run: govulncheck ./...
