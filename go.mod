@@ -14,7 +14,7 @@ require (
 	github.com/spf13/pflag v1.0.7
 	github.com/spf13/viper v1.20.1
 	github.com/stretchr/testify v1.10.0
-	modernc.org/sqlite v1.38.1
+	modernc.org/sqlite v1.38.2
 	mvdan.cc/xurls/v2 v2.6.0
 )
 
