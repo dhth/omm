@@ -2,9 +2,8 @@ name: scan
 
 on:
   workflow_dispatch:
-  pull_request:
   schedule:
-    - cron: '30 6 10 * *'
+    - cron: '0 7 10 * *'
 
 env:
   GO_VERSION: '1.25.0'
