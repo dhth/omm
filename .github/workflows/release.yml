@@ -9,7 +9,7 @@ permissions:
   id-token: write
 
 env:
-  GO_VERSION: '1.25.0'
+  GO_VERSION: '1.25.2'
 
 jobs:
   release:
