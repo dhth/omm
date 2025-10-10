@@ -5,9 +5,6 @@ on:
   schedule:
     - cron: '0 7 10 * *'
 
-env:
-  GO_VERSION: '1.25.2'
-
 jobs:
   virus-total:
     runs-on: ubuntu-latest
@@ -16,7 +13,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v6
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version-file: 'go.mod'
       - name: Build Binaries
         uses: goreleaser/goreleaser-action@v6
         with:
