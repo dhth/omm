@@ -138,7 +138,7 @@ jobs:
         with:
           fetch-depth: 2
       - run: git checkout HEAD~1
-      - name: Set up Go
+      - name: Set up Go for head~1
         uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
@@ -148,6 +148,10 @@ jobs:
           cp omm_prev /var/tmp
           rm omm_prev
       - run: git checkout main
+      - name: Set up Go for head
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
       - name: build head
         run: |
           go build -o omm_head

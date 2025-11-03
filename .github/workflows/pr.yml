@@ -135,7 +135,7 @@ jobs:
       - uses: actions/checkout@v5
         with:
           ref: main
-      - name: Set up Go
+      - name: Set up Go for main
         uses: actions/setup-go@v6
         with:
           go-version-file: 'go.mod'
@@ -145,6 +145,10 @@ jobs:
           cp omm_main /var/tmp
           rm omm_main
       - uses: actions/checkout@v5
+      - name: Set up Go for head
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
       - name: build head
         run: |
           go build -o omm_head
