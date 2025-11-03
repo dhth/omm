@@ -1,6 +1,6 @@
 module github.com/dhth/omm
 
-go 1.25.2
+go 1.25.3
 
 require (
 	github.com/atotto/clipboard v0.1.4
