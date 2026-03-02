@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/dhth/omm/internal/utils"
 )
 
 var TaskListDefaultTitle = "omm"
@@ -29,8 +28,8 @@ func (m Model) View() string {
 
 	if m.errorMsg != "" && m.successMsg != "" {
 		statusBar += fmt.Sprintf("%s%s",
-			m.styles.statusError.Render(utils.Trim(m.errorMsg, (m.terminalWidth/2)-3)),
-			m.styles.statusSuccess.Render(utils.Trim(m.successMsg, (m.terminalWidth/2)-3)),
+			m.styles.statusError.Render(m.errorMsg),
+			m.styles.statusSuccess.Render(m.successMsg),
 		)
 	} else if m.errorMsg != "" {
 		statusBar += m.styles.statusError.Render(m.errorMsg)
