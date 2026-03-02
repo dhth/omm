@@ -1,0 +1,51 @@
+package theme
+
+const themeNameTokyonight = "tokyonight"
+
+func tokyonight() Theme {
+	return Theme{
+		Name:       themeNameTokyonight,
+		Primary:    "#f7768e",
+		Secondary:  "#7aa2f7",
+		Tertiary:   "#9ece6a",
+		Quaternary: "#bb9af7",
+		Quinary:    "#e0af68",
+		Success:    "#9ece6a",
+		Error:      "#f7768e",
+		Muted:      "#565f89",
+		Text:       "#c0caf5",
+		Background: "#1a1b26",
+		PrefixColors: []string{
+			"#ce896a",
+			"#f7b476",
+			"#e0af68",
+			"#cebb6a",
+			"#f7f576",
+			"#9ece6a",
+			"#85e068",
+			"#7dff97",
+			"#6ace92",
+			"#a9d6c7",
+			"#7af7d9",
+			"#7dcfff",
+			"#7aa2f7",
+			"#a9b1d6",
+			"#bb9af7",
+			"#bfa9d6",
+			"#d6a9d6",
+			"#f79af5",
+			"#e068ad",
+			"#f7768e",
+			"#f28fad",
+			"#ff9e64",
+			"#faba4a",
+			"#c3e88d",
+			"#73daca",
+			"#86e1fc",
+			"#9aa5ce",
+			"#89a6fb",
+			"#c0a3ff",
+			"#f0a6ca",
+		},
+	}
+}

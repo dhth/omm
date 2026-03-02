@@ -2,74 +2,92 @@ package ui
 
 import (
 	"github.com/charmbracelet/lipgloss"
+	"github.com/dhth/omm/internal/ui/theme"
 )
 
-const (
-	defaultBackgroundColor = "#282828"
-	TaskListColor          = "#fe8019"
-	ArchivedTLColor        = "#fabd2f"
-	contextBMColor         = "#83a598"
-	prefixSearchColor      = "#d3896b"
-	contextTitleColor      = "#8ec07c"
-	taskEntryTitleColor    = "#b8bb26"
-	taskDetailsTitleColor  = "#d3869b"
-	taskListHeaderColor    = "#928374"
-	formHelpColor          = "#928374"
-	formColor              = "#928374"
-	helpMsgColor           = "#928374"
-	promptColor            = "#fb4934"
-	helpViewTitleColor     = "#83a598"
-	helpTitleColor         = "#83a598"
-	sBSuccessMsgColor      = "#d3869b"
-	sBErrMsgColor          = "#fb4934"
-	footerColor            = "#928374"
-)
+type styles struct {
+	listContainer         lipgloss.Style
+	taskEntryTitle        lipgloss.Style
+	helpTitle             lipgloss.Style
+	contextTitle          lipgloss.Style
+	taskDetailsTitle      lipgloss.Style
+	sectionHeader         lipgloss.Style
+	statusBar             lipgloss.Style
+	statusError           lipgloss.Style
+	statusSuccess         lipgloss.Style
+	statusHint            lipgloss.Style
+	deletePrompt          lipgloss.Style
+	mutedText             lipgloss.Style
+	activeListTitle       lipgloss.Style
+	archivedListTitle     lipgloss.Style
+	activeListTitleBar    lipgloss.Style
+	archivedListTitleBar  lipgloss.Style
+	bookmarksListTitleBar lipgloss.Style
+	prefixListTitleBar    lipgloss.Style
+	dangerListTitleBar    lipgloss.Style
+}
 
-var (
-	titleStyle = lipgloss.NewStyle().
-			PaddingLeft(1).
-			PaddingRight(1).
-			Bold(true).
-			Background(lipgloss.Color(TaskListColor)).
-			Foreground(lipgloss.Color(defaultBackgroundColor))
+func newStyles(thm theme.Theme) styles {
+	bg := lipgloss.Color(thm.Background)
+	primaryC := lipgloss.Color(thm.Primary)
+	secondaryC := lipgloss.Color(thm.Secondary)
+	tertiaryC := lipgloss.Color(thm.Tertiary)
+	quaternaryC := lipgloss.Color(thm.Quaternary)
+	quinaryC := lipgloss.Color(thm.Quinary)
+	successC := lipgloss.Color(thm.Success)
+	errorC := lipgloss.Color(thm.Error)
+	mutedC := lipgloss.Color(thm.Muted)
 
-	listStyle = lipgloss.NewStyle().PaddingBottom(1).PaddingTop(1)
+	mutedStyle := lipgloss.NewStyle().Foreground(mutedC)
 
-	taskEntryTitleStyle = titleStyle.
-				Background(lipgloss.Color(taskEntryTitleColor))
+	titleBase := lipgloss.NewStyle().
+		PaddingLeft(1).
+		PaddingRight(1).
+		Bold(true).
+		Foreground(bg)
 
-	helpTitleStyle = titleStyle.
-			Background(lipgloss.Color(helpTitleColor))
+	listTitleBase := lipgloss.NewStyle().
+		Padding(0, 1).
+		Foreground(bg).
+		Bold(true)
 
-	contextTitleStyle = titleStyle.
-				Background(lipgloss.Color(contextTitleColor))
-
-	taskDetailsTitleStyle = titleStyle.
-				Background(lipgloss.Color(taskDetailsTitleColor))
-
-	headerStyle = lipgloss.NewStyle().
+	return styles{
+		listContainer: lipgloss.NewStyle().PaddingBottom(1).PaddingTop(1),
+		taskEntryTitle: titleBase.
+			Background(quaternaryC),
+		helpTitle: titleBase.
+			Background(tertiaryC),
+		contextTitle: titleBase.
+			Background(tertiaryC),
+		taskDetailsTitle: titleBase.
+			Background(successC),
+		sectionHeader: lipgloss.NewStyle().
 			PaddingTop(1).
 			PaddingBottom(1).
-			PaddingLeft(2)
-
-	statusBarMsgStyle = lipgloss.NewStyle().
-				PaddingLeft(2)
-
-	sBErrMsgStyle = statusBarMsgStyle.
-			Foreground(lipgloss.Color(sBErrMsgColor))
-
-	sBSuccessMsgStyle = statusBarMsgStyle.
-				Foreground(lipgloss.Color(sBSuccessMsgColor))
-
-	helpMsgStyle = statusBarMsgStyle.
-			Foreground(lipgloss.Color(helpMsgColor))
-
-	promptStyle = statusBarMsgStyle.
-			Foreground(lipgloss.Color(promptColor))
-
-	formStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color(formColor))
-
-	formHelpStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color(formHelpColor))
-)
+			PaddingLeft(2),
+		statusBar: lipgloss.NewStyle().
+			PaddingLeft(2),
+		statusError: lipgloss.NewStyle().
+			PaddingLeft(2).
+			Foreground(errorC),
+		statusSuccess: lipgloss.NewStyle().
+			PaddingLeft(2).
+			Foreground(successC),
+		statusHint: lipgloss.NewStyle().
+			PaddingLeft(2).
+			Foreground(mutedC),
+		deletePrompt: lipgloss.NewStyle().
+			PaddingLeft(2).
+			Foreground(errorC),
+		mutedText: mutedStyle,
+		activeListTitle: titleBase.
+			Background(primaryC),
+		archivedListTitle: titleBase.
+			Background(secondaryC),
+		activeListTitleBar:    listTitleBase.Background(primaryC),
+		archivedListTitleBar:  listTitleBase.Background(secondaryC),
+		bookmarksListTitleBar: listTitleBase.Background(tertiaryC),
+		prefixListTitleBar:    listTitleBase.Background(quinaryC),
+		dangerListTitleBar:    listTitleBase.Background(errorC),
+	}
+}

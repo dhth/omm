@@ -6,6 +6,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestGetColorForString(t *testing.T) {
+	// GIVEN
+	input := "abcdefghi"
+	colors := []string{
+		"#ff0000",
+		"#00ff00",
+		"#0000ff",
+		"#ffff00",
+		"#ff00ff",
+		"#00ffff",
+		"#ffa500",
+		"#800080",
+	}
+
+	// WHEN
+	gota := getColorForString(input, colors)
+	gotb := getColorForString(input, colors)
+
+	// THEN
+	assert.Equal(t, gota, gotb)
+}
+
 func TestGetSummaryWithNewPrefix(t *testing.T) {
 	testCases := []struct {
 		name      string

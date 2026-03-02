@@ -11,9 +11,9 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
+	"github.com/dhth/omm/internal/ui/theme"
 	"github.com/dhth/omm/internal/utils"
 )
 
@@ -169,8 +169,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
-		w, h := listStyle.GetFrameSize()
-		_, h3 := statusBarMsgStyle.GetFrameSize()
+		w, h := m.styles.listContainer.GetFrameSize()
+		_, h3 := m.styles.statusBar.GetFrameSize()
 		m.terminalWidth = msg.Width
 		m.terminalHeight = msg.Height
 		m.taskList.SetWidth(msg.Width - w)
@@ -214,11 +214,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.taskDetailsVP.Height = m.terminalHeight - 4
 		}
 
-		contextMdRenderer, err := utils.GetMarkDownRenderer(vpWidth)
+		contextMdRenderer, err := getMarkDownRenderer(m.theme, vpWidth)
 		if err == nil {
 			m.contextMdRenderer = contextMdRenderer
 		}
-		taskDetailsMdRenderer, err := utils.GetMarkDownRenderer(vpWidth)
+		taskDetailsMdRenderer, err := getMarkDownRenderer(m.theme, vpWidth)
 		if err == nil {
 			m.taskDetailsMdRenderer = taskDetailsMdRenderer
 		}
@@ -253,10 +253,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch m.activeView {
 			case taskListView:
 				m.taskList.Title = m.cfg.TaskListTitle
-				m.taskList.Styles.Title = m.taskList.Styles.Title.Background(lipgloss.Color(m.cfg.TaskListColor))
+				m.taskList.Styles.Title = m.styles.activeListTitleBar
 			case archivedTaskListView:
 				m.archivedTaskList.Title = archivedTitle
-				m.archivedTaskList.Styles.Title = m.archivedTaskList.Styles.Title.Background(lipgloss.Color(m.cfg.ArchivedTaskListColor))
+				m.archivedTaskList.Styles.Title = m.styles.archivedListTitleBar
 			}
 			return m, tea.Batch(cmds...)
 		}
@@ -717,10 +717,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				switch m.activeView {
 				case taskListView:
 					m.taskList.Title = "delete ?"
-					m.taskList.Styles.Title = m.taskList.Styles.Title.Background(lipgloss.Color(promptColor))
+					m.taskList.Styles.Title = m.styles.dangerListTitleBar
 				case archivedTaskListView:
 					m.archivedTaskList.Title = "delete ?"
-					m.archivedTaskList.Styles.Title = m.archivedTaskList.Styles.Title.Background(lipgloss.Color(promptColor))
+					m.archivedTaskList.Styles.Title = m.styles.dangerListTitleBar
 				}
 
 				break
@@ -739,7 +739,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cfg.ConfirmBeforeDeletion {
 					m.showDeletePrompt = false
 					m.taskList.Title = m.cfg.TaskListTitle
-					m.taskList.Styles.Title = m.taskList.Styles.Title.Background(lipgloss.Color(m.cfg.TaskListColor))
+					m.taskList.Styles.Title = m.styles.activeListTitleBar
 				}
 
 			case archivedTaskListView:
@@ -755,7 +755,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				if m.cfg.ConfirmBeforeDeletion {
 					m.showDeletePrompt = false
 					m.archivedTaskList.Title = archivedTitle
-					m.archivedTaskList.Styles.Title = m.archivedTaskList.Styles.Title.Background(lipgloss.Color(m.cfg.ArchivedTaskListColor))
+					m.archivedTaskList.Styles.Title = m.styles.archivedListTitleBar
 				}
 			}
 
@@ -1029,21 +1029,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				break
 			}
 
-			var tlDel list.ItemDelegate
-			var atlDel list.ItemDelegate
-
 			switch m.cfg.ListDensity {
 			case Compact:
-				tlDel = newSpaciousListDelegate(lipgloss.Color(m.cfg.TaskListColor), true, 1)
-				atlDel = newSpaciousListDelegate(lipgloss.Color(m.cfg.ArchivedTaskListColor), true, 1)
-
 				m.cfg.ListDensity = Spacious
 
 			case Spacious:
-				tlDel = compactItemDelegate{m.tlSelStyle}
-				atlDel = compactItemDelegate{m.atlSelStyle}
 				m.cfg.ListDensity = Compact
 			}
+
+			tlDel := newTaskListDelegate(m.theme, m.cfg.ListDensity, activeTasks)
+			atlDel := newTaskListDelegate(m.theme, m.cfg.ListDensity, archivedTasks)
 
 			m.taskList.SetDelegate(tlDel)
 			m.archivedTaskList.SetDelegate(atlDel)
@@ -1053,6 +1048,26 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.archivedTaskList.SetHeight(m.shortenedListHt)
 			}
 
+		case "]":
+			nextTheme, err := theme.NextTheme(m.theme.Name)
+			if err != nil {
+				m.errorMsg = fmt.Sprintf("Error switching theme: %s", err)
+				break
+			}
+
+			m.applyTheme(nextTheme)
+			m.successMsg = fmt.Sprintf("theme set to %s", nextTheme.Name)
+
+		case "[":
+			previousTheme, err := theme.PreviousTheme(m.theme.Name)
+			if err != nil {
+				m.errorMsg = fmt.Sprintf("Error switching theme: %s", err)
+				break
+			}
+
+			m.applyTheme(previousTheme)
+			m.successMsg = fmt.Sprintf("theme set to %s", previousTheme.Name)
+
 		case "C":
 			if m.activeView != taskListView && m.activeView != archivedTaskListView {
 				break
@@ -1060,8 +1075,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			m.cfg.ShowContext = !m.cfg.ShowContext
 
-			_, h := listStyle.GetFrameSize()
-			_, h3 := statusBarMsgStyle.GetFrameSize()
+			_, h := m.styles.listContainer.GetFrameSize()
+			_, h3 := m.styles.statusBar.GetFrameSize()
 			var listHeight int
 
 			if m.cfg.ShowContext {
@@ -1071,8 +1086,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			if m.cfg.ListDensity == Compact {
-				tlDel := compactItemDelegate{m.tlSelStyle}
-				atlDel := compactItemDelegate{m.atlSelStyle}
+				tlDel := newTaskListDelegate(m.theme, Compact, activeTasks)
+				atlDel := newTaskListDelegate(m.theme, Compact, archivedTasks)
 				m.taskList.SetDelegate(tlDel)
 				m.archivedTaskList.SetDelegate(atlDel)
 			}
@@ -1728,4 +1743,65 @@ func (m Model) getTaskURIs() ([]string, bool) {
 	}
 
 	return uris, true
+}
+
+func (m *Model) applyTheme(thm theme.Theme) {
+	m.theme = thm
+	m.styles = newStyles(thm)
+
+	m.taskList.SetDelegate(newTaskListDelegate(thm, m.cfg.ListDensity, activeTasks))
+	m.archivedTaskList.SetDelegate(newTaskListDelegate(thm, m.cfg.ListDensity, archivedTasks))
+	m.taskBMList.SetDelegate(newBookmarksListDelegate(thm))
+	m.prefixSearchList.SetDelegate(newPrefixSearchListDelegate(thm))
+
+	m.taskList.Styles.Title = m.styles.activeListTitleBar
+	m.archivedTaskList.Styles.Title = m.styles.archivedListTitleBar
+	m.taskBMList.Styles.Title = m.styles.bookmarksListTitleBar
+	m.prefixSearchList.Styles.Title = m.styles.prefixListTitleBar
+
+	vpWidth := m.terminalWidth - 4
+	if vpWidth > 0 {
+		// Markdown renderers also embed theme colors, so they must be recreated
+		// to avoid mixed old/new colors in context, details, and help panes.
+		contextMdRenderer, err := getMarkDownRenderer(thm, vpWidth)
+		if err == nil {
+			m.contextMdRenderer = contextMdRenderer
+		}
+
+		taskDetailsMdRenderer, err := getMarkDownRenderer(thm, vpWidth)
+		if err == nil {
+			m.taskDetailsMdRenderer = taskDetailsMdRenderer
+		}
+
+		if m.helpVPReady {
+			helpToRender := helpStr
+			if m.contextMdRenderer != nil {
+				helpStrGl, err := m.contextMdRenderer.Render(helpStr)
+				if err == nil {
+					helpToRender = helpStrGl
+				}
+			}
+			m.helpVP.SetContent(helpToRender)
+		}
+	}
+
+	if m.activeView == taskDetailsView {
+		var t types.Task
+		var ok bool
+
+		switch m.activeTaskList {
+		case activeTasks:
+			t, ok = m.taskList.SelectedItem().(types.Task)
+		case archivedTasks:
+			t, ok = m.archivedTaskList.SelectedItem().(types.Task)
+		}
+
+		if ok {
+			m.setContextFSContent(t)
+		}
+	}
+
+	// Force context panel refresh on next update; otherwise it can keep cached
+	// content for the selected task ID and skip re-rendering under the new theme.
+	m.contextVPTaskID = 0
 }

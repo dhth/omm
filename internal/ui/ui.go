@@ -7,9 +7,10 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/dhth/omm/internal/ui/theme"
 )
 
-func RenderUI(db *sql.DB, config Config) {
+func RenderUI(db *sql.DB, config Config, thm theme.Theme) {
 	if len(os.Getenv("DEBUG")) > 0 {
 		f, err := tea.LogToFile("debug.log", "debug")
 		if err != nil {
@@ -19,7 +20,7 @@ func RenderUI(db *sql.DB, config Config) {
 		defer f.Close()
 	}
 
-	p := tea.NewProgram(InitialModel(db, config), tea.WithAltScreen())
+	p := tea.NewProgram(InitialModel(db, config, thm), tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		log.Fatalf("Something went wrong %s", err)
 	}

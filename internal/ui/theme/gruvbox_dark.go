@@ -1,0 +1,51 @@
+package theme
+
+const themeNameGruvboxDark = "gruvbox-dark"
+
+func gruvboxDark() Theme {
+	return Theme{
+		Name:       themeNameGruvboxDark,
+		Primary:    "#fe8019",
+		Secondary:  "#fabd2f",
+		Tertiary:   "#83a598",
+		Quaternary: "#b8bb26",
+		Quinary:    "#d3896b",
+		Success:    "#d3869b",
+		Error:      "#fb4934",
+		Muted:      "#928374",
+		Text:       "#ebdbb2",
+		Background: "#282828",
+		PrefixColors: []string{
+			"#fb4934",
+			"#f15a4a",
+			"#d65d0e",
+			"#fe8019",
+			"#d79921",
+			"#fabd2f",
+			"#b57614",
+			"#98971a",
+			"#b8bb26",
+			"#799d6a",
+			"#8ec07c",
+			"#689d6a",
+			"#458588",
+			"#83a598",
+			"#7daea3",
+			"#b16286",
+			"#d3869b",
+			"#a89984",
+			"#928374",
+			"#ebdbb2",
+			"#e78a4e",
+			"#c0a36e",
+			"#a9b665",
+			"#6f9c7f",
+			"#5f8f8b",
+			"#6a7f93",
+			"#9e7bb5",
+			"#c08aa4",
+			"#bdae93",
+			"#d5c4a1",
+		},
+	}
+}

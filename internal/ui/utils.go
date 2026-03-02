@@ -2,10 +2,26 @@ package ui
 
 import (
 	"fmt"
+	"hash/fnv"
 	"strings"
 
+	"github.com/charmbracelet/lipgloss"
 	"github.com/dhth/omm/internal/types"
 )
+
+func getColorForString(str string, colors []string) lipgloss.TerminalColor {
+	if len(colors) == 0 {
+		return lipgloss.NoColor{}
+	}
+
+	h := fnv.New32()
+	h.Write([]byte(str))
+	hash := h.Sum32()
+
+	color := colors[hash%uint32(len(colors))]
+
+	return lipgloss.Color(color)
+}
 
 func getSummaryWithNewPrefix(summary, newPrefix string) string {
 	if strings.TrimSpace(summary) == "" {

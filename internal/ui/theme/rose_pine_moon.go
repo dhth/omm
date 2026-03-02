@@ -1,0 +1,51 @@
+package theme
+
+const themeNameRosePineMoon = "rose-pine-moon"
+
+func rosePineMoon() Theme {
+	return Theme{
+		Name:       themeNameRosePineMoon,
+		Primary:    "#c4a7e7",
+		Secondary:  "#9ccfd8",
+		Tertiary:   "#f6c177",
+		Quaternary: "#ea9a97",
+		Quinary:    "#3e8fb0",
+		Success:    "#9ccfd8",
+		Error:      "#eb6f92",
+		Muted:      "#6e6a86",
+		Text:       "#e0def4",
+		Background: "#232136",
+		PrefixColors: []string{
+			"#eb6f92",
+			"#e85f86",
+			"#ea9a97",
+			"#f6c177",
+			"#f2b865",
+			"#3e8fb0",
+			"#4e9fc0",
+			"#9ccfd8",
+			"#88c4d0",
+			"#c4a7e7",
+			"#b293df",
+			"#d5b8ef",
+			"#f1a7a2",
+			"#f8d08d",
+			"#5ca3bf",
+			"#a7d8e0",
+			"#ceb5ea",
+			"#f298b2",
+			"#f2d5b2",
+			"#7bb7cb",
+			"#b5dfe5",
+			"#d8c3f0",
+			"#f6b0c3",
+			"#f8debe",
+			"#8bc0d0",
+			"#c0e4e9",
+			"#e6d5f6",
+			"#f9c5d2",
+			"#6e6a86",
+			"#e0def4",
+		},
+	}
+}

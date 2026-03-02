@@ -1,0 +1,51 @@
+package theme
+
+const themeNameDracula = "dracula"
+
+func dracula() Theme {
+	return Theme{
+		Name:       themeNameDracula,
+		Primary:    "#ff6e6e",
+		Secondary:  "#50fa7b",
+		Tertiary:   "#bd93f9",
+		Quaternary: "#8be9fd",
+		Quinary:    "#f1fa8c",
+		Success:    "#69ff94",
+		Error:      "#ff5555",
+		Muted:      "#6272a4",
+		Text:       "#f8f8f2",
+		Background: "#282a36",
+		PrefixColors: []string{
+			"#ff6e6e",
+			"#ff5555",
+			"#faba8c",
+			"#ffc655",
+			"#f1fa8c",
+			"#96fa50",
+			"#8cfa8c",
+			"#50fa7b",
+			"#69ff94",
+			"#8bfde2",
+			"#50faec",
+			"#8be9fd",
+			"#7aa7f7",
+			"#93adf9",
+			"#a092ff",
+			"#bd93f9",
+			"#e893f9",
+			"#d787ff",
+			"#ff92df",
+			"#ff79c6",
+			"#ffb86c",
+			"#ffd98e",
+			"#ffffa5",
+			"#9fe7b2",
+			"#a4ffff",
+			"#74d7ec",
+			"#d6acff",
+			"#caa9fa",
+			"#f29adf",
+			"#f8f8f2",
+		},
+	}
+}

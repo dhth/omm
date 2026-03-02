@@ -10,9 +10,9 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/glamour"
-	"github.com/charmbracelet/lipgloss"
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
+	"github.com/dhth/omm/internal/ui/theme"
 )
 
 const (
@@ -60,6 +60,8 @@ const (
 type Model struct {
 	db                    *sql.DB
 	cfg                   Config
+	theme                 theme.Theme
+	styles                styles
 	taskList              list.Model
 	archivedTaskList      list.Model
 	taskBMList            list.Model
@@ -83,10 +85,6 @@ type Model struct {
 	activeView            activeView
 	lastActiveView        activeView
 	activeTaskList        taskListType
-	tlTitleStyle          lipgloss.Style
-	atlTitleStyle         lipgloss.Style
-	tlSelStyle            lipgloss.Style
-	atlSelStyle           lipgloss.Style
 	terminalWidth         int
 	terminalHeight        int
 	contextVPTaskID       uint64
