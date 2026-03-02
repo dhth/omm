@@ -20,6 +20,8 @@ omm has 6 components:
 ```text
 q/esc/ctrl+c       go back
 Q                  quit from anywhere
+[                  set previous theme
+]                  set next theme
 ```
 
 ### Active/Archived Tasks List

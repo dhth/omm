@@ -14,9 +14,6 @@ const (
 
 type Config struct {
 	ListDensity           ListDensityType
-	TaskListColor         string
-	ArchivedTaskListColor string
-	ContextPaneColor      string
 	TaskListTitle         string
 	TextEditorCmd         []string
 	Guide                 bool

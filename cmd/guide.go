@@ -30,6 +30,7 @@ var (
 		{summary: "domain: task details"},
 		{summary: "visuals: list density"},
 		{summary: "visuals: toggling context pane"},
+		{summary: "visuals: switching themes"},
 		{summary: "actions: adding tasks"},
 		{summary: "actions: choosing a prefix"},
 		{summary: "cli: adding a task via the CLI"},

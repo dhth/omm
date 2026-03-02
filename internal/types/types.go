@@ -2,36 +2,17 @@ package types
 
 import (
 	"errors"
-	"fmt"
-	"hash/fnv"
 	"strings"
 	"time"
-
-	"github.com/charmbracelet/lipgloss"
-	"github.com/dhth/omm/internal/utils"
-	"github.com/dustin/go-humanize"
 )
 
 const (
-	timeFormat            = "2006/01/02 15:04"
-	PrefixDelimiter       = ":"
-	compactPrefixPadding  = 24
-	spaciousPrefixPadding = 80
-	createdAtPadding      = 40
-	GOOSDarwin            = "darwin"
-	taskSummaryWidth      = 120
-	TaskSummaryMaxLen     = 300
+	PrefixDelimiter   = ":"
+	GOOSDarwin        = "darwin"
+	TaskSummaryMaxLen = 300
 )
 
 var (
-	createdAtColor  = "#928374"
-	hasContextColor = "#928374"
-	createdAtStyle  = lipgloss.NewStyle().
-			Foreground(lipgloss.Color(createdAtColor))
-
-	hasContextStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color(hasContextColor))
-
 	ErrTaskSummaryEmpty     = errors.New("task summary is empty")
 	ErrTaskPrefixEmpty      = errors.New("task prefix is empty")
 	ErrTaskSummaryBodyEmpty = errors.New("task summary body is empty")
@@ -121,31 +102,8 @@ func (t Task) Title() string {
 }
 
 func (t Task) Description() string {
-	var prefix string
-	var createdAt string
-	var hasContext string
-
-	summEls := strings.Split(t.Summary, PrefixDelimiter)
-	if len(summEls) > 1 {
-		prefix = GetDynamicStyle(summEls[0]).Render(utils.RightPadTrim(summEls[0], spaciousPrefixPadding, true))
-	} else {
-		prefix = strings.Repeat(" ", spaciousPrefixPadding)
-	}
-	now := time.Now()
-
-	var createdAtTs string
-	if now.Sub(t.CreatedAt).Seconds() < 60 {
-		createdAtTs = "just now"
-	} else {
-		createdAtTs = humanize.Time(t.CreatedAt)
-	}
-	createdAt = createdAtStyle.Render(utils.RightPadTrim(fmt.Sprintf("created %s", createdAtTs), createdAtPadding, true))
-
-	if t.Context != nil {
-		hasContext = hasContextStyle.Render("(c)")
-	}
-
-	return fmt.Sprintf("%s%s%s", prefix, createdAt, hasContext)
+	// description is handled by custom delegates (compactItemDelegate/spaciousTaskItemDelegate)
+	return ""
 }
 
 func (t Task) FilterValue() string {
@@ -154,16 +112,6 @@ func (t Task) FilterValue() string {
 		return string(p)
 	}
 	return ""
-}
-
-func GetDynamicStyle(str string) lipgloss.Style {
-	h := fnv.New32()
-	h.Write([]byte(str))
-	hash := h.Sum32()
-
-	color := colors[hash%uint32(len(colors))]
-	return lipgloss.NewStyle().
-		Foreground(lipgloss.Color(color))
 }
 
 func (c ContextBookmark) Title() string {

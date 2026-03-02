@@ -1,0 +1,51 @@
+package theme
+
+const themeNameCatppuccinMocha = "catppuccin-mocha"
+
+func catppuccinMocha() Theme {
+	return Theme{
+		Name:       themeNameCatppuccinMocha,
+		Primary:    "#f37799",
+		Secondary:  "#74a8fc",
+		Tertiary:   "#a6e3a1",
+		Quaternary: "#f2aede",
+		Quinary:    "#ebd391",
+		Success:    "#89d88b",
+		Error:      "#f37799",
+		Muted:      "#a6adc8",
+		Text:       "#cdd6f4",
+		Background: "#1e1e2e",
+		PrefixColors: []string{
+			"#f3a877",
+			"#ebd391",
+			"#cfd889",
+			"#c7eb91",
+			"#a6e3a1",
+			"#89d88b",
+			"#74fcb1",
+			"#baded0",
+			"#94e2d5",
+			"#6bd7ca",
+			"#89faf5",
+			"#6b9cd7",
+			"#74a8fc",
+			"#89b4fa",
+			"#bac2de",
+			"#9494e2",
+			"#df74fc",
+			"#dcbade",
+			"#f38ba8",
+			"#f37799",
+			"#f5c2e7",
+			"#f2cdcd",
+			"#f9e2af",
+			"#cba6f7",
+			"#b4befe",
+			"#74c7ec",
+			"#89dceb",
+			"#a6adc8",
+			"#9399b2",
+			"#fab387",
+		},
+	}
+}

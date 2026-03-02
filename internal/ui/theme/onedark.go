@@ -1,0 +1,51 @@
+package theme
+
+const themeNameOneDark = "onedark"
+
+func oneDark() Theme {
+	return Theme{
+		Name:       themeNameOneDark,
+		Primary:    "#61afef",
+		Secondary:  "#98c379",
+		Tertiary:   "#c678dd",
+		Quaternary: "#e5c07b",
+		Quinary:    "#d19a66",
+		Success:    "#98c379",
+		Error:      "#e06c75",
+		Muted:      "#7f848e",
+		Text:       "#abb2bf",
+		Background: "#282c34",
+		PrefixColors: []string{
+			"#e06c75",
+			"#d55f68",
+			"#d19a66",
+			"#e5c07b",
+			"#d7ba7d",
+			"#c9c178",
+			"#98c379",
+			"#89b96b",
+			"#7fbdad",
+			"#56b6c2",
+			"#4fa8b3",
+			"#4f95a5",
+			"#61afef",
+			"#6ea8e1",
+			"#7aa1d4",
+			"#8f92d0",
+			"#a084cf",
+			"#b276ce",
+			"#c678dd",
+			"#b56fcf",
+			"#ec8b95",
+			"#ddb97a",
+			"#b7cb7d",
+			"#8ecf9b",
+			"#62c3ba",
+			"#70b4d8",
+			"#8ea9e8",
+			"#b39de8",
+			"#d493df",
+			"#c4ccd8",
+		},
+	}
+}

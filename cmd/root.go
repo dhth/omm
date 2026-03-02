@@ -16,6 +16,7 @@ import (
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
 	"github.com/dhth/omm/internal/ui"
+	"github.com/dhth/omm/internal/ui/theme"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -67,23 +68,12 @@ Archive/Delete tasks that are not active using ctrl+d/ctrl+x.
 )
 
 func Execute(version string) error {
-	rootCmd, err := NewRootCommand()
+	rootCmd, err := NewRootCommand(version)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
-		switch {
-		case errors.Is(err, errCouldntGetHomeDir):
-			fmt.Printf("\n%s\n", reportIssueMsg)
-		}
 		return err
 	}
-	rootCmd.Version = version
 
-	err = rootCmd.Execute()
-	switch {
-	case errors.Is(err, errCouldntSetupGuide):
-		fmt.Printf("\n%s\n", reportIssueMsg)
-	}
-	return err
+	return rootCmd.Execute()
 }
 
 func setupDB(dbPathFull string) (*sql.DB, error) {
@@ -126,15 +116,14 @@ func setupDB(dbPathFull string) (*sql.DB, error) {
 	return db, nil
 }
 
-func NewRootCommand() (*cobra.Command, error) {
+func NewRootCommand(version string) (*cobra.Command, error) {
 	var (
 		configPath            string
 		configPathFull        string
 		dbPath                string
 		dbPathFull            string
 		db                    *sql.DB
-		taskListColor         string
-		archivedTaskListColor string
+		themeName             string
 		printTasksNum         uint8
 		taskListTitle         string
 		listDensityFlagInp    string
@@ -156,8 +145,10 @@ higher priority it takes.
 
 Tip: Quickly add a task using 'omm "task summary goes here"'.
 `,
-		Args:         cobra.MaximumNArgs(1),
-		SilenceUsage: true,
+		Args:          cobra.MaximumNArgs(1),
+		SilenceUsage:  true,
+		SilenceErrors: true,
+		Version:       version,
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			if cmd.CalledAs() == "updates" {
 				return nil
@@ -293,11 +284,14 @@ Sorry for breaking the upgrade step!
 				taskListTitle = taskListTitle[:taskListTitleMaxLen]
 			}
 
+			thm, themeErr := theme.Get(themeName)
+			if themeErr != nil {
+				return themeErr
+			}
+
 			config := ui.Config{
 				DBPath:                dbPathFull,
 				ListDensity:           ld,
-				TaskListColor:         taskListColor,
-				ArchivedTaskListColor: archivedTaskListColor,
 				TaskListTitle:         taskListTitle,
 				TextEditorCmd:         strings.Fields(editorCmd),
 				ShowContext:           showContextFlagInp,
@@ -305,7 +299,7 @@ Sorry for breaking the upgrade step!
 				CircularNav:           circularNav,
 			}
 
-			ui.RenderUI(db, config)
+			ui.RenderUI(db, config, thm)
 
 			return nil
 		},
@@ -379,11 +373,15 @@ Sorry for breaking the upgrade step!
 			} else {
 				editorCmd = getUserConfiguredEditor(editorFlagInp)
 			}
+
+			thm, themeErr := theme.Get(themeName)
+			if themeErr != nil {
+				return themeErr
+			}
+
 			config := ui.Config{
 				DBPath:                dbPathFull,
 				ListDensity:           ui.Compact,
-				TaskListColor:         taskListColor,
-				ArchivedTaskListColor: archivedTaskListColor,
 				TaskListTitle:         "omm guide",
 				TextEditorCmd:         strings.Fields(editorCmd),
 				ShowContext:           true,
@@ -391,7 +389,7 @@ Sorry for breaking the upgrade step!
 				ConfirmBeforeDeletion: true,
 			}
 
-			ui.RenderUI(db, config)
+			ui.RenderUI(db, config, thm)
 
 			return nil
 		},
@@ -437,10 +435,11 @@ Sorry for breaking the upgrade step!
 		defaultDBPath = filepath.Join(hd, defaultDataDir, dbFileName)
 	}
 
+	themeFlagUsage := fmt.Sprintf("theme to use; possible values: [%s]", strings.Join(theme.All(), ", "))
+
 	rootCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	rootCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
-	rootCmd.Flags().StringVar(&taskListColor, "tl-color", ui.TaskListColor, "hex color used for the task list")
-	rootCmd.Flags().StringVar(&archivedTaskListColor, "atl-color", ui.ArchivedTLColor, "hex color used for the archived tasks list")
+	rootCmd.Flags().StringVarP(&themeName, "theme", "t", theme.DefaultThemeName, themeFlagUsage)
 	rootCmd.Flags().StringVar(&taskListTitle, "title", ui.TaskListDefaultTitle, fmt.Sprintf("title of the task list, will trim till %d chars", taskListTitleMaxLen))
 	rootCmd.Flags().StringVar(&listDensityFlagInp, "list-density", ui.CompactDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]", ui.CompactDensityVal, ui.SpaciousDensityVal))
 	rootCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
@@ -456,6 +455,7 @@ Sorry for breaking the upgrade step!
 	importCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
 
 	guideCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
+	guideCmd.Flags().StringVarP(&themeName, "theme", "t", theme.DefaultThemeName, themeFlagUsage)
 
 	rootCmd.AddCommand(importCmd)
 	rootCmd.AddCommand(tasksCmd)
