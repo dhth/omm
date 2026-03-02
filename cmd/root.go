@@ -435,9 +435,11 @@ Sorry for breaking the upgrade step!
 		defaultDBPath = filepath.Join(hd, defaultDataDir, dbFileName)
 	}
 
+	themeFlagUsage := fmt.Sprintf("theme to use; possible values: [%s]", strings.Join(theme.All(), ", "))
+
 	rootCmd.Flags().StringVarP(&configPath, "config-path", "c", defaultConfigPath, fmt.Sprintf("location of omm's TOML config file%s", configPathAdditionalCxt))
 	rootCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
-	rootCmd.Flags().StringVarP(&themeName, "theme", "t", theme.DefaultThemeName, fmt.Sprintf("theme to use; possible values: [%s]", strings.Join(theme.All(), ", ")))
+	rootCmd.Flags().StringVarP(&themeName, "theme", "t", theme.DefaultThemeName, themeFlagUsage)
 	rootCmd.Flags().StringVar(&taskListTitle, "title", ui.TaskListDefaultTitle, fmt.Sprintf("title of the task list, will trim till %d chars", taskListTitleMaxLen))
 	rootCmd.Flags().StringVar(&listDensityFlagInp, "list-density", ui.CompactDensityVal, fmt.Sprintf("type of density for the list; possible values: [%s, %s]", ui.CompactDensityVal, ui.SpaciousDensityVal))
 	rootCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
@@ -453,7 +455,7 @@ Sorry for breaking the upgrade step!
 	importCmd.Flags().StringVarP(&dbPath, "db-path", "d", defaultDBPath, fmt.Sprintf("location of omm's database file%s", dbPathAdditionalCxt))
 
 	guideCmd.Flags().StringVar(&editorFlagInp, "editor", "vi", "editor command to run when adding/editing context to a task")
-	guideCmd.Flags().StringVarP(&themeName, "theme", "t", theme.DefaultThemeName, fmt.Sprintf("theme to use; possible values: [%s]", strings.Join(theme.All(), ", ")))
+	guideCmd.Flags().StringVarP(&themeName, "theme", "t", theme.DefaultThemeName, themeFlagUsage)
 
 	rootCmd.AddCommand(importCmd)
 	rootCmd.AddCommand(tasksCmd)
