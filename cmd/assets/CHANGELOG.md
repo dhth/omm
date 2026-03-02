@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Allow changing theme at runtime via the TUI
+- Configure theme via --theme/OMM_THEME/config-file
 - Allow duplicating tasks
+
+### Removed
+
+- Support for providing colors via the flags `--tl-color` and `--atl-color`
 
 ## [v0.6.0] - May 02, 2025
 
