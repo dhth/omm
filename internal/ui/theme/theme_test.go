@@ -17,10 +17,10 @@ func TestDefaultThemeIsValid(t *testing.T) {
 }
 
 func TestNextThemeWorksForAllThemes(t *testing.T) {
-	for _, thm := range themes {
+	for _, themeName := range All() {
 		// GIVEN
 		// WHEN
-		_, err := NextTheme(thm.Name)
+		_, err := NextTheme(themeName)
 
 		// THEN
 		require.NoError(t, err)
@@ -28,10 +28,10 @@ func TestNextThemeWorksForAllThemes(t *testing.T) {
 }
 
 func TestPreviousThemeWorksForAllThemes(t *testing.T) {
-	for _, thm := range themes {
+	for _, themeName := range All() {
 		// GIVEN
 		// WHEN
-		_, err := PreviousTheme(thm.Name)
+		_, err := PreviousTheme(themeName)
 
 		// THEN
 		require.NoError(t, err)
