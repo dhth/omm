@@ -53,7 +53,7 @@ func Get(name string) (Theme, error) {
 
 	for _, thm := range themes {
 		if thm.Name == trimmed {
-			return thm, nil
+			return cloneTheme(thm), nil
 		}
 	}
 
@@ -84,5 +84,12 @@ func themeByOffset(name string, offset int) (Theme, error) {
 
 	targetIndex := (currentIndex + offset + len(themes)) % len(themes)
 
-	return themes[targetIndex], nil
+	return cloneTheme(themes[targetIndex]), nil
+}
+
+func cloneTheme(thm Theme) Theme {
+	cp := thm
+	cp.PrefixColors = append([]string(nil), thm.PrefixColors...)
+
+	return cp
 }
