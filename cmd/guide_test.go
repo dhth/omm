@@ -8,7 +8,7 @@ import (
 
 func TestGetContext(t *testing.T) {
 	for _, entry := range guideEntries {
-		got, err := getContext(entry.summary)
+		got, err := getContext(entry.filename)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, got)
 	}
