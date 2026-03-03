@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"runtime"
 
-	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/textinput"
+	"charm.land/bubbles/v2/list"
+	"charm.land/bubbles/v2/textinput"
 	"github.com/dhth/omm/internal/types"
 	"github.com/dhth/omm/internal/ui/theme"
 	"github.com/dhth/omm/internal/utils"
@@ -55,7 +55,7 @@ func InitialModel(db *sql.DB, config Config, thm theme.Theme) Model {
 	taskInput := textinput.New()
 	taskInput.Placeholder = "prefix: task summary goes here"
 	taskInput.CharLimit = types.TaskSummaryMaxLen
-	taskInput.Width = taskSummaryWidth
+	taskInput.SetWidth(taskSummaryWidth)
 
 	contextBMList := list.New(nil, newBookmarksListDelegate(thm), taskSummaryWidth, defaultListHeight)
 

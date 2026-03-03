@@ -6,8 +6,8 @@ import (
 	"runtime"
 	"time"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/atotto/clipboard"
-	tea "github.com/charmbracelet/bubbletea"
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
 	_ "modernc.org/sqlite" // sqlite driver

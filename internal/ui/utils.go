@@ -3,13 +3,14 @@ package ui
 import (
 	"fmt"
 	"hash/fnv"
+	"image/color"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 	"github.com/dhth/omm/internal/types"
 )
 
-func getColorForString(str string, colors []string) lipgloss.TerminalColor {
+func getColorForString(str string, colors []string) color.Color {
 	if len(colors) == 0 {
 		return lipgloss.NoColor{}
 	}
