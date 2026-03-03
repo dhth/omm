@@ -2,13 +2,14 @@ package ui
 
 import (
 	"fmt"
+	"image/color"
 	"io"
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/list"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/list"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/dhth/omm/internal/types"
 	"github.com/dhth/omm/internal/ui/theme"
 	"github.com/dhth/omm/internal/utils"
@@ -132,14 +133,14 @@ func newTaskListDelegate(thm theme.Theme, density ListDensityType, listType task
 }
 
 func newBookmarksListDelegate(thm theme.Theme) list.ItemDelegate {
-	return newSpaciousListDelegate(lipgloss.Color(thm.Tertiary), false, 1)
+	return newSpaciousListDelegate(lipgloss.Color(thm.Tertiary), lipgloss.Color(thm.Muted), false, 1)
 }
 
 func newPrefixSearchListDelegate(thm theme.Theme) list.ItemDelegate {
-	return newSpaciousListDelegate(lipgloss.Color(thm.Quinary), false, 0)
+	return newSpaciousListDelegate(lipgloss.Color(thm.Quinary), lipgloss.Color(thm.Muted), false, 0)
 }
 
-func newSpaciousListDelegate(selectionColor lipgloss.Color, showDesc bool, spacing int) list.DefaultDelegate {
+func newSpaciousListDelegate(selectionColor color.Color, normalTitleColor color.Color, showDesc bool, spacing int) list.DefaultDelegate {
 	d := list.NewDefaultDelegate()
 
 	d.ShowDescription = showDesc
@@ -147,7 +148,7 @@ func newSpaciousListDelegate(selectionColor lipgloss.Color, showDesc bool, spaci
 
 	d.Styles.NormalTitle = d.Styles.
 		NormalTitle.
-		Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#fbf1c7"})
+		Foreground(normalTitleColor)
 
 	d.Styles.SelectedTitle = d.Styles.
 		SelectedTitle.

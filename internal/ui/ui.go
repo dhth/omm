@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/dhth/omm/internal/ui/theme"
 )
 
@@ -20,7 +20,7 @@ func RenderUI(db *sql.DB, config Config, thm theme.Theme) {
 		defer f.Close()
 	}
 
-	p := tea.NewProgram(InitialModel(db, config, thm), tea.WithAltScreen())
+	p := tea.NewProgram(InitialModel(db, config, thm))
 	if _, err := p.Run(); err != nil {
 		log.Fatalf("Something went wrong %s", err)
 	}

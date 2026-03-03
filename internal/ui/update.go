@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/charmbracelet/bubbles/list"
-	"github.com/charmbracelet/bubbles/viewport"
-	tea "github.com/charmbracelet/bubbletea"
+	"charm.land/bubbles/v2/list"
+	"charm.land/bubbles/v2/viewport"
+	tea "charm.land/bubbletea/v2"
 	pers "github.com/dhth/omm/internal/persistence"
 	"github.com/dhth/omm/internal/types"
 	"github.com/dhth/omm/internal/ui/theme"
@@ -38,7 +38,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.activeView == taskListView || m.activeView == archivedTaskListView {
 		switch msg := msg.(type) {
-		case tea.KeyMsg:
+		case tea.KeyPressMsg:
 			if m.taskList.FilterState() == list.Filtering {
 				m.taskList, cmd = m.taskList.Update(msg)
 				cmds = append(cmds, cmd)
@@ -54,7 +54,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	if m.activeView == taskEntryView {
 		switch msg := msg.(type) {
-		case tea.KeyMsg:
+		case tea.KeyPressMsg:
 			switch keypress := msg.String(); keypress {
 			case "esc", "ctrl+c":
 				m.activeView = taskListView
@@ -196,22 +196,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		vpWidth := msg.Width - 4
 
 		if !m.contextVPReady {
-			m.contextVP = viewport.New(vpWidth, contextHeight)
+			m.contextVP = viewport.New(viewport.WithWidth(vpWidth), viewport.WithHeight(contextHeight))
 			m.contextVPReady = true
 		} else {
-			m.contextVP.Width = vpWidth
-			m.contextVP.Height = contextHeight
+			m.contextVP.SetWidth(vpWidth)
+			m.contextVP.SetHeight(contextHeight)
 		}
 
 		if !m.taskDetailsVPReady {
-			m.taskDetailsVP = viewport.New(vpWidth, m.terminalHeight-4)
+			m.taskDetailsVP = viewport.New(viewport.WithWidth(vpWidth), viewport.WithHeight(m.terminalHeight-4))
 			m.taskDetailsVP.KeyMap.HalfPageDown.SetKeys("ctrl+d")
 			m.taskDetailsVPReady = true
 			m.taskDetailsVP.KeyMap.Up.SetEnabled(false)
 			m.taskDetailsVP.KeyMap.Down.SetEnabled(false)
 		} else {
-			m.taskDetailsVP.Width = vpWidth
-			m.taskDetailsVP.Height = m.terminalHeight - 4
+			m.taskDetailsVP.SetWidth(vpWidth)
+			m.taskDetailsVP.SetHeight(m.terminalHeight - 4)
 		}
 
 		contextMdRenderer, err := getMarkDownRenderer(m.theme, vpWidth)
@@ -236,17 +236,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if !m.helpVPReady {
-			m.helpVP = viewport.New(msg.Width-3, m.terminalHeight-4)
+			m.helpVP = viewport.New(viewport.WithWidth(msg.Width-3), viewport.WithHeight(m.terminalHeight-4))
 			m.helpVP.SetContent(helpToRender)
 			m.helpVP.KeyMap.Up.SetEnabled(false)
 			m.helpVP.KeyMap.Down.SetEnabled(false)
 			m.helpVPReady = true
 		} else {
-			m.helpVP.Width = msg.Width - 3
-			m.helpVP.Height = m.terminalHeight - 4
+			m.helpVP.SetWidth(msg.Width - 3)
+			m.helpVP.SetHeight(m.terminalHeight - 4)
 		}
 
-	case tea.KeyMsg:
+	case tea.KeyPressMsg:
 		if m.cfg.ConfirmBeforeDeletion && m.showDeletePrompt && msg.String() != "ctrl+x" {
 			m.showDeletePrompt = false
 
@@ -910,10 +910,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						taskList.FilterInput.SetValue(string(runes[:len(runes)-1]))
 					}
 
-					taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: -1, Runes: []int32{47}, Alt: false, Paste: false})
+					taskList, tlCmd = taskList.Update(tea.KeyPressMsg{Code: '/', Text: "/"})
 					cmds = append(cmds, tlCmd)
 
-					taskList, tlCmd = taskList.Update(tea.KeyMsg{Type: -1, Runes: []rune{runes[len(runes)-1]}, Alt: false, Paste: false})
+					taskList, tlCmd = taskList.Update(tea.KeyPressMsg{Code: runes[len(runes)-1], Text: string(runes[len(runes)-1])})
 					cmds = append(cmds, tlCmd)
 
 					// TODO: Try sending ENTER programmatically too
