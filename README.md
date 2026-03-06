@@ -51,7 +51,7 @@ Run it as follows.
 omm guide
 ```
 
-![Guide](https://tools.dhruvs.space/images/omm/omm-guide-1.png)
+![Guide](https://tools.dhruvs.space/images/omm/v0-7-0/guide.png)
 
 📋 Updates
 ---
@@ -114,8 +114,6 @@ working on right now. It allows you to do the following:
 - Move task up/down based on changing priorities
 - Archive a task
 - Permanently delete a task
-
-![active-tasks](https://tools.dhruvs.space/images/omm/omm-active-tasks-1.png)
 
 #### Archived Tasks List
 
@@ -185,11 +183,11 @@ This configuration property can also be provided via the environment variable
 
 Compact mode:
 
-![compact](https://tools.dhruvs.space/images/omm/omm-compact-1.png)
+![compact](https://tools.dhruvs.space/images/omm/v0-7-0/compact.png)
 
 Spacious mode:
 
-![spacious](https://tools.dhruvs.space/images/omm/omm-spacious-1.png)
+![spacious](https://tools.dhruvs.space/images/omm/v0-7-0/spacious.png)
 
 ### Importing tasks
 
@@ -266,64 +264,76 @@ These are some tips to improve your experience of using `omm`:
 
 ### General
 
-    q/esc/ctrl+c       go back
-    Q                  quit from anywhere
-    [                  set previous theme
-    ]                  set next theme
+| Keymap         | Description        |
+|----------------|--------------------|
+| `q/esc/ctrl+c` | go back            |
+| `Q`            | quit from anywhere |
+| `[`            | set previous theme |
+| `]`            | set next theme     |
 
 ### Active/Archived Tasks List
 
-    j/↓                move cursor down
-    k/↑                move cursor up
-    h                  go to previous page
-    l                  go to next page
-    g                  go to the top
-    G                  go to the end
-    tab                move between lists
-    C                  toggle showing context
-    d                  toggle Task Details pane
-    b                  open Task Bookmarks list
-    B                  open all bookmarks added to current task
-    c                  update context for a task
-    ctrl+d             archive/unarchive task
-    ctrl+x             delete task
-    ctrl+r             reload task lists
-    /                  filter list by task prefix
-    ctrl+p             filter by prefix via the prefix selection list
-    y                  copy selected task's context to system clipboard
-    Y                  yank current task
-    v                  toggle between compact and spacious view
+| Keymap   | Description                                      |
+|----------|--------------------------------------------------|
+| `j/↓`    | move cursor down                                 |
+| `k/↑`    | move cursor up                                   |
+| `h`      | go to previous page                              |
+| `l`      | go to next page                                  |
+| `g`      | go to the top                                    |
+| `G`      | go to the end                                    |
+| `tab`    | move between lists                               |
+| `C`      | toggle showing context                           |
+| `d`      | toggle Task Details pane                         |
+| `b`      | open Task Bookmarks list                         |
+| `B`      | open all bookmarks added to current task         |
+| `c`      | update context for a task                        |
+| `ctrl+d` | archive/unarchive task                           |
+| `ctrl+x` | delete task                                      |
+| `ctrl+r` | reload task lists                                |
+| `/`      | filter list by task prefix                       |
+| `ctrl+p` | filter by prefix via the prefix selection list   |
+| `y`      | copy selected task's context to system clipboard |
+| `Y`      | yank current task                                |
+| `v`      | toggle between compact and spacious view         |
 
 ### Active Tasks List
 
-    q/esc/ctrl+c       quit
-    o/a                add task below cursor
-    O                  add task above cursor
-    I                  add task at the top
-    A                  add task at the end
-    u                  update task summary
-    ⏎                  move task to the top
-    E                  move task to the end
-    J                  move task one position down
-    K                  move task one position up
-    p                  paste yanked task below
-    P                  paste yanked task above
+| Keymap         | Description                 |
+|----------------|-----------------------------|
+| `q/esc/ctrl+c` | quit                        |
+| `o/a`          | add task below cursor       |
+| `O`            | add task above cursor       |
+| `I`            | add task at the top         |
+| `A`            | add task at the end         |
+| `u`            | update task summary         |
+| `⏎`            | move task to the top        |
+| `E`            | move task to the end        |
+| `J`            | move task one position down |
+| `K`            | move task one position up   |
+| `p`            | paste yanked task below     |
+| `P`            | paste yanked task above     |
 
 ### Task Creation/Update Pane
 
-    ⏎                  submit task summary
-    ctrl+p             choose/change prefix via the prefix selection list
+| Keymap   | Description                                        |
+|----------|----------------------------------------------------|
+| `⏎`      | submit task summary                                |
+| `ctrl+p` | choose/change prefix via the prefix selection list |
 
 ### Task Details Pane
 
-    h/←/→/l            move backwards/forwards when in the task details view
-    y                  copy current task's context to system clipboard
-    B                  open all bookmarks added to current task
-    Y                  yank current task
+| Keymap    | Description                                           |
+|-----------|-------------------------------------------------------|
+| `h/←/→/l` | move backwards/forwards when in the task details view |
+| `y`       | copy current task's context to system clipboard       |
+| `B`       | open all bookmarks added to current task              |
+| `Y`       | yank current task                                     |
 
 ### Task Bookmarks List
 
-    ⏎                  open URL in browser
+| Keymap | Description         |
+|--------|---------------------|
+| `⏎`    | open URL in browser |
 
 🔐 Verifying release artifacts
 ---
