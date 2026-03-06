@@ -8,10 +8,7 @@
 `omm` (stands for "on-my-mind") is a keyboard-driven task manager for the
 command line.
 
-
-![Usage](https://tools.dhruvs.space/images/omm/omm.gif)
-
-[source video](https://www.youtube.com/watch?v=iB_PHc92wgY)
+[![guide](https://asciinema.org/a/SFNMEh8SJh6JNzcH.svg)](https://asciinema.org/a/SFNMEh8SJh6JNzcH)
 
 🤔 Motivation
 ---
@@ -67,6 +64,37 @@ omm updates
 
 ⚡️ Usage
 ---
+
+```bash
+omm -h
+```
+
+```text
+Usage:
+  omm [flags]
+  omm [command]
+
+Available Commands:
+  guide       Starts a guided walkthrough of omm's features
+  help        Help about any command
+  import      Import tasks into omm from stdin
+  tasks       Output tasks tracked by omm to stdout
+  updates     List updates recently added to omm
+
+Flags:
+      --circular-nav              whether to enable circular navigation for lists (cycle back to the first entry from the last, and vice versa)
+  -c, --config-path string        location of omm's TOML config file (default "~/.config/omm/omm.toml")
+      --confirm-before-deletion   whether to ask for confirmation before deleting a task (default true)
+  -d, --db-path string            location of omm's database file (default "~/.local/share/omm/omm.db")
+      --editor string             editor command to run when adding/editing context to a task (default "vi")
+  -h, --help                      help for omm
+      --list-density string       type of density for the list; possible values: [compact, spacious] (default "compact")
+      --show-context              whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI
+  -t, --theme string              theme to use; possible values: [catppuccin-mocha, dracula, github-dark, gruvbox-dark, monokai-classic, onedark, rose-pine-moon, tokyonight, xcode-dark] (default "gruvbox-dark")
+      --title string              title of the task list, will trim till 8 chars (default "omm")
+  -v, --version                   version for omm
+
+```
 
 ### TUI
 
@@ -125,14 +153,24 @@ in the task lists.
 
 #### Tweaking the TUI
 
-The list colors and the task list title can be changed via CLI flags.
+##### Themes
 
-```bash
-omm \
-    --tl-color="#b8bb26" \
-    --atl-color="#fb4934" \
-    --title="work"
-```
+omm comes with the following themes built in:
+
+- `catppuccin-mocha`
+- `dracula`
+- `github-dark`
+- `gruvbox-dark`
+- `monokai-classic`
+- `onedark`
+- `rose-pine-moon`
+- `tokyonight`
+- `xcode-dark`
+
+You can have omm start with any one of these via its config (described below).
+The active theme can also be changed in the TUI using the keymaps `[` and `]`.
+
+##### Visual density
 
 omm offers two modes for the visual density of its lists: "compact" and
 "spacious", the former being the default. omm can be started with one of
@@ -190,13 +228,14 @@ will consider in the order listed below:
     Here's a sample config file:
 
     ```toml
-    db_path      = "~/.local/share/omm/omm-w.db"
-    tl_color     = "#b8bb26"
-    atl_color    = "#fabd2f"
-    title        = "work"
-    list_density = "spacious"
-    show_context = false
-    editor       = "vi -u NONE"
+    db_path                 = "~/.local/share/omm/omm-w.db"
+    theme                   = "tokyonight"
+    title                   = "work"
+    list_density            = "spacious"
+    show_context            = false
+    editor                  = "vi -u NONE"
+    confirm_before_deletion = false
+    circular_nav            = true
     ```
 
 **[`^ back to top ^`](#omm)**
@@ -229,6 +268,8 @@ These are some tips to improve your experience of using `omm`:
 
     q/esc/ctrl+c       go back
     Q                  quit from anywhere
+    [                  set previous theme
+    ]                  set next theme
 
 ### Active/Archived Tasks List
 
@@ -250,6 +291,7 @@ These are some tips to improve your experience of using `omm`:
     /                  filter list by task prefix
     ctrl+p             filter by prefix via the prefix selection list
     y                  copy selected task's context to system clipboard
+    Y                  yank current task
     v                  toggle between compact and spacious view
 
 ### Active Tasks List
@@ -264,6 +306,8 @@ These are some tips to improve your experience of using `omm`:
     E                  move task to the end
     J                  move task one position down
     K                  move task one position up
+    p                  paste yanked task below
+    P                  paste yanked task above
 
 ### Task Creation/Update Pane
 
@@ -275,6 +319,7 @@ These are some tips to improve your experience of using `omm`:
     h/←/→/l            move backwards/forwards when in the task details view
     y                  copy current task's context to system clipboard
     B                  open all bookmarks added to current task
+    Y                  yank current task
 
 ### Task Bookmarks List
 
