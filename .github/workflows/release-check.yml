@@ -1,0 +1,25 @@
+name: release-check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: 'go.mod'
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v4.0.0
+        with:
+          cosign-release: 'v3.0.5'
+      - name: Release Binaries
+        uses: goreleaser/goreleaser-action@v7
+        with:
+          version: 'v2.14.1'
+          args: check

@@ -11,7 +11,6 @@ jobs:
     outputs:
       code: ${{ steps.filter.outputs.code }}
       deps: ${{ steps.filter.outputs.deps }}
-      release: ${{ steps.filter.outputs.release }}
       workflows: ${{ steps.filter.outputs.workflows }}
       yml: ${{ steps.filter.outputs.yml }}
     steps:
@@ -34,9 +33,6 @@ jobs:
             deps:
               - "go.mod"
               - "go.sum"
-              - ".github/workflows/pr.yml"
-            release:
-              - ".goreleaser.yaml"
               - ".github/workflows/pr.yml"
             workflows:
               - ".github/workflows/**.yml"
@@ -98,22 +94,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - uses: dhth/composite-actions/.github/actions/lint-actions@main
-
-  release-check:
-    needs: changes
-    if: ${{ needs.changes.outputs.release == 'true' }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version-file: 'go.mod'
-      - name: Release check
-        uses: goreleaser/goreleaser-action@v7
-        with:
-          version: 'v2.9.0'
-          args: check
 
   back-compat:
     needs: changes
