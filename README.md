@@ -8,10 +8,7 @@
 `omm` (stands for "on-my-mind") is a keyboard-driven task manager for the
 command line.
 
-
-![Usage](https://tools.dhruvs.space/images/omm/omm.gif)
-
-[source video](https://www.youtube.com/watch?v=iB_PHc92wgY)
+[![guide](https://asciinema.org/a/SFNMEh8SJh6JNzcH.svg)](https://asciinema.org/a/SFNMEh8SJh6JNzcH)
 
 🤔 Motivation
 ---
@@ -54,7 +51,7 @@ Run it as follows.
 omm guide
 ```
 
-![Guide](https://tools.dhruvs.space/images/omm/omm-guide-1.png)
+![Guide](https://tools.dhruvs.space/images/omm/v0-7-0/guide.png)
 
 📋 Updates
 ---
@@ -67,6 +64,37 @@ omm updates
 
 ⚡️ Usage
 ---
+
+```bash
+omm -h
+```
+
+```text
+Usage:
+  omm [flags]
+  omm [command]
+
+Available Commands:
+  guide       Starts a guided walkthrough of omm's features
+  help        Help about any command
+  import      Import tasks into omm from stdin
+  tasks       Output tasks tracked by omm to stdout
+  updates     List updates recently added to omm
+
+Flags:
+      --circular-nav              whether to enable circular navigation for lists (cycle back to the first entry from the last, and vice versa)
+  -c, --config-path string        location of omm's TOML config file (default "~/.config/omm/omm.toml")
+      --confirm-before-deletion   whether to ask for confirmation before deleting a task (default true)
+  -d, --db-path string            location of omm's database file (default "~/.local/share/omm/omm.db")
+      --editor string             editor command to run when adding/editing context to a task (default "vi")
+  -h, --help                      help for omm
+      --list-density string       type of density for the list; possible values: [compact, spacious] (default "compact")
+      --show-context              whether to start omm with a visible task context pane or not; this can later be toggled on/off in the TUI
+  -t, --theme string              theme to use; possible values: [catppuccin-mocha, dracula, github-dark, gruvbox-dark, monokai-classic, onedark, rose-pine-moon, tokyonight, xcode-dark] (default "gruvbox-dark")
+      --title string              title of the task list, will trim till 8 chars (default "omm")
+  -v, --version                   version for omm
+
+```
 
 ### TUI
 
@@ -86,8 +114,6 @@ working on right now. It allows you to do the following:
 - Move task up/down based on changing priorities
 - Archive a task
 - Permanently delete a task
-
-![active-tasks](https://tools.dhruvs.space/images/omm/omm-active-tasks-1.png)
 
 #### Archived Tasks List
 
@@ -125,14 +151,24 @@ in the task lists.
 
 #### Tweaking the TUI
 
-The list colors and the task list title can be changed via CLI flags.
+##### Themes
 
-```bash
-omm \
-    --tl-color="#b8bb26" \
-    --atl-color="#fb4934" \
-    --title="work"
-```
+omm comes with the following themes built in:
+
+- `catppuccin-mocha`
+- `dracula`
+- `github-dark`
+- `gruvbox-dark`
+- `monokai-classic`
+- `onedark`
+- `rose-pine-moon`
+- `tokyonight`
+- `xcode-dark`
+
+You can have omm start with any one of these via its config (described below).
+The active theme can also be changed in the TUI using the keymaps `[` and `]`.
+
+##### Visual density
 
 omm offers two modes for the visual density of its lists: "compact" and
 "spacious", the former being the default. omm can be started with one of
@@ -147,11 +183,11 @@ This configuration property can also be provided via the environment variable
 
 Compact mode:
 
-![compact](https://tools.dhruvs.space/images/omm/omm-compact-1.png)
+![compact](https://tools.dhruvs.space/images/omm/v0-7-0/compact.png)
 
 Spacious mode:
 
-![spacious](https://tools.dhruvs.space/images/omm/omm-spacious-1.png)
+![spacious](https://tools.dhruvs.space/images/omm/v0-7-0/spacious.png)
 
 ### Importing tasks
 
@@ -190,13 +226,14 @@ will consider in the order listed below:
     Here's a sample config file:
 
     ```toml
-    db_path      = "~/.local/share/omm/omm-w.db"
-    tl_color     = "#b8bb26"
-    atl_color    = "#fabd2f"
-    title        = "work"
-    list_density = "spacious"
-    show_context = false
-    editor       = "vi -u NONE"
+    db_path                 = "~/.local/share/omm/omm-w.db"
+    theme                   = "tokyonight"
+    title                   = "work"
+    list_density            = "spacious"
+    show_context            = false
+    editor                  = "vi -u NONE"
+    confirm_before_deletion = false
+    circular_nav            = true
     ```
 
 **[`^ back to top ^`](#omm)**
@@ -227,58 +264,76 @@ These are some tips to improve your experience of using `omm`:
 
 ### General
 
-    q/esc/ctrl+c       go back
-    Q                  quit from anywhere
+| Keymap         | Description        |
+|----------------|--------------------|
+| `q/esc/ctrl+c` | go back            |
+| `Q`            | quit from anywhere |
+| `[`            | set previous theme |
+| `]`            | set next theme     |
 
 ### Active/Archived Tasks List
 
-    j/↓                move cursor down
-    k/↑                move cursor up
-    h                  go to previous page
-    l                  go to next page
-    g                  go to the top
-    G                  go to the end
-    tab                move between lists
-    C                  toggle showing context
-    d                  toggle Task Details pane
-    b                  open Task Bookmarks list
-    B                  open all bookmarks added to current task
-    c                  update context for a task
-    ctrl+d             archive/unarchive task
-    ctrl+x             delete task
-    ctrl+r             reload task lists
-    /                  filter list by task prefix
-    ctrl+p             filter by prefix via the prefix selection list
-    y                  copy selected task's context to system clipboard
-    v                  toggle between compact and spacious view
+| Keymap   | Description                                      |
+|----------|--------------------------------------------------|
+| `j/↓`    | move cursor down                                 |
+| `k/↑`    | move cursor up                                   |
+| `h`      | go to previous page                              |
+| `l`      | go to next page                                  |
+| `g`      | go to the top                                    |
+| `G`      | go to the end                                    |
+| `tab`    | move between lists                               |
+| `C`      | toggle showing context                           |
+| `d`      | toggle Task Details pane                         |
+| `b`      | open Task Bookmarks list                         |
+| `B`      | open all bookmarks added to current task         |
+| `c`      | update context for a task                        |
+| `ctrl+d` | archive/unarchive task                           |
+| `ctrl+x` | delete task                                      |
+| `ctrl+r` | reload task lists                                |
+| `/`      | filter list by task prefix                       |
+| `ctrl+p` | filter by prefix via the prefix selection list   |
+| `y`      | copy selected task's context to system clipboard |
+| `Y`      | yank current task                                |
+| `v`      | toggle between compact and spacious view         |
 
 ### Active Tasks List
 
-    q/esc/ctrl+c       quit
-    o/a                add task below cursor
-    O                  add task above cursor
-    I                  add task at the top
-    A                  add task at the end
-    u                  update task summary
-    ⏎                  move task to the top
-    E                  move task to the end
-    J                  move task one position down
-    K                  move task one position up
+| Keymap         | Description                 |
+|----------------|-----------------------------|
+| `q/esc/ctrl+c` | quit                        |
+| `o/a`          | add task below cursor       |
+| `O`            | add task above cursor       |
+| `I`            | add task at the top         |
+| `A`            | add task at the end         |
+| `u`            | update task summary         |
+| `⏎`            | move task to the top        |
+| `E`            | move task to the end        |
+| `J`            | move task one position down |
+| `K`            | move task one position up   |
+| `p`            | paste yanked task below     |
+| `P`            | paste yanked task above     |
 
 ### Task Creation/Update Pane
 
-    ⏎                  submit task summary
-    ctrl+p             choose/change prefix via the prefix selection list
+| Keymap   | Description                                        |
+|----------|----------------------------------------------------|
+| `⏎`      | submit task summary                                |
+| `ctrl+p` | choose/change prefix via the prefix selection list |
 
 ### Task Details Pane
 
-    h/←/→/l            move backwards/forwards when in the task details view
-    y                  copy current task's context to system clipboard
-    B                  open all bookmarks added to current task
+| Keymap    | Description                                           |
+|-----------|-------------------------------------------------------|
+| `h/←/→/l` | move backwards/forwards when in the task details view |
+| `y`       | copy current task's context to system clipboard       |
+| `B`       | open all bookmarks added to current task              |
+| `Y`       | yank current task                                     |
 
 ### Task Bookmarks List
 
-    ⏎                  open URL in browser
+| Keymap | Description         |
+|--------|---------------------|
+| `⏎`    | open URL in browser |
 
 🔐 Verifying release artifacts
 ---
