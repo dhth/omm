@@ -3,6 +3,7 @@ package persistence
 import (
 	"database/sql"
 	"encoding/json"
+	"strings"
 	"time"
 
 	"github.com/dhth/omm/internal/types"
@@ -130,22 +131,23 @@ func InsertTasks(db *sql.DB, tasks []types.Task, insertAtTop bool) (int64, error
 		_ = tx.Rollback()
 	}()
 
-	query := `INSERT INTO task (summary, context, active, created_at, updated_at)
-VALUES `
+	var query strings.Builder
+	query.WriteString(`INSERT INTO task (summary, context, active, created_at, updated_at)
+VALUES `)
 
 	values := make([]any, 0, len(tasks)*4)
 
 	for i, t := range tasks {
 		if i > 0 {
-			query += ","
+			query.WriteString(",")
 		}
-		query += "(?, ?, ?, ?, ?)"
+		query.WriteString("(?, ?, ?, ?, ?)")
 		values = append(values, t.Summary, t.Context, t.Active, t.CreatedAt.UTC(), t.UpdatedAt.UTC())
 	}
 
-	query += ";"
+	query.WriteString(";")
 
-	res, err := tx.Exec(query, values...)
+	res, err := tx.Exec(query.String(), values...)
 	if err != nil {
 		return -1, err
 	}
