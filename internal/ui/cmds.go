@@ -100,7 +100,7 @@ func openTextEditor(fPath string, editorCmd []string, taskIndex int, taskID uint
 
 func openURI(uri string) tea.Cmd {
 	var cmd string
-	var args []string
+	args := make([]string, 0, 1)
 	switch runtime.GOOS {
 	case "windows":
 		cmd = "cmd"
