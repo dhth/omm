@@ -99,19 +99,17 @@ func openTextEditor(fPath string, editorCmd []string, taskIndex int, taskID uint
 }
 
 func openURI(uri string) tea.Cmd {
-	var cmd string
-	var args []string
+	var c *exec.Cmd
 	switch runtime.GOOS {
 	case "windows":
-		cmd = "cmd"
-		args = []string{"/c", "start"}
+		c = exec.Command("cmd", "/c", "start", uri)
 	case "darwin":
-		cmd = "open"
+		c = exec.Command("open", uri)
 	default:
-		cmd = "xdg-open"
+		c = exec.Command("xdg-open", uri)
 	}
-	c := exec.Command(cmd, append(args, uri)...)
 	err := c.Run()
+
 	return func() tea.Msg {
 		return uriOpenedMsg{uri, err}
 	}
