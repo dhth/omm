@@ -1,6 +1,6 @@
 module github.com/dhth/omm
 
-go 1.26.2
+go 1.26.3
 
 require (
 	charm.land/bubbles/v2 v2.1.0
