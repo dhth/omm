@@ -6,7 +6,7 @@ require (
 	charm.land/bubbles/v2 v2.1.0
 	charm.land/bubbletea/v2 v2.0.6
 	charm.land/lipgloss/v2 v2.0.3
-	github.com/alecthomas/chroma/v2 v2.25.0
+	github.com/alecthomas/chroma/v2 v2.26.0
 	github.com/atotto/clipboard v0.1.4
 	github.com/charmbracelet/glamour v1.0.0
 	github.com/dustin/go-humanize v1.0.1
@@ -15,7 +15,7 @@ require (
 	github.com/spf13/pflag v1.0.10
 	github.com/spf13/viper v1.21.0
 	github.com/stretchr/testify v1.11.1
-	modernc.org/sqlite v1.50.1
+	modernc.org/sqlite v1.51.0
 	mvdan.cc/xurls/v2 v2.6.0
 )
 
