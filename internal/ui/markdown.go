@@ -144,6 +144,7 @@ func glamourStyleConfig(thm theme.Theme) ansi.StyleConfig {
 	}
 }
 
+//nolint:goconst
 func chromaTheme(themeName string) string {
 	switch themeName {
 	case "catppuccin-mocha":
