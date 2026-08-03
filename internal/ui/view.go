@@ -167,6 +167,8 @@ func (m Model) View() tea.View {
 
 	v := tea.NewView(lipgloss.JoinVertical(lipgloss.Left, components...))
 	v.AltScreen = true
+	v.BackgroundColor = lipgloss.Color(m.theme.Background)
+	v.ForegroundColor = lipgloss.Color(m.theme.Text)
 
 	return v
 }
