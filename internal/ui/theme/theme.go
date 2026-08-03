@@ -17,6 +17,7 @@ var themes = []Theme{
 	dracula(),
 	githubDark(),
 	gruvboxDark(),
+	gruvboxDarkHard(),
 	monokaiClassic(),
 	oneDark(),
 	rosePineMoon(),
