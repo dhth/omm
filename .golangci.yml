@@ -16,6 +16,12 @@ linters:
   exclusions:
     rules:
       - linters:
+          - goconst
+        path: ^internal/ui/theme/
+      - linters:
+          - goconst
+        path: _test\.go$
+      - linters:
           - revive
         text: "var-naming"
     generated: lax

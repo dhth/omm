@@ -144,6 +144,7 @@ func glamourStyleConfig(thm theme.Theme) ansi.StyleConfig {
 	}
 }
 
+//nolint:goconst
 func chromaTheme(themeName string) string {
 	switch themeName {
 	case "catppuccin-mocha":
@@ -153,6 +154,8 @@ func chromaTheme(themeName string) string {
 	case "github-dark":
 		return "github-dark"
 	case "gruvbox-dark":
+		return "gruvbox"
+	case "gruvbox-dark-hard":
 		return "gruvbox"
 	case "monokai-classic":
 		return "monokai"
