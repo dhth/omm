@@ -1,0 +1,51 @@
+package theme
+
+const themeNameGruvboxLight = "gruvbox-light"
+
+func gruvboxLight() Theme {
+	return Theme{
+		Name:       themeNameGruvboxLight,
+		Accent1:    "#af3a03",
+		Accent2:    "#b57614",
+		Accent3:    "#076678",
+		Accent4:    "#79740e",
+		Accent5:    "#8f3f71",
+		Success:    "#79740e",
+		Danger:     "#9d0006",
+		Muted:      "#928374",
+		Foreground: "#3c3836",
+		Background: "#fbf1c7",
+		CategoricalColors: []string{
+			"#9d0006",
+			"#cc241d",
+			"#8b1a12",
+			"#b44e0c",
+			"#af3a03",
+			"#9f4308",
+			"#966211",
+			"#7c5b0b",
+			"#6f5309",
+			"#85690c",
+			"#746f0d",
+			"#5a6a10",
+			"#6a6a11",
+			"#4e6b1f",
+			"#356b4b",
+			"#2f6650",
+			"#417856",
+			"#1b6664",
+			"#076678",
+			"#285b73",
+			"#0e5a86",
+			"#2b4b8f",
+			"#5c4d72",
+			"#8f3f71",
+			"#7d3a69",
+			"#9d5777",
+			"#665c54",
+			"#504945",
+			"#776b5f",
+			"#3c3836",
+		},
+	}
+}

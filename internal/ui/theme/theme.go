@@ -18,6 +18,7 @@ var themes = []Theme{
 	githubDark(),
 	gruvboxDark(),
 	gruvboxDarkHard(),
+	gruvboxLight(),
 	monokaiClassic(),
 	oneDark(),
 	rosePineMoon(),
