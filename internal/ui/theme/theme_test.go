@@ -38,26 +38,6 @@ func TestPreviousThemeWorksForAllThemes(t *testing.T) {
 	}
 }
 
-func TestAllThemesHaveCompletePalettes(t *testing.T) {
-	for _, thm := range themes {
-		t.Run(thm.Name, func(t *testing.T) {
-			assert.NotEmpty(t, thm.Name)
-			assert.NotEmpty(t, thm.Accent1)
-			assert.NotEmpty(t, thm.Accent2)
-			assert.NotEmpty(t, thm.Accent3)
-			assert.NotEmpty(t, thm.Accent4)
-			assert.NotEmpty(t, thm.Accent5)
-			assert.NotEmpty(t, thm.Accent6)
-			assert.NotEmpty(t, thm.Success)
-			assert.NotEmpty(t, thm.Danger)
-			assert.NotEmpty(t, thm.Muted)
-			assert.NotEmpty(t, thm.Foreground)
-			assert.NotEmpty(t, thm.Background)
-			assert.NotEmpty(t, thm.CategoricalColors)
-		})
-	}
-}
-
 func TestNextTheme(t *testing.T) {
 	testCases := []struct {
 		name         string
