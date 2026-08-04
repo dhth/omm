@@ -3,6 +3,7 @@ linters:
   enable:
     - errname
     - errorlint
+    - exhaustruct
     - goconst
     - nilerr
     - prealloc
@@ -13,6 +14,11 @@ linters:
     - unconvert
     - usestdlibvars
     - wastedassign
+  settings:
+    exhaustruct:
+      include:
+        - 'github.com/dhth/omm/internal/ui/theme\.Theme'
+        - 'github.com/dhth/omm/internal/ui\.styles'
   exclusions:
     rules:
       - linters:
