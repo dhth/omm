@@ -10,6 +10,7 @@ func oneDark() Theme {
 		Accent3:    "#c678dd",
 		Accent4:    "#e5c07b",
 		Accent5:    "#d19a66",
+		Accent6:    "#56b6c2",
 		Success:    "#98c379",
 		Danger:     "#e06c75",
 		Muted:      "#7f848e",

@@ -10,6 +10,7 @@ func xcodeDark() Theme {
 		Accent3:    "#ff8170",
 		Accent4:    "#b281eb",
 		Accent5:    "#d9c97c",
+		Accent6:    "#abd97c",
 		Success:    "#78c2b3",
 		Danger:     "#ff7ab2",
 		Muted:      "#7f8c98",

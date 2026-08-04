@@ -10,6 +10,7 @@ func catppuccinMocha() Theme {
 		Accent3:    "#a6e3a1",
 		Accent4:    "#f2aede",
 		Accent5:    "#ebd391",
+		Accent6:    "#fab387",
 		Success:    "#89d88b",
 		Danger:     "#f37799",
 		Muted:      "#a6adc8",

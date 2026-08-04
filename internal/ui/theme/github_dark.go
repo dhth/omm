@@ -10,6 +10,7 @@ func githubDark() Theme {
 		Accent3:    "#6ca4f8",
 		Accent4:    "#db61a2",
 		Accent5:    "#e3b341",
+		Accent6:    "#a371f7",
 		Success:    "#56d364",
 		Danger:     "#db61a2",
 		Muted:      "#8b949e",

@@ -10,6 +10,7 @@ func rosePineMoon() Theme {
 		Accent3:    "#f6c177",
 		Accent4:    "#ea9a97",
 		Accent5:    "#3e8fb0",
+		Accent6:    "#f2d5b2",
 		Success:    "#9ccfd8",
 		Danger:     "#eb6f92",
 		Muted:      "#6e6a86",
