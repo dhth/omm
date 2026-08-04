@@ -26,7 +26,7 @@ func glamourStyleConfig(thm theme.Theme) ansi.StyleConfig {
 			StylePrimitive: ansi.StylePrimitive{
 				BlockPrefix: "",
 				BlockSuffix: "",
-				Color:       stringPtr(thm.Text),
+				Color:       stringPtr(thm.Foreground),
 			},
 			Margin: uintPtr(2),
 		},
@@ -41,38 +41,38 @@ func glamourStyleConfig(thm theme.Theme) ansi.StyleConfig {
 		Heading: ansi.StyleBlock{
 			StylePrimitive: ansi.StylePrimitive{
 				BlockSuffix: "\n",
-				Color:       stringPtr(thm.Primary),
+				Color:       stringPtr(thm.Accent1),
 				Bold:        boolPtr(true),
 			},
 		},
 		H1: ansi.StyleBlock{
 			StylePrimitive: ansi.StylePrimitive{
 				Prefix: "# ",
-				Color:  stringPtr(thm.Primary),
+				Color:  stringPtr(thm.Accent1),
 				Bold:   boolPtr(true),
 			},
 		},
 		H2: ansi.StyleBlock{
 			StylePrimitive: ansi.StylePrimitive{
 				Prefix: "## ",
-				Color:  stringPtr(thm.Tertiary),
+				Color:  stringPtr(thm.Accent3),
 			},
 		},
 		H3: ansi.StyleBlock{
 			StylePrimitive: ansi.StylePrimitive{
 				Prefix: "### ",
-				Color:  stringPtr(thm.Tertiary),
+				Color:  stringPtr(thm.Accent3),
 			},
 		},
 		H4: ansi.StyleBlock{
 			StylePrimitive: ansi.StylePrimitive{
 				Prefix: "#### ",
-				Color:  stringPtr(thm.Tertiary),
+				Color:  stringPtr(thm.Accent3),
 			},
 		},
 		H5: ansi.StyleBlock{
 			StylePrimitive: ansi.StylePrimitive{
-				Color: stringPtr(thm.Secondary),
+				Color: stringPtr(thm.Accent2),
 			},
 		},
 		H6: ansi.StyleBlock{
@@ -84,11 +84,11 @@ func glamourStyleConfig(thm theme.Theme) ansi.StyleConfig {
 		Text:          ansi.StylePrimitive{},
 		Strikethrough: ansi.StylePrimitive{CrossedOut: boolPtr(true)},
 		Emph: ansi.StylePrimitive{
-			Color:  stringPtr(thm.Tertiary),
+			Color:  stringPtr(thm.Accent3),
 			Italic: boolPtr(true),
 		},
 		Strong: ansi.StylePrimitive{
-			Color: stringPtr(thm.Primary),
+			Color: stringPtr(thm.Accent1),
 			Bold:  boolPtr(true),
 		},
 		HorizontalRule: ansi.StylePrimitive{
@@ -102,10 +102,10 @@ func glamourStyleConfig(thm theme.Theme) ansi.StyleConfig {
 			Unticked: "[ ] ",
 		},
 		Link: ansi.StylePrimitive{
-			Color: stringPtr(thm.Tertiary),
+			Color: stringPtr(thm.Accent3),
 		},
 		LinkText: ansi.StylePrimitive{
-			Color: stringPtr(thm.Secondary),
+			Color: stringPtr(thm.Accent2),
 			Bold:  boolPtr(true),
 		},
 		Image: ansi.StylePrimitive{
@@ -118,14 +118,14 @@ func glamourStyleConfig(thm theme.Theme) ansi.StyleConfig {
 		},
 		Code: ansi.StyleBlock{
 			StylePrimitive: ansi.StylePrimitive{
-				Color: stringPtr(thm.Quaternary),
+				Color: stringPtr(thm.Accent4),
 			},
 		},
 		CodeBlock: ansi.StyleCodeBlock{
 			Theme: chromaTheme(thm.Name),
 			StyleBlock: ansi.StyleBlock{
 				StylePrimitive: ansi.StylePrimitive{
-					Color: stringPtr(thm.Text),
+					Color: stringPtr(thm.Foreground),
 				},
 			},
 		},

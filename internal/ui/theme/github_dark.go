@@ -5,17 +5,17 @@ const themeNameGithubDark = "github-dark"
 func githubDark() Theme {
 	return Theme{
 		Name:       themeNameGithubDark,
-		Primary:    "#f78166",
-		Secondary:  "#56d364",
-		Tertiary:   "#6ca4f8",
-		Quaternary: "#db61a2",
-		Quinary:    "#e3b341",
+		Accent1:    "#f78166",
+		Accent2:    "#56d364",
+		Accent3:    "#6ca4f8",
+		Accent4:    "#db61a2",
+		Accent5:    "#e3b341",
 		Success:    "#56d364",
-		Error:      "#db61a2",
+		Danger:     "#db61a2",
 		Muted:      "#8b949e",
-		Text:       "#c9d1d9",
+		Foreground: "#c9d1d9",
 		Background: "#101216",
-		PrefixColors: []string{
+		CategoricalColors: []string{
 			"#f78166",
 			"#e06f5a",
 			"#e3b341",

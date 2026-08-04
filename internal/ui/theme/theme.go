@@ -26,18 +26,18 @@ var themes = []Theme{
 }
 
 type Theme struct {
-	Name         string
-	Primary      string
-	Secondary    string
-	Tertiary     string
-	Quaternary   string
-	Quinary      string
-	Success      string
-	Error        string
-	Muted        string
-	Text         string
-	Background   string
-	PrefixColors []string
+	Name              string
+	Accent1           string
+	Accent2           string
+	Accent3           string
+	Accent4           string
+	Accent5           string
+	Success           string
+	Danger            string
+	Muted             string
+	Foreground        string
+	Background        string
+	CategoricalColors []string
 }
 
 func All() []string {
@@ -90,7 +90,7 @@ func themeByOffset(name string, offset int) (Theme, error) {
 
 func cloneTheme(thm Theme) Theme {
 	cp := thm
-	cp.PrefixColors = append([]string(nil), thm.PrefixColors...)
+	cp.CategoricalColors = append([]string(nil), thm.CategoricalColors...)
 
 	return cp
 }

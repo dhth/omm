@@ -116,9 +116,9 @@ func (d spaciousTaskItemDelegate) Render(w io.Writer, m list.Model, index int, l
 }
 
 func newTaskListDelegate(thm theme.Theme, density ListDensityType, listType taskListType) list.ItemDelegate {
-	selectionColor := lipgloss.Color(thm.Primary)
+	selectionColor := lipgloss.Color(thm.Accent1)
 	if listType == archivedTasks {
-		selectionColor = lipgloss.Color(thm.Secondary)
+		selectionColor = lipgloss.Color(thm.Accent2)
 	}
 
 	selectionStyle := lipgloss.NewStyle().Foreground(selectionColor)
@@ -126,18 +126,18 @@ func newTaskListDelegate(thm theme.Theme, density ListDensityType, listType task
 	switch density {
 	case Spacious:
 		secondaryTextStyle := lipgloss.NewStyle().Foreground(lipgloss.Color(thm.Muted))
-		return spaciousTaskItemDelegate{selectionStyle, secondaryTextStyle, thm.PrefixColors}
+		return spaciousTaskItemDelegate{selectionStyle, secondaryTextStyle, thm.CategoricalColors}
 	default:
-		return compactItemDelegate{selectionStyle, thm.PrefixColors}
+		return compactItemDelegate{selectionStyle, thm.CategoricalColors}
 	}
 }
 
 func newBookmarksListDelegate(thm theme.Theme) list.ItemDelegate {
-	return newSpaciousListDelegate(lipgloss.Color(thm.Tertiary), lipgloss.Color(thm.Muted), false, 1)
+	return newSpaciousListDelegate(lipgloss.Color(thm.Accent3), lipgloss.Color(thm.Muted), false, 1)
 }
 
 func newPrefixSearchListDelegate(thm theme.Theme) list.ItemDelegate {
-	return newSpaciousListDelegate(lipgloss.Color(thm.Quinary), lipgloss.Color(thm.Muted), false, 0)
+	return newSpaciousListDelegate(lipgloss.Color(thm.Accent5), lipgloss.Color(thm.Muted), false, 0)
 }
 
 func newSpaciousListDelegate(selectionColor color.Color, normalTitleColor color.Color, showDesc bool, spacing int) list.DefaultDelegate {
