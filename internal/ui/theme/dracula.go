@@ -10,6 +10,7 @@ func dracula() Theme {
 		Accent3:    "#bd93f9",
 		Accent4:    "#8be9fd",
 		Accent5:    "#f1fa8c",
+		Accent6:    "#ffb86c",
 		Success:    "#69ff94",
 		Danger:     "#ff5555",
 		Muted:      "#6272a4",

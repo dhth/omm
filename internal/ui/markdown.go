@@ -77,7 +77,7 @@ func glamourStyleConfig(thm theme.Theme) ansi.StyleConfig {
 		},
 		H6: ansi.StyleBlock{
 			StylePrimitive: ansi.StylePrimitive{
-				Color: stringPtr(thm.Success),
+				Color: stringPtr(thm.Accent6),
 				Bold:  boolPtr(false),
 			},
 		},

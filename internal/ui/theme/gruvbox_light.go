@@ -10,6 +10,7 @@ func gruvboxLight() Theme {
 		Accent3:    "#076678",
 		Accent4:    "#79740e",
 		Accent5:    "#8f3f71",
+		Accent6:    "#356b4b",
 		Success:    "#79740e",
 		Danger:     "#9d0006",
 		Muted:      "#928374",

@@ -34,6 +34,7 @@ func newStyles(thm theme.Theme) styles {
 	accent3C := lipgloss.Color(thm.Accent3)
 	accent4C := lipgloss.Color(thm.Accent4)
 	accent5C := lipgloss.Color(thm.Accent5)
+	accent6C := lipgloss.Color(thm.Accent6)
 	successC := lipgloss.Color(thm.Success)
 	dangerC := lipgloss.Color(thm.Danger)
 	mutedC := lipgloss.Color(thm.Muted)
@@ -60,7 +61,7 @@ func newStyles(thm theme.Theme) styles {
 		contextTitle: titleBase.
 			Background(accent3C),
 		taskDetailsTitle: titleBase.
-			Background(successC),
+			Background(accent6C),
 		sectionHeader: lipgloss.NewStyle().
 			PaddingTop(1).
 			PaddingBottom(1).

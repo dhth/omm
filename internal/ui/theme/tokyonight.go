@@ -10,6 +10,7 @@ func tokyonight() Theme {
 		Accent3:    "#9ece6a",
 		Accent4:    "#bb9af7",
 		Accent5:    "#e0af68",
+		Accent6:    "#7dcfff",
 		Success:    "#9ece6a",
 		Danger:     "#f7768e",
 		Muted:      "#565f89",

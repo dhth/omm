@@ -10,6 +10,7 @@ func monokaiClassic() Theme {
 		Accent3:    "#a6e22e",
 		Accent4:    "#fd971f",
 		Accent5:    "#e6db74",
+		Accent6:    "#ff81ca",
 		Success:    "#a6e22e",
 		Danger:     "#f92672",
 		Muted:      "#75715e",

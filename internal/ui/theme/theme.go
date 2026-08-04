@@ -33,6 +33,7 @@ type Theme struct {
 	Accent3           string
 	Accent4           string
 	Accent5           string
+	Accent6           string
 	Success           string
 	Danger            string
 	Muted             string
