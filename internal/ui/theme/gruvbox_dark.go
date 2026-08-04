@@ -5,17 +5,17 @@ const themeNameGruvboxDark = "gruvbox-dark"
 func gruvboxDark() Theme {
 	return Theme{
 		Name:       themeNameGruvboxDark,
-		Primary:    "#fe8019",
-		Secondary:  "#fabd2f",
-		Tertiary:   "#83a598",
-		Quaternary: "#b8bb26",
-		Quinary:    "#d3896b",
+		Accent1:    "#fe8019",
+		Accent2:    "#fabd2f",
+		Accent3:    "#83a598",
+		Accent4:    "#b8bb26",
+		Accent5:    "#d3896b",
 		Success:    "#d3869b",
-		Error:      "#fb4934",
+		Danger:     "#fb4934",
 		Muted:      "#928374",
-		Text:       "#ebdbb2",
+		Foreground: "#ebdbb2",
 		Background: "#282828",
-		PrefixColors: []string{
+		CategoricalColors: []string{
 			"#fb4934",
 			"#f15a4a",
 			"#d65d0e",

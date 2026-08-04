@@ -5,17 +5,17 @@ const themeNameMonokaiClassic = "monokai-classic"
 func monokaiClassic() Theme {
 	return Theme{
 		Name:       themeNameMonokaiClassic,
-		Primary:    "#66d9ef",
-		Secondary:  "#ae81ff",
-		Tertiary:   "#a6e22e",
-		Quaternary: "#fd971f",
-		Quinary:    "#e6db74",
+		Accent1:    "#66d9ef",
+		Accent2:    "#ae81ff",
+		Accent3:    "#a6e22e",
+		Accent4:    "#fd971f",
+		Accent5:    "#e6db74",
 		Success:    "#a6e22e",
-		Error:      "#f92672",
+		Danger:     "#f92672",
 		Muted:      "#75715e",
-		Text:       "#fdfff1",
+		Foreground: "#fdfff1",
 		Background: "#272822",
-		PrefixColors: []string{
+		CategoricalColors: []string{
 			"#f92672",
 			"#e85d8f",
 			"#fd971f",

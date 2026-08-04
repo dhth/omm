@@ -5,17 +5,17 @@ const themeNameTokyonight = "tokyonight"
 func tokyonight() Theme {
 	return Theme{
 		Name:       themeNameTokyonight,
-		Primary:    "#f7768e",
-		Secondary:  "#7aa2f7",
-		Tertiary:   "#9ece6a",
-		Quaternary: "#bb9af7",
-		Quinary:    "#e0af68",
+		Accent1:    "#f7768e",
+		Accent2:    "#7aa2f7",
+		Accent3:    "#9ece6a",
+		Accent4:    "#bb9af7",
+		Accent5:    "#e0af68",
 		Success:    "#9ece6a",
-		Error:      "#f7768e",
+		Danger:     "#f7768e",
 		Muted:      "#565f89",
-		Text:       "#c0caf5",
+		Foreground: "#c0caf5",
 		Background: "#1a1b26",
-		PrefixColors: []string{
+		CategoricalColors: []string{
 			"#ce896a",
 			"#f7b476",
 			"#e0af68",

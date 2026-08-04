@@ -5,17 +5,17 @@ const themeNameDracula = "dracula"
 func dracula() Theme {
 	return Theme{
 		Name:       themeNameDracula,
-		Primary:    "#ff6e6e",
-		Secondary:  "#50fa7b",
-		Tertiary:   "#bd93f9",
-		Quaternary: "#8be9fd",
-		Quinary:    "#f1fa8c",
+		Accent1:    "#ff6e6e",
+		Accent2:    "#50fa7b",
+		Accent3:    "#bd93f9",
+		Accent4:    "#8be9fd",
+		Accent5:    "#f1fa8c",
 		Success:    "#69ff94",
-		Error:      "#ff5555",
+		Danger:     "#ff5555",
 		Muted:      "#6272a4",
-		Text:       "#f8f8f2",
+		Foreground: "#f8f8f2",
 		Background: "#282a36",
-		PrefixColors: []string{
+		CategoricalColors: []string{
 			"#ff6e6e",
 			"#ff5555",
 			"#faba8c",

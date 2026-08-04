@@ -5,17 +5,17 @@ const themeNameRosePineMoon = "rose-pine-moon"
 func rosePineMoon() Theme {
 	return Theme{
 		Name:       themeNameRosePineMoon,
-		Primary:    "#c4a7e7",
-		Secondary:  "#9ccfd8",
-		Tertiary:   "#f6c177",
-		Quaternary: "#ea9a97",
-		Quinary:    "#3e8fb0",
+		Accent1:    "#c4a7e7",
+		Accent2:    "#9ccfd8",
+		Accent3:    "#f6c177",
+		Accent4:    "#ea9a97",
+		Accent5:    "#3e8fb0",
 		Success:    "#9ccfd8",
-		Error:      "#eb6f92",
+		Danger:     "#eb6f92",
 		Muted:      "#6e6a86",
-		Text:       "#e0def4",
+		Foreground: "#e0def4",
 		Background: "#232136",
-		PrefixColors: []string{
+		CategoricalColors: []string{
 			"#eb6f92",
 			"#e85f86",
 			"#ea9a97",

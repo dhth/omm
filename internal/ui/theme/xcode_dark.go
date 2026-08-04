@@ -5,17 +5,17 @@ const themeNameXcodeDark = "xcode-dark"
 func xcodeDark() Theme {
 	return Theme{
 		Name:       themeNameXcodeDark,
-		Primary:    "#ff7ab2",
-		Secondary:  "#4eb0cc",
-		Tertiary:   "#ff8170",
-		Quaternary: "#b281eb",
-		Quinary:    "#d9c97c",
+		Accent1:    "#ff7ab2",
+		Accent2:    "#4eb0cc",
+		Accent3:    "#ff8170",
+		Accent4:    "#b281eb",
+		Accent5:    "#d9c97c",
 		Success:    "#78c2b3",
-		Error:      "#ff7ab2",
+		Danger:     "#ff7ab2",
 		Muted:      "#7f8c98",
-		Text:       "#dfdfe0",
+		Foreground: "#dfdfe0",
 		Background: "#292a30",
-		PrefixColors: []string{
+		CategoricalColors: []string{
 			"#ff8170",
 			"#ffa14f",
 			"#d9c97c",

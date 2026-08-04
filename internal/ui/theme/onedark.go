@@ -5,17 +5,17 @@ const themeNameOneDark = "onedark"
 func oneDark() Theme {
 	return Theme{
 		Name:       themeNameOneDark,
-		Primary:    "#61afef",
-		Secondary:  "#98c379",
-		Tertiary:   "#c678dd",
-		Quaternary: "#e5c07b",
-		Quinary:    "#d19a66",
+		Accent1:    "#61afef",
+		Accent2:    "#98c379",
+		Accent3:    "#c678dd",
+		Accent4:    "#e5c07b",
+		Accent5:    "#d19a66",
 		Success:    "#98c379",
-		Error:      "#e06c75",
+		Danger:     "#e06c75",
 		Muted:      "#7f848e",
-		Text:       "#abb2bf",
+		Foreground: "#abb2bf",
 		Background: "#282c34",
-		PrefixColors: []string{
+		CategoricalColors: []string{
 			"#e06c75",
 			"#d55f68",
 			"#d19a66",

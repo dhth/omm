@@ -29,13 +29,13 @@ type styles struct {
 
 func newStyles(thm theme.Theme) styles {
 	bg := lipgloss.Color(thm.Background)
-	primaryC := lipgloss.Color(thm.Primary)
-	secondaryC := lipgloss.Color(thm.Secondary)
-	tertiaryC := lipgloss.Color(thm.Tertiary)
-	quaternaryC := lipgloss.Color(thm.Quaternary)
-	quinaryC := lipgloss.Color(thm.Quinary)
+	accent1C := lipgloss.Color(thm.Accent1)
+	accent2C := lipgloss.Color(thm.Accent2)
+	accent3C := lipgloss.Color(thm.Accent3)
+	accent4C := lipgloss.Color(thm.Accent4)
+	accent5C := lipgloss.Color(thm.Accent5)
 	successC := lipgloss.Color(thm.Success)
-	errorC := lipgloss.Color(thm.Error)
+	dangerC := lipgloss.Color(thm.Danger)
 	mutedC := lipgloss.Color(thm.Muted)
 
 	mutedStyle := lipgloss.NewStyle().Foreground(mutedC)
@@ -54,11 +54,11 @@ func newStyles(thm theme.Theme) styles {
 	return styles{
 		listContainer: lipgloss.NewStyle().PaddingBottom(1).PaddingTop(1),
 		taskEntryTitle: titleBase.
-			Background(quaternaryC),
+			Background(accent4C),
 		helpTitle: titleBase.
-			Background(tertiaryC),
+			Background(accent3C),
 		contextTitle: titleBase.
-			Background(tertiaryC),
+			Background(accent3C),
 		taskDetailsTitle: titleBase.
 			Background(successC),
 		sectionHeader: lipgloss.NewStyle().
@@ -69,7 +69,7 @@ func newStyles(thm theme.Theme) styles {
 			PaddingLeft(2),
 		statusError: lipgloss.NewStyle().
 			PaddingLeft(2).
-			Foreground(errorC),
+			Foreground(dangerC),
 		statusSuccess: lipgloss.NewStyle().
 			PaddingLeft(2).
 			Foreground(successC),
@@ -78,16 +78,16 @@ func newStyles(thm theme.Theme) styles {
 			Foreground(mutedC),
 		deletePrompt: lipgloss.NewStyle().
 			PaddingLeft(2).
-			Foreground(errorC),
+			Foreground(dangerC),
 		mutedText: mutedStyle,
 		activeListTitle: titleBase.
-			Background(primaryC),
+			Background(accent1C),
 		archivedListTitle: titleBase.
-			Background(secondaryC),
-		activeListTitleBar:    listTitleBase.Background(primaryC),
-		archivedListTitleBar:  listTitleBase.Background(secondaryC),
-		bookmarksListTitleBar: listTitleBase.Background(tertiaryC),
-		prefixListTitleBar:    listTitleBase.Background(quinaryC),
-		dangerListTitleBar:    listTitleBase.Background(errorC),
+			Background(accent2C),
+		activeListTitleBar:    listTitleBase.Background(accent1C),
+		archivedListTitleBar:  listTitleBase.Background(accent2C),
+		bookmarksListTitleBar: listTitleBase.Background(accent3C),
+		prefixListTitleBar:    listTitleBase.Background(accent5C),
+		dangerListTitleBar:    listTitleBase.Background(dangerC),
 	}
 }
