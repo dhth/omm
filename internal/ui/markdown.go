@@ -157,6 +157,8 @@ func chromaTheme(themeName string) string {
 		return "gruvbox"
 	case "gruvbox-dark-hard":
 		return "gruvbox"
+	case "gruvbox-light":
+		return "gruvbox-light"
 	case "monokai-classic":
 		return "monokai"
 	case "onedark":
