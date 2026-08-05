@@ -45,7 +45,7 @@ func rosePineMoon() Theme {
 			"#c0e4e9",
 			"#e6d5f6",
 			"#f9c5d2",
-			"#6e6a86",
+			"#7b7793",
 			"#e0def4",
 		},
 	}

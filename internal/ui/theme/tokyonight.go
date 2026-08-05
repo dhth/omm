@@ -13,7 +13,7 @@ func tokyonight() Theme {
 		Accent6:    "#7dcfff",
 		Success:    "#9ece6a",
 		Danger:     "#f7768e",
-		Muted:      "#565f89",
+		Muted:      "#5e6791",
 		Foreground: "#c0caf5",
 		Background: "#1a1b26",
 		CategoricalColors: []string{

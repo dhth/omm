@@ -6,7 +6,7 @@ func gruvboxLight() Theme {
 	return Theme{
 		Name:       themeNameGruvboxLight,
 		Accent1:    "#af3a03",
-		Accent2:    "#b57614",
+		Accent2:    "#a06812",
 		Accent3:    "#076678",
 		Accent4:    "#79740e",
 		Accent5:    "#8f3f71",
