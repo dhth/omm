@@ -1,0 +1,52 @@
+package theme
+
+const themeNameNightowl = "nightowl"
+
+func nightowl() Theme {
+	return Theme{
+		Name:       themeNameNightowl,
+		Accent1:    "#82aaff",
+		Accent2:    "#c5e478",
+		Accent3:    "#c792ea",
+		Accent4:    "#7fdbca",
+		Accent5:    "#f78c6c",
+		Accent6:    "#ecc48d",
+		Success:    "#22da6e",
+		Danger:     "#ef5350",
+		Muted:      "#637777",
+		Foreground: "#d6deeb",
+		Background: "#011627",
+		CategoricalColors: []string{
+			"#ef5350",
+			"#ff5874",
+			"#ff6363",
+			"#f78c6c",
+			"#ffcb8b",
+			"#ecc48d",
+			"#ffeb95",
+			"#fad430",
+			"#c5e478",
+			"#8bd649",
+			"#22da6e",
+			"#41eec6",
+			"#7fdbca",
+			"#80cbc4",
+			"#57eaf1",
+			"#31e1eb",
+			"#78ccf0",
+			"#82aaff",
+			"#82b1ff",
+			"#8eace3",
+			"#a2bffc",
+			"#a599e9",
+			"#c792ea",
+			"#d1aaff",
+			"#f6bbe5",
+			"#ff869a",
+			"#caece6",
+			"#cdebf7",
+			"#baebe2",
+			"#d9f5dd",
+		},
+	}
+}

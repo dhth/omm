@@ -22,6 +22,7 @@ var themes = []Theme{
 	gruvboxDarkHard(),
 	gruvboxLight(),
 	monokaiClassic(),
+	nightowl(),
 	oneDark(),
 	rosePineMoon(),
 	solarizedLight(),
