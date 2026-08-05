@@ -1,0 +1,52 @@
+package theme
+
+const themeNameSolarizedLight = "solarized-light"
+
+func solarizedLight() Theme {
+	return Theme{
+		Name:       themeNameSolarizedLight,
+		Accent1:    "#b13f12",
+		Accent2:    "#1d6fa5",
+		Accent3:    "#2f7d32",
+		Accent4:    "#575ca8",
+		Accent5:    "#876500",
+		Accent6:    "#167b79",
+		Success:    "#2f7d32",
+		Danger:     "#c22630",
+		Muted:      "#71868b",
+		Foreground: "#586e75",
+		Background: "#fdf6e3",
+		CategoricalColors: []string{
+			"#c22630",
+			"#a82b3c",
+			"#b13f12",
+			"#9c4b0d",
+			"#876500",
+			"#776b00",
+			"#5f720f",
+			"#427a25",
+			"#2f7d32",
+			"#197847",
+			"#167b68",
+			"#167b79",
+			"#126f86",
+			"#1d6fa5",
+			"#285f9e",
+			"#3c5c9f",
+			"#575ca8",
+			"#6d529c",
+			"#81458d",
+			"#963b76",
+			"#a13d5d",
+			"#945044",
+			"#7b5d3d",
+			"#65705a",
+			"#586e75",
+			"#4f6570",
+			"#52626f",
+			"#5f5f78",
+			"#6b596f",
+			"#725761",
+		},
+	}
+}

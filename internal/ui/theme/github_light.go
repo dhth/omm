@@ -1,0 +1,52 @@
+package theme
+
+const themeNameGithubLight = "github-light"
+
+func githubLight() Theme {
+	return Theme{
+		Name:       themeNameGithubLight,
+		Accent1:    "#cf222e",
+		Accent2:    "#1a7f37",
+		Accent3:    "#0969da",
+		Accent4:    "#8250df",
+		Accent5:    "#9a6700",
+		Accent6:    "#bf3989",
+		Success:    "#1a7f37",
+		Danger:     "#cf222e",
+		Muted:      "#656d76",
+		Foreground: "#1f2328",
+		Background: "#ffffff",
+		CategoricalColors: []string{
+			"#cf222e",
+			"#a40e26",
+			"#bc4c00",
+			"#953800",
+			"#9a6700",
+			"#7d4e00",
+			"#5f6f00",
+			"#3f7f20",
+			"#1a7f37",
+			"#116329",
+			"#18765b",
+			"#1b6f72",
+			"#0969da",
+			"#0550ae",
+			"#3155a5",
+			"#4f56a6",
+			"#6639ba",
+			"#8250df",
+			"#a034c4",
+			"#bf3989",
+			"#9e2f75",
+			"#a53f5b",
+			"#8c4a3f",
+			"#6e5a3a",
+			"#57606a",
+			"#656d76",
+			"#424a53",
+			"#1f2328",
+			"#3d596d",
+			"#594f7a",
+		},
+	}
+}

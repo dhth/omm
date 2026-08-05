@@ -60,12 +60,12 @@ func TestNextTheme(t *testing.T) {
 		{
 			name:         "next theme in middle of list",
 			currentTheme: "github-dark",
-			expectedName: "gruvbox-dark",
+			expectedName: "github-light",
 		},
 		{
 			name:         "next theme wraps around",
 			currentTheme: "xcode-dark",
-			expectedName: "catppuccin-mocha",
+			expectedName: "catppuccin-latte",
 		},
 		{
 			name:         "next theme trims whitespace",
@@ -110,11 +110,11 @@ func TestPreviousTheme(t *testing.T) {
 		{
 			name:         "previous theme in middle of list",
 			currentTheme: "gruvbox-dark",
-			expectedName: "github-dark",
+			expectedName: "github-light",
 		},
 		{
 			name:         "previous theme wraps around",
-			currentTheme: "catppuccin-mocha",
+			currentTheme: "catppuccin-latte",
 			expectedName: "xcode-dark",
 		},
 		{
