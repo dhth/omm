@@ -1,7 +1,6 @@
 omm
 .quickrun
 cosign.key
-justfile
 .notes
 debug.log
 tasks.txt

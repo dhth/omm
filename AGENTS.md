@@ -2,20 +2,10 @@
 
 Keyboard-driven TUI task manager for the terminal, built in Go with Bubbletea.
 
-## Common Commands
+## Commands
 
-Use **just** (preferred over raw Go commands):
-
-| Command        | Alias     | Action              |
-|----------------|-----------|---------------------|
-| `just run`     | `just r`  | `go run .`          |
-| `just build`   | `just b`  | `go build .`        |
-| `just test`    | `just t`  | `go test ./...`     |
-| `just fmt`     | `just f`  | `gofumpt -l -w .`   |
-| `just lint`    | `just l`  | `golangci-lint run` |
-| `just install` | `just i`  | `go install .`      |
-| `just tidy`    | `just ti` | `go mod tidy`       |
-| `just vuln`    | `just v`  | `govulncheck ./...` |
+- Run all project commands via mise.
+- See `mise.toml` for the list of tasks.
 
 ## Architecture
 
