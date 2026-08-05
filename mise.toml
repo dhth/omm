@@ -63,8 +63,9 @@ yamlfmt \
 
 [tasks.test]
 alias = "t"
-description = "Run all tests"
-run = "go test -v -count=1 ./..."
+description = "Run tests"
+usage = 'arg "[pattern]" default="./..." help="Package pattern to test"'
+run = 'go test -count=1 "${usage_pattern?}"'
 
 [tasks.upgrade]
 alias = "up"
