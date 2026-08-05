@@ -13,15 +13,18 @@ const (
 var ErrInvalidThemeName = errors.New("invalid theme name provided")
 
 var themes = []Theme{
+	catppuccinLatte(),
 	catppuccinMocha(),
 	dracula(),
 	githubDark(),
+	githubLight(),
 	gruvboxDark(),
 	gruvboxDarkHard(),
 	gruvboxLight(),
 	monokaiClassic(),
 	oneDark(),
 	rosePineMoon(),
+	solarizedLight(),
 	tokyonight(),
 	xcodeDark(),
 }

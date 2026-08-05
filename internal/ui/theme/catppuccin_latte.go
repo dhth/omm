@@ -1,0 +1,52 @@
+package theme
+
+const themeNameCatppuccinLatte = "catppuccin-latte"
+
+func catppuccinLatte() Theme {
+	return Theme{
+		Name:       themeNameCatppuccinLatte,
+		Accent1:    "#d20f39",
+		Accent2:    "#1a5ad7",
+		Accent3:    "#287a1c",
+		Accent4:    "#8839ef",
+		Accent5:    "#9a5f00",
+		Accent6:    "#0f6f75",
+		Success:    "#287a1c",
+		Danger:     "#d20f39",
+		Muted:      "#686b81",
+		Foreground: "#4c4f69",
+		Background: "#eff1f5",
+		CategoricalColors: []string{
+			"#d20f39",
+			"#b91c3d",
+			"#a9435e",
+			"#b3268f",
+			"#a13b86",
+			"#8839ef",
+			"#7737c7",
+			"#7040a8",
+			"#3f51a2",
+			"#2456b3",
+			"#1a5ad7",
+			"#175fb8",
+			"#006b83",
+			"#0f6f75",
+			"#176b69",
+			"#18734d",
+			"#287a1c",
+			"#34742d",
+			"#5d7015",
+			"#776900",
+			"#856500",
+			"#9a5f00",
+			"#a65700",
+			"#b64f00",
+			"#b53c25",
+			"#a94a3a",
+			"#5c5f77",
+			"#686b81",
+			"#4c4f69",
+			"#62566f",
+		},
+	}
+}
