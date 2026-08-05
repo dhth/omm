@@ -1523,15 +1523,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 
+		if len(context) > pers.ContextMaxBytes {
+			// Don't remove the temporary file so the user's edits aren't
+			// lost; they can shorten the content and re-open it.
+			m.errorMsg = fmt.Sprintf("The content you entered is too large (max %d bytes); your edits were preserved at %s, shorten it and re-open", pers.ContextMaxBytes, msg.fPath)
+			break
+		}
+
 		err = os.Remove(msg.fPath)
 		if err != nil {
 			m.errorMsg = fmt.Sprintf("warning: omm failed to remove temporary file: %s", err)
-		}
-
-		if len(context) > pers.ContextMaxBytes {
-			m.errorMsg = "The content you entered is too large, maybe shorten it"
-			// TODO: allow reopening the text editor with the same content again
-			break
 		}
 
 		if len(context) == 0 && msg.oldContext == nil {
