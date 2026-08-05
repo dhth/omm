@@ -133,11 +133,11 @@ func newTaskListDelegate(thm theme.Theme, density ListDensityType, listType task
 }
 
 func newBookmarksListDelegate(thm theme.Theme) list.ItemDelegate {
-	return newSpaciousListDelegate(lipgloss.Color(thm.Accent3), lipgloss.Color(thm.Muted), false, 1)
+	return newSpaciousListDelegate(lipgloss.Color(thm.Accent3), lipgloss.Color(thm.Foreground), false, 1)
 }
 
 func newPrefixSearchListDelegate(thm theme.Theme) list.ItemDelegate {
-	return newSpaciousListDelegate(lipgloss.Color(thm.Accent5), lipgloss.Color(thm.Muted), false, 0)
+	return newSpaciousListDelegate(lipgloss.Color(thm.Accent5), lipgloss.Color(thm.Foreground), false, 0)
 }
 
 func newSpaciousListDelegate(selectionColor color.Color, normalTitleColor color.Color, showDesc bool, spacing int) list.DefaultDelegate {
