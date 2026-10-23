@@ -7,7 +7,7 @@ cosign = "2.5.0"
 go = "1.27.3"
 "go:golang.org/x/vuln/cmd/govulncheck" = "latest"
 gofumpt = "0.11.0"
-golangci-lint = "2.12.2"
+golangci-lint = "2.15.0"
 goreleaser = "2.9.0"
 yamlfmt = "0.21.0"
 
