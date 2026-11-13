@@ -155,13 +155,18 @@ in the task lists.
 
 omm comes with the following themes built in:
 
+- `catppuccin-latte`
 - `catppuccin-mocha`
 - `dracula`
 - `github-dark`
+- `github-light`
 - `gruvbox-dark`
+- `gruvbox-dark-hard`
+- `gruvbox-light`
 - `monokai-classic`
 - `onedark`
 - `rose-pine-moon`
+- `solarized-light`
 - `tokyonight`
 - `xcode-dark`
 
